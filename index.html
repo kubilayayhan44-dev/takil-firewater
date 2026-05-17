@@ -17381,20 +17381,54 @@ function generateHomeInviteCode() {
   return code;
 }
 
-function getHomeInviteLink() {
+// Cache: tunnel URL bir kere fetch edilir
+let _publicBaseUrl = null;
+async function detectPublicBaseUrl() {
+  // Eğer sayfa zaten public URL'den açılmışsa (cloudflare/nip.io vb) onu kullan
+  if (window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
+    return window.location.origin + window.location.pathname.replace(/\/index\.html$/, '/');
+  }
+  // Cache
+  if (_publicBaseUrl) return _publicBaseUrl;
+  // Localhost ise dev-server'dan tunnel URL'i öğren
+  try {
+    const res = await fetch('/api/_tunnel-url', { cache: 'no-store' });
+    const data = await res.json();
+    if (data.tunnel) {
+      _publicBaseUrl = data.tunnel + '/';
+      return _publicBaseUrl;
+    }
+  } catch(e) {
+    console.warn('Tunnel URL alinamadi:', e);
+  }
+  // Fallback: localhost (sadece test/dev için)
+  return window.location.origin + window.location.pathname.replace(/\/index\.html$/, '/');
+}
+
+async function getHomeInviteLink() {
   const code = generateHomeInviteCode();
   homeInviteCode = code;
-  // Kısa ve okunabilir link (kişisel davet)
-  const baseUrl = window.location.origin + window.location.pathname.replace(/\/index\.html$/, '/');
+  const baseUrl = await detectPublicBaseUrl();
   const name = (typeof myName !== 'undefined' && myName) ? myName : 'Bir arkadas';
   homeInviteLink = baseUrl + '?join=' + code + '&from=' + encodeURIComponent(name);
   return homeInviteLink;
 }
 
-function renderHomeInviteCard() {
+// Senkron versiyon (cache kullanir)
+function getHomeInviteLinkSync() {
+  if (homeInviteLink) return homeInviteLink;
+  const code = generateHomeInviteCode();
+  homeInviteCode = code;
+  const baseUrl = _publicBaseUrl || (window.location.origin + window.location.pathname.replace(/\/index\.html$/, '/'));
+  const name = (typeof myName !== 'undefined' && myName) ? myName : 'Bir arkadas';
+  homeInviteLink = baseUrl + '?join=' + code + '&from=' + encodeURIComponent(name);
+  return homeInviteLink;
+}
+
+async function renderHomeInviteCard() {
   const linkEl = document.getElementById('home-invite-link-text');
   if (!linkEl) return;
-  const link = getHomeInviteLink();
+  const link = await getHomeInviteLink();
   // Kısa gösterim (UI temiz olsun)
   let display = link;
   if (link.length > 60) {
@@ -17406,15 +17440,36 @@ function renderHomeInviteCard() {
   linkEl.textContent = display;
   linkEl.title = link;  // hover'da tam link
 
-  // WhatsApp link
+  // WhatsApp link - güzel mesaj formatı
   const waEl = document.getElementById('home-invite-wa');
   if (waEl) {
-    const msg = '🎮 Takil’a benimle katıl! Şuradan giriş yap: ' + link;
+    const name = (typeof myName !== 'undefined' && myName) ? myName : 'Ben';
+    const msg = '🎮 *Takıl*’a davet edildin!\n\n' +
+                name + ' seninle:\n• 🎥 Görüşme yapmak\n• 🎮 Oyun oynamak\n• 💬 Sohbet etmek\nistiyor.\n\n👇 Linkten anında katıl:\n' + link;
     waEl.href = 'https://wa.me/?text=' + encodeURIComponent(msg);
   }
 
   // QR kod (mini)
   renderHomeInviteQR(link);
+
+  // Public URL bilgisi göster
+  const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+  const isPublicLink = link && !link.includes('localhost') && !link.includes('127.0.0.1');
+  let statusEl = document.getElementById('home-invite-status');
+  if (!statusEl) {
+    statusEl = document.createElement('div');
+    statusEl.id = 'home-invite-status';
+    statusEl.style.cssText = 'margin-top:14px;padding:10px 14px;border-radius:10px;font-size:12px;display:flex;align-items:center;gap:8px;line-height:1.4;';
+    const linkRow = document.querySelector('.home-invite-link-row');
+    if (linkRow) linkRow.parentNode.insertBefore(statusEl, linkRow.nextSibling);
+  }
+  if (isPublicLink) {
+    statusEl.style.cssText += 'background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.3);color:#34d399;';
+    statusEl.innerHTML = '✅ <span><b>Public link aktif!</b> Arkadaşların her yerden açabilir.</span>';
+  } else {
+    statusEl.style.cssText += 'background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.3);color:#fca5a5;';
+    statusEl.innerHTML = '⚠️ <span><b>Public link yok!</b> Tunnel kapalı - arkadaşların açamaz. Server’ı yeniden başlat.</span>';
+  }
 }
 
 function renderHomeInviteQR(link) {
@@ -17434,8 +17489,8 @@ function renderHomeInviteQR(link) {
   }
 }
 
-function copyHomeInviteLink() {
-  const link = homeInviteLink || getHomeInviteLink();
+async function copyHomeInviteLink() {
+  const link = homeInviteLink || await getHomeInviteLink();
   navigator.clipboard.writeText(link).then(() => {
     const btn = document.getElementById('home-invite-copy-btn');
     const label = document.getElementById('home-invite-copy-label');
@@ -17454,8 +17509,8 @@ function copyHomeInviteLink() {
   });
 }
 
-function openHomeInviteQR() {
-  if (!homeInviteLink) renderHomeInviteCard();
+async function openHomeInviteQR() {
+  if (!homeInviteLink) await renderHomeInviteCard();
   const modal = document.getElementById('home-invite-qr-modal');
   if (modal) modal.classList.add('open');
   // QR'i tekrar render et (büyük modal için)
@@ -17467,8 +17522,8 @@ function closeHomeInviteQR() {
   if (modal) modal.classList.remove('open');
 }
 
-function shareHomeInvite() {
-  const link = homeInviteLink || getHomeInviteLink();
+async function shareHomeInvite() {
+  const link = homeInviteLink || await getHomeInviteLink();
   const name = (typeof myName !== 'undefined' && myName) ? myName : 'Bir arkadas';
   const shareData = {
     title: 'Takil’a Davet',

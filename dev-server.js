@@ -76,8 +76,28 @@ function serveFile(filePath, res) {
   });
 }
 
+// Cloudflare tunnel URL'ini okur
+function getTunnelUrl() {
+  try {
+    const logPath = '/tmp/cf-tunnel-app.log';
+    if (!fs.existsSync(logPath)) return null;
+    const log = fs.readFileSync(logPath, 'utf8');
+    // En son trycloudflare.com URL'ini bul
+    const matches = log.match(/https:\/\/[a-z0-9-]+\.trycloudflare\.com/g);
+    if (matches && matches.length) return matches[matches.length - 1];
+  } catch(e) {}
+  return null;
+}
+
 const server = http.createServer((req, res) => {
   const url = req.url.split('?')[0];
+  
+  // Özel endpoint: tunnel URL
+  if (url === '/api/_tunnel-url') {
+    const tunnelUrl = getTunnelUrl();
+    res.writeHead(200, { 'content-type': 'application/json; charset=utf-8', 'cache-control': 'no-store' });
+    return res.end(JSON.stringify({ tunnel: tunnelUrl, host: req.headers.host }));
+  }
   
   // /api/* → canlı VPS'e proxy
   if (url.startsWith('/api/')) {
