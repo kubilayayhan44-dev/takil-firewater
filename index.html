@@ -16303,9 +16303,124 @@ function doLogout() {
   }
 
   // Token yoksa veya geçersizse hep auth ekranı göster
+  // AMA: davet linkiyle gelen kullanıcı için MİSAFİR GİRİŞİ göster
+  const urlParams = new URLSearchParams(window.location.search);
+  const isInviteVisit = !!(urlParams.get('call') || urlParams.get('join') || urlParams.get('game'));
+  
+  if (isInviteVisit) {
+    // MİSAFİR EŞKİANı GÖSTER - login zorunluluksuz hemen katılabilsin
+    showGuestJoinScreen(urlParams);
+  } else {
+    document.getElementById('auth-screen').style.display = 'flex';
+    document.getElementById('main-app').style.display = 'none';
+  }
+})();
+
+// =====================================================================
+// MİSAFİR GİRİŞİ (login olmadan davet linkiyle direkt katılma)
+// =====================================================================
+function showGuestJoinScreen(urlParams) {
+  const callCode = urlParams.get('call');
+  const joinCode = urlParams.get('join');
+  const code = callCode || joinCode;
+  const fromName = decodeURIComponent(urlParams.get('from') || 'Bir arkadaşın');
+  
+  // Auth ekranını gizle, ana app'i göster (sayfa render lazim)
+  document.getElementById('auth-screen').style.display = 'none';
+  document.getElementById('main-app').style.display = 'flex';
+  
+  // MİSAFİR MODAL'ı göster
+  const modal = document.createElement('div');
+  modal.id = 'guest-join-modal';
+  modal.style.cssText = 'position:fixed;inset:0;background:linear-gradient(135deg,#0a0518,#1a0f3e);z-index:999999;display:flex;align-items:center;justify-content:center;padding:20px;animation:vfxFadeIn 0.4s;';
+  modal.innerHTML = `
+    <div style="max-width:440px;width:100%;background:linear-gradient(135deg,#1a1f3a,#0f1428);border:1.5px solid rgba(167,139,250,0.4);border-radius:24px;padding:36px 28px;text-align:center;box-shadow:0 30px 100px rgba(0,0,0,0.7),0 0 80px rgba(124,58,237,0.3);">
+      <div style="width:64px;height:64px;margin:0 auto 16px;background:linear-gradient(135deg,#a78bfa,#7c3aed);border-radius:18px;display:flex;align-items:center;justify-content:center;font-size:32px;box-shadow:0 8px 24px rgba(124,58,237,0.5);">🎮</div>
+      <div style="font-size:11px;color:#a78bfa;letter-spacing:3px;font-weight:700;margin-bottom:8px;text-transform:uppercase;">MİSAFİR KATILIM</div>
+      <h2 style="color:#fff;font-size:24px;margin:0 0 8px;font-weight:800;line-height:1.2;">${fromName}’ın yanına gel!</h2>
+      <p style="color:#94a3b8;font-size:14px;margin:0 0 24px;line-height:1.5;">Sadece adını yaz, anında katıl. Kayıt gerekmez!</p>
+      
+      <div style="margin-bottom:16px;">
+        <input type="text" id="guest-name-input" placeholder="Adın (örn: Ahmet)" maxlength="20" autofocus
+          style="width:100%;padding:16px;background:rgba(0,0,0,0.4);border:1.5px solid rgba(167,139,250,0.3);border-radius:12px;color:#fff;font-size:16px;font-family:inherit;text-align:center;font-weight:600;letter-spacing:0.5px;outline:none;"
+          onkeypress="if(event.key==='Enter')document.getElementById('guest-join-btn').click()"
+          oninput="document.getElementById('guest-join-btn').disabled = this.value.trim().length < 2"
+        />
+      </div>
+      
+      <button id="guest-join-btn" disabled
+        onclick="submitGuestJoin('${code}', '${fromName.replace(/'/g, "\\\'")}')"
+        style="width:100%;padding:16px;background:linear-gradient(135deg,#a78bfa,#7c3aed,#ec4899);border:none;color:#fff;border-radius:12px;cursor:pointer;font-weight:900;font-size:15px;font-family:inherit;letter-spacing:1.5px;text-transform:uppercase;box-shadow:0 8px 24px rgba(124,58,237,0.5);transition:all 0.2s;opacity:0.5;"
+        onmouseover="if(!this.disabled){this.style.transform='translateY(-2px)';this.style.boxShadow='0 12px 32px rgba(124,58,237,0.7)'}"
+        onmouseout="this.style.transform='';this.style.boxShadow='0 8px 24px rgba(124,58,237,0.5)'"
+      >→ GÖRÜŞMEYE KATIL</button>
+      
+      <div style="margin-top:16px;font-size:11px;color:#64748b;">
+        Veya <a href="javascript:dismissGuestJoinAndShowAuth()" style="color:#a78bfa;text-decoration:none;font-weight:600;">kayıt ol</a> kalıcı hesap aç
+      </div>
+      
+      <style>
+        #guest-join-btn:not(:disabled) { opacity: 1 !important; cursor: pointer !important; }
+        #guest-name-input:focus { border-color: #a78bfa !important; box-shadow: 0 0 0 3px rgba(167,139,250,0.2); }
+      </style>
+    </div>
+  `;
+  document.body.appendChild(modal);
+  setTimeout(() => document.getElementById('guest-name-input')?.focus(), 300);
+}
+
+function submitGuestJoin(code, from) {
+  const inp = document.getElementById('guest-name-input');
+  const name = (inp?.value || '').trim();
+  if (name.length < 2) return;
+  
+  // MİSAFİR kullanıcı olarak ayarla (token YOK ama isim VAR)
+  localStorage.setItem('takil_user_name', name);
+  localStorage.setItem('takil_user', JSON.stringify({ name: name, email: 'misafir@takil.app', isGuest: true }));
+  window.myName = name;
+  window.myCallName = name;
+  
+  // Modal kapat
+  const modal = document.getElementById('guest-join-modal');
+  if (modal) {
+    modal.style.opacity = '0';
+    setTimeout(() => modal.remove(), 400);
+  }
+  
+  // Kullanıcı adını UI'a yaz
+  if (typeof updateUserUI === 'function') {
+    try { updateUserUI(name); } catch(e) {}
+  }
+  
+  // Direkt görüşmeye katil
+  setTimeout(() => {
+    if (code.startsWith('tkl-') || code.startsWith('call-')) {
+      // Tkl- veya call- formatı: doğrudan görüşmeye
+      goPage('video', null);
+      setTimeout(() => {
+        if (typeof showJoinCallForm === 'function') showJoinCallForm();
+        const ci = document.getElementById('call-join-code');
+        if (ci) ci.value = code;
+        setTimeout(() => { if (typeof joinCall === 'function') joinCall(); }, 500);
+      }, 600);
+    } else if (code.startsWith('takil-')) {
+      // Oyun davet
+      if (typeof acceptGameInvite === 'function') acceptGameInvite(code, from);
+    } else if (code.startsWith('karma-')) {
+      // Karma davet
+      if (typeof acceptGameInvite === 'function') acceptGameInvite(code, from);
+    }
+    // URL'i temizle
+    if (history.replaceState) history.replaceState(null, '', window.location.pathname);
+  }, 500);
+}
+
+function dismissGuestJoinAndShowAuth() {
+  const modal = document.getElementById('guest-join-modal');
+  if (modal) modal.remove();
   document.getElementById('auth-screen').style.display = 'flex';
   document.getElementById('main-app').style.display = 'none';
-})();
+}
 
 // ============================================================
 // PiP VIDEO PANEL (Görüşme aktifken oyun oynarken yan tarafta görünür)
