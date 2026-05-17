@@ -15410,30 +15410,46 @@ const voiceFx = {
 // ============= AUDIO WORKLET KODU =============
 // PSOLA tabanlı pitch+formant shifter inline yazılır
 const WORKLET_CODE = `
-class PsolaProcessor extends AudioWorkletProcessor {
+// =====================================================================
+// PURE VOICE PROCESSOR
+//
+// En temiz pitch shift yontemi:
+//   - Input'u tampona biriktir
+//   - playbackRate ile yeniden okur (gibi)
+//   - Single grain, NO overlap
+//
+// Avantaji: Aliasing minimal, ses temiz
+// Dezavantaji: Real-time'da gecikme var (~50ms)
+// =====================================================================
+
+class VoiceProcessor extends AudioWorkletProcessor {
   constructor() {
     super();
-    this.pitchRatio = 1.0;     // 1.0 = orijinal pitch
-    this.formantRatio = 1.0;   // 1.0 = orijinal formant
-    this.bufferSize = 4096;
-    this.hop = 256;            // hop size (small for low latency)
-    this.input = new Float32Array(this.bufferSize * 2);
-    this.output = new Float32Array(this.bufferSize * 2);
-    this.writePos = 0;
+    this.pitchRatio = 1.0;
+    this.formantRatio = 1.0;
+
+    // Buffer 1 saniye
+    this.bufLen = sampleRate * 1;
+    this.buf = new Float32Array(this.bufLen);
+    this.writeIdx = 0;
     this.readPos = 0;
-    this.grainSize = 1024;     // grain window size
-    this.lastGrainPos = 0;
-    this.grainAccumulator = new Float32Array(this.grainSize);
+
+    // Initial read offset (50ms gecikme)
+    this.initialDelay = Math.floor(sampleRate * 0.05);
+    this.readPos = this.bufLen - this.initialDelay;
 
     this.port.onmessage = (e) => {
-      if (e.data.pitch !== undefined) this.pitchRatio = e.data.pitch;
-      if (e.data.formant !== undefined) this.formantRatio = e.data.formant;
+      if (e.data.pitch !== undefined)   this.pitchRatio   = Math.max(0.5, Math.min(2.0, e.data.pitch));
+      if (e.data.formant !== undefined) this.formantRatio = Math.max(0.5, Math.min(2.0, e.data.formant));
     };
   }
 
-  // Hanning window
-  static window(n, N) {
-    return 0.5 * (1 - Math.cos(2 * Math.PI * n / (N - 1)));
+  readInterpolated(pos) {
+    let p = ((pos % this.bufLen) + this.bufLen) % this.bufLen;
+    const i0 = Math.floor(p);
+    const i1 = (i0 + 1) % this.bufLen;
+    const f = p - i0;
+    return this.buf[i0] * (1 - f) + this.buf[i1] * f;
   }
 
   process(inputs, outputs) {
@@ -15447,68 +15463,40 @@ class PsolaProcessor extends AudioWorkletProcessor {
 
     // Write input to circular buffer
     for (let i = 0; i < N; i++) {
-      this.input[this.writePos] = inCh[i];
-      this.writePos = (this.writePos + 1) % this.input.length;
+      this.buf[this.writeIdx] = inCh[i];
+      this.writeIdx = (this.writeIdx + 1) % this.bufLen;
     }
 
-    // PSOLA-like granular pitch shifting with formant preservation
-    // İki adımlı: 1) Resample for pitch, 2) Resample inverse for formant
-    const pitch = Math.max(0.5, Math.min(2.0, this.pitchRatio));
-    const formant = Math.max(0.5, Math.min(2.0, this.formantRatio));
+    // Effective rate (combined: pitch * formant)
+    const rate = this.pitchRatio * this.formantRatio;
 
-    // Effective grain advance rate
-    // pitch > 1 → grains daha sık (yüksek frekans)
-    // formant > 1 → grain içi daha yavaş okunur (daha küçük trakt = ince ses)
-    const grainAdvance = this.hop / pitch;
-    const grainStretchInside = 1 / formant;  // Formant ratio inverse for grain resampling
+    // Read buffer at rate (single read head, no granular)
+    for (let i = 0; i < N; i++) {
+      outCh[i] = this.readInterpolated(this.readPos);
+      this.readPos += rate;
 
-    // Number of grains to produce
-    const grainsPerBlock = Math.floor(N / this.hop);
+      // Wrap read position
+      while (this.readPos >= this.bufLen) this.readPos -= this.bufLen;
+      while (this.readPos < 0) this.readPos += this.bufLen;
 
-    for (let i = 0; i < outCh.length; i++) outCh[i] = 0;
-    const overlapCount = new Float32Array(N);
-
-    for (let g = 0; g < grainsPerBlock + 2; g++) {
-      const grainStart = this.lastGrainPos + g * grainAdvance;
-      const grainOutPos = g * this.hop;
-
-      // Read grain from input buffer, resample with formant ratio
-      for (let s = 0; s < this.grainSize; s++) {
-        const inputIdx = grainStart + s * grainStretchInside;
-        const readIdx = Math.floor(inputIdx) % this.input.length;
-        const frac = inputIdx - Math.floor(inputIdx);
-        const i0 = readIdx;
-        const i1 = (readIdx + 1) % this.input.length;
-        const sample = this.input[i0] * (1 - frac) + this.input[i1] * frac;
-        const w = PsolaProcessor.window(s, this.grainSize);
-        const outIdx = grainOutPos + s;
-        if (outIdx < N) {
-          outCh[outIdx] += sample * w;
-          overlapCount[outIdx] += w;
-        }
+      // Read position drift correction (smooth, ses kesikligi yapmasin)
+      const distance = (this.writeIdx - this.readPos + this.bufLen) % this.bufLen;
+      if (distance < 1024) {
+        // Cok yakin - yavasca yeniden ayarla
+        this.readPos -= 1024;
+        if (this.readPos < 0) this.readPos += this.bufLen;
+      } else if (distance > this.bufLen - 1024) {
+        // Cok uzak
+        this.readPos += 1024;
+        if (this.readPos >= this.bufLen) this.readPos -= this.bufLen;
       }
     }
-
-    // Normalize overlaps
-    for (let i = 0; i < N; i++) {
-      if (overlapCount[i] > 0.01) {
-        outCh[i] /= overlapCount[i];
-      }
-    }
-
-    // Soft clip to prevent peaks
-    for (let i = 0; i < N; i++) {
-      const x = outCh[i];
-      outCh[i] = Math.tanh(x * 0.9) * 0.95;
-    }
-
-    this.lastGrainPos += grainsPerBlock * grainAdvance;
-    this.lastGrainPos %= this.input.length;
 
     return true;
   }
 }
-registerProcessor('psola-processor', PsolaProcessor);
+
+registerProcessor('voice-processor', VoiceProcessor);
 `;
 
 // ============= ENGINE =============
@@ -15668,15 +15656,37 @@ function buildFilterChain() {
   let effectiveFormant = p.formantSet ? p.formantOverride : preset.formantRatio;
   effectiveFormant *= (1 + p.genderShift * 0.003); // gender slider formant'a da etki eder
 
-  if (voiceFx.workletSupported && !preset.bypass) {
+  // Pitch shift sadece BUYUK degisiklik gerektiren preset'lerde calistir
+  const needPitchShift = Math.abs(effectivePitch) >= 1.0 || Math.abs(1 - effectiveFormant) >= 0.05;
+
+  if (voiceFx.workletSupported && !preset.bypass && needPitchShift) {
     try {
-      voiceFx.workletNode = new AudioWorkletNode(ctx, 'psola-processor');
+      // Anti-aliasing lowpass ONCE (pitch yukseltirken Nyquist'i geçmemek için)
+      const combinedRate = pitchRatio * effectiveFormant;
+      if (combinedRate > 1.0) {
+        const antiAliasLP = ctx.createBiquadFilter();
+        antiAliasLP.type = 'lowpass';
+        antiAliasLP.frequency.value = Math.min(8000, ctx.sampleRate / 2 / combinedRate * 0.85);
+        antiAliasLP.Q.value = 0.7;
+        chain.connect(antiAliasLP);
+        chain = antiAliasLP;
+      }
+
+      voiceFx.workletNode = new AudioWorkletNode(ctx, 'voice-processor');
       voiceFx.workletNode.port.postMessage({
         pitch: pitchRatio,
         formant: effectiveFormant,
       });
       chain.connect(voiceFx.workletNode);
       chain = voiceFx.workletNode;
+
+      // Smoothing lowpass SONRA (high-freq noise gider)
+      const smoothLP = ctx.createBiquadFilter();
+      smoothLP.type = 'lowpass';
+      smoothLP.frequency.value = 7500;
+      smoothLP.Q.value = 0.5;
+      chain.connect(smoothLP);
+      chain = smoothLP;
     } catch(e) {
       console.warn('Worklet hata, fallback:', e);
     }
