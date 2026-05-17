@@ -28,6 +28,8 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
 <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
+<!-- SoundTouch.js (professional pitch+tempo engine) -->
+<script src="vendor/soundtouch-global.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/examples/js/libs/fflate.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/examples/js/loaders/FBXLoader.js"></script>
@@ -15411,45 +15413,58 @@ const voiceFx = {
 // PSOLA tabanlı pitch+formant shifter inline yazılır
 const WORKLET_CODE = `
 // =====================================================================
-// PURE VOICE PROCESSOR
-//
-// En temiz pitch shift yontemi:
-//   - Input'u tampona biriktir
-//   - playbackRate ile yeniden okur (gibi)
-//   - Single grain, NO overlap
-//
-// Avantaji: Aliasing minimal, ses temiz
-// Dezavantaji: Real-time'da gecikme var (~50ms)
+// VOICE FX PRO PROCESSOR
+// SoundTouch (profesyonel pitch+tempo) + Granular Formant Shifter
 // =====================================================================
 
-class VoiceProcessor extends AudioWorkletProcessor {
+class VoiceFxProProcessor extends AudioWorkletProcessor {
   constructor() {
     super();
-    this.pitchRatio = 1.0;
+
+    // SoundTouch instance (worklet scope'una eklendi - global)
+    this.soundtouch = new SoundTouch();
+    this.soundtouch.pitchSemitones = 0;
+    this.soundtouch.tempo = 1.0;
+    this.soundtouch.rate = 1.0;
+
+    this.pitchSemitones = 0;
     this.formantRatio = 1.0;
 
-    // Buffer 1 saniye
-    this.bufLen = sampleRate * 1;
-    this.buf = new Float32Array(this.bufLen);
-    this.writeIdx = 0;
-    this.readPos = 0;
-
-    // Initial read offset (50ms gecikme)
-    this.initialDelay = Math.floor(sampleRate * 0.05);
-    this.readPos = this.bufLen - this.initialDelay;
+    // Formant granular post-processor buffer
+    this.formantBuf = new Float32Array(16384);
+    this.formantBufLen = 16384;
+    this.formantWriteIdx = 0;
+    this.formantGrainSize = 4096;
+    this.formantNumGrains = 4;
+    this.formantGrains = [];
+    for (let i = 0; i < this.formantNumGrains; i++) {
+      this.formantGrains.push({
+        phase: i * (this.formantGrainSize / this.formantNumGrains),
+        readPos: 0,
+      });
+    }
 
     this.port.onmessage = (e) => {
-      if (e.data.pitch !== undefined)   this.pitchRatio   = Math.max(0.5, Math.min(2.0, e.data.pitch));
-      if (e.data.formant !== undefined) this.formantRatio = Math.max(0.5, Math.min(2.0, e.data.formant));
+      if (e.data.pitchSemitones !== undefined) {
+        this.pitchSemitones = e.data.pitchSemitones;
+        this.soundtouch.pitchSemitones = this.pitchSemitones;
+      }
+      if (e.data.formant !== undefined) {
+        this.formantRatio = Math.max(0.5, Math.min(2.0, e.data.formant));
+      }
     };
   }
 
-  readInterpolated(pos) {
-    let p = ((pos % this.bufLen) + this.bufLen) % this.bufLen;
+  envelope(phase) {
+    return 0.5 * (1 - Math.cos(2 * Math.PI * phase / this.formantGrainSize));
+  }
+
+  readFormantSample(pos) {
+    let p = ((pos % this.formantBufLen) + this.formantBufLen) % this.formantBufLen;
     const i0 = Math.floor(p);
-    const i1 = (i0 + 1) % this.bufLen;
+    const i1 = (i0 + 1) % this.formantBufLen;
     const f = p - i0;
-    return this.buf[i0] * (1 - f) + this.buf[i1] * f;
+    return this.formantBuf[i0] * (1 - f) + this.formantBuf[i1] * f;
   }
 
   process(inputs, outputs) {
@@ -15461,42 +15476,76 @@ class VoiceProcessor extends AudioWorkletProcessor {
     const outCh = output[0];
     const N = inCh.length;
 
-    // Write input to circular buffer
+    // === SoundTouch'a sample gönder (STEREO interleaved bekliyor) ===
+    const stIn = new Float32Array(N * 2);
     for (let i = 0; i < N; i++) {
-      this.buf[this.writeIdx] = inCh[i];
-      this.writeIdx = (this.writeIdx + 1) % this.bufLen;
+      stIn[i * 2] = inCh[i];     // L
+      stIn[i * 2 + 1] = inCh[i]; // R (mono duplicate)
+    }
+    this.soundtouch.inputBuffer.putSamples(stIn, 0, N);
+    this.soundtouch.process();
+
+    // === SoundTouch'tan çıkış al (STEREO interleaved) ===
+    const outFrames = this.soundtouch.outputBuffer.frameCount;
+    if (outFrames > 0) {
+      const stOut = new Float32Array(outFrames * 2);
+      this.soundtouch.outputBuffer.receiveSamples(stOut, outFrames);
+      // Stereo'dan mono al (L kanalı) ve formant buffer'a yaz
+      for (let i = 0; i < outFrames; i++) {
+        this.formantBuf[this.formantWriteIdx] = stOut[i * 2];
+        this.formantWriteIdx = (this.formantWriteIdx + 1) % this.formantBufLen;
+      }
     }
 
-    // Effective rate (combined: pitch * formant)
-    const rate = this.pitchRatio * this.formantRatio;
+    // === Formant shift (granular re-read) ===
+    // formantRatio > 1.0 → büyük vokal trakt → derin formant (kalın erkek)
+    // formantRatio < 1.0 → küçük vokal trakt → yüksek formant (çocuk/kadın)
+    //
+    // Mantık: pitch zaten SoundTouch ile shift edildi. Şimdi spektral envelope'u
+    // formantRatio'ya göre stretch/compress et (PSOLA-like granular)
+    const formantReadRate = 1.0 / this.formantRatio;
+    const hopStep = (this.formantGrainSize / this.formantNumGrains) / formantReadRate;
 
-    // Read buffer at rate (single read head, no granular)
+    const lookback = this.formantGrainSize + 1024;
+    const readBase = this.formantWriteIdx - lookback;
+    const normFactor = 0.5;
+
+    // Formant bypass kontrolü
+    const isFormantBypass = this.formantRatio > 0.95 && this.formantRatio < 1.05;
+
     for (let i = 0; i < N; i++) {
-      outCh[i] = this.readInterpolated(this.readPos);
-      this.readPos += rate;
-
-      // Wrap read position
-      while (this.readPos >= this.bufLen) this.readPos -= this.bufLen;
-      while (this.readPos < 0) this.readPos += this.bufLen;
-
-      // Read position drift correction (smooth, ses kesikligi yapmasin)
-      const distance = (this.writeIdx - this.readPos + this.bufLen) % this.bufLen;
-      if (distance < 1024) {
-        // Cok yakin - yavasca yeniden ayarla
-        this.readPos -= 1024;
-        if (this.readPos < 0) this.readPos += this.bufLen;
-      } else if (distance > this.bufLen - 1024) {
-        // Cok uzak
-        this.readPos += 1024;
-        if (this.readPos >= this.bufLen) this.readPos -= this.bufLen;
+      // formantRatio yakln 1.0 ise grain'siz okuma (DAHA TEMİZ ses)
+      if (isFormantBypass) {
+        // Bypass formant - direkt SoundTouch çıkışı oku (gecikme yok)
+        const directPos = (this.formantWriteIdx - N + i + this.formantBufLen) % this.formantBufLen;
+        outCh[i] = this.formantBuf[directPos] || 0;
+        continue;
       }
+
+      let sample = 0;
+      for (let g = 0; g < this.formantNumGrains; g++) {
+        const grain = this.formantGrains[g];
+        const samplePos = readBase + grain.readPos + grain.phase * formantReadRate;
+        const env = this.envelope(grain.phase);
+        sample += this.readFormantSample(samplePos) * env;
+
+        grain.phase++;
+        if (grain.phase >= this.formantGrainSize) {
+          grain.phase = 0;
+          grain.readPos += hopStep * this.formantNumGrains;
+          if (grain.readPos > this.formantBufLen * 2) grain.readPos -= this.formantBufLen;
+          if (grain.readPos < -this.formantBufLen * 2) grain.readPos += this.formantBufLen;
+        }
+      }
+      sample *= normFactor;
+      outCh[i] = Math.tanh(sample * 0.9);
     }
 
     return true;
   }
 }
 
-registerProcessor('voice-processor', VoiceProcessor);
+registerProcessor('voice-fx-pro', VoiceFxProProcessor);
 `;
 
 // ============= ENGINE =============
@@ -15509,13 +15558,31 @@ async function initVoiceFxEngine() {
       sampleRate: 48000,
     });
 
-    // AudioWorklet yükle (PSOLA processor)
+    // AudioWorklet yükle (SoundTouch + Formant processor)
     try {
-      const blob = new Blob([WORKLET_CODE], { type: 'application/javascript' });
+      // SoundTouch source kodunu fetch et
+      let soundtouchSource = '';
+      try {
+        const stRes = await fetch('vendor/soundtouch.js');
+        if (stRes.ok) {
+          soundtouchSource = await stRes.text();
+          // Export satırını kaldır (worklet scope'unda export olmaz)
+          soundtouchSource = soundtouchSource.replace(/^export\s*\{[^}]+\};?\s*$/m, '');
+          soundtouchSource = soundtouchSource.replace(/\/\/#\s*sourceMappingURL.*$/m, '');
+        }
+      } catch(e) {
+        console.warn('SoundTouch fetch edilemedi:', e);
+      }
+
+      // Combined worklet kodu: SoundTouch + WORKLET_CODE
+      const finalCode = soundtouchSource + '\n' + WORKLET_CODE;
+
+      const blob = new Blob([finalCode], { type: 'application/javascript' });
       const url = URL.createObjectURL(blob);
       await voiceFx.ctx.audioWorklet.addModule(url);
       URL.revokeObjectURL(url);
       voiceFx.workletSupported = true;
+      voiceFx.soundtouchInWorklet = soundtouchSource.length > 0;
     } catch(e) {
       console.warn('AudioWorklet desteklenmiyor, fallback mod:', e);
       voiceFx.workletSupported = false;
@@ -15672,9 +15739,10 @@ function buildFilterChain() {
         chain = antiAliasLP;
       }
 
-      voiceFx.workletNode = new AudioWorkletNode(ctx, 'voice-processor');
+      voiceFx.workletNode = new AudioWorkletNode(ctx, 'voice-fx-pro');
+      // SoundTouch için semitone direkt gönderiyoruz (ratio degil)
       voiceFx.workletNode.port.postMessage({
-        pitch: pitchRatio,
+        pitchSemitones: effectivePitch,
         formant: effectiveFormant,
       });
       chain.connect(voiceFx.workletNode);
