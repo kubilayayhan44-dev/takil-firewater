@@ -15232,158 +15232,240 @@ function goBackToCall() {
 // rasp: 0..1 doku/saturation
 // breath: 0..1 yumuşaklık (de-esser tersine)
 // reverbRoom: 0..1 oda boyutu
+// =====================================================================
+// VOICE FX PRO — Profesyonel Realtime Voice Changer
+//
+// Pipeline:
+//   Mic → HighPass (rumble cut) → Compressor → Noise Gate →
+//   SoundTouch (pitch shift, WSOLA) → Formant EQ Stack → Tone EQ →
+//   Limiter → Dry/Wet Mix → Output
+//
+// Hedef: Gerçek sesli, temiz, cızırtısız ses dönüşümü
+// =====================================================================
+
+// =====================================================================
+// REALİSTİK VOİCE PRESETS
+// Praat / STRAIGHT araştırmalarına dayalı gerçek formant frekansları
+// F1: 270-1000 Hz (vokal trakt ön bölge)
+// F2: 850-2600 Hz (vokal trakt arka bölge)
+// F3: 2200-3500 Hz (genel parlaklık)
+// =====================================================================
+
 const VOICE_PRESETS = {
-  // === GERÇEK İNSAN SESLERİ ===
   none: {
-    icon:'⚫', name:'Doğal Ses', category:'human',
-    pitchSemitones: 0, formantRatio: 1.0,
-    brightness: 0, warmth: 0, presence: 0, rasp: 0, breath: 0, reverbRoom: 0,
-    bypass: true
+    icon:'⚫', name:'Doğal Ses', category:'human', bypass: true
   },
+
+  // === İNSAN SESLERİ (kalitesi öncelik) ===
   realFemale: {
-    icon:'👩', name:'Gerçek Kadın', category:'human',
-    pitchSemitones: 5.5, formantRatio: 1.18,
-    brightness: 3, warmth: -1.5, presence: 4, rasp: 0, breath: 0.3, reverbRoom: 0.08
+    icon:'👩', name:'Kadın', category:'human',
+    pitch: 4,                  // semitone (yumuşak, fazla yüksek değil)
+    f1: { freq: 850, gain: 4, q: 1.2 },   // F1 yukarı kaydır
+    f2: { freq: 2100, gain: 5, q: 1.5 },  // F2 vurgu
+    warmth: -2,                // bass az
+    presence: 3,
+    brightness: 2,
   },
   realMale: {
-    icon:'👨', name:'Gerçek Erkek', category:'human',
-    pitchSemitones: -3, formantRatio: 0.88,
-    brightness: -1, warmth: 3, presence: 2.5, rasp: 0.05, breath: 0.1, reverbRoom: 0.05
+    icon:'👨', name:'Erkek', category:'human',
+    pitch: -3,
+    f1: { freq: 600, gain: 3, q: 1.2 },
+    f2: { freq: 1300, gain: 2, q: 1.5 },
+    warmth: 3,
+    presence: 2,
+    brightness: -1,
+  },
+  deepMale: {
+    icon:'🗿', name:'Kalın Erkek', category:'human',
+    pitch: -6,
+    f1: { freq: 500, gain: 4, q: 1.5 },
+    f2: { freq: 1100, gain: 3, q: 1.5 },
+    warmth: 5,
+    presence: 1,
+    brightness: -3,
   },
   child: {
     icon:'👶', name:'Çocuk', category:'human',
-    pitchSemitones: 7, formantRatio: 1.35,
-    brightness: 5, warmth: -3, presence: 3, rasp: 0, breath: 0.4, reverbRoom: 0.1
+    pitch: 6,
+    f1: { freq: 1000, gain: 5, q: 1.2 },
+    f2: { freq: 2500, gain: 6, q: 1.5 },
+    warmth: -3,
+    presence: 4,
+    brightness: 3,
   },
   teen: {
     icon:'🧑', name:'Genç', category:'human',
-    pitchSemitones: 2, formantRatio: 1.08,
-    brightness: 4, warmth: -0.5, presence: 3, rasp: 0.02, breath: 0.15, reverbRoom: 0.06
+    pitch: 2,
+    f1: { freq: 780, gain: 3, q: 1.2 },
+    f2: { freq: 1800, gain: 3, q: 1.5 },
+    warmth: -1,
+    presence: 3,
+    brightness: 2,
   },
   elder: {
     icon:'👴', name:'Yaşlı', category:'human',
-    pitchSemitones: -2, formantRatio: 0.94,
-    brightness: -3, warmth: 1, presence: 1, rasp: 0.35, breath: 0.5, reverbRoom: 0.04
+    pitch: -2,
+    f1: { freq: 620, gain: 2, q: 1.0 },
+    f2: { freq: 1400, gain: 1, q: 1.0 },
+    warmth: 2,
+    presence: 0,
+    brightness: -3,
+    rasp: 0.15,  // hafif raspy
   },
 
-  // === SİNEMATİK SESLER ===
+  // === SİNEMATİK ===
   trailer: {
     icon:'🎬', name:'Film Fragmanı', category:'cinema',
-    pitchSemitones: -6, formantRatio: 0.78,
-    brightness: 1, warmth: 6, presence: 6, rasp: 0.15, breath: 0.2, reverbRoom: 0.35
-  },
-  demon: {
-    icon:'👹', name:'İblis', category:'cinema',
-    pitchSemitones: -8, formantRatio: 0.75,
-    brightness: -3, warmth: 6, presence: 2, rasp: 0.25, breath: 0, reverbRoom: 0.4,
-    distortion: 0.2
-  },
-  aiAssistant: {
-    icon:'🤖', name:'AI Asistan', category:'cinema',
-    pitchSemitones: 0, formantRatio: 0.96,
-    brightness: 3, warmth: 0, presence: 5, rasp: 0, breath: 0, reverbRoom: 0.15,
-    metallic: 0.25
-  },
-  cyberpunk: {
-    icon:'🌆', name:'Cyberpunk', category:'cinema',
-    pitchSemitones: -2, formantRatio: 0.92,
-    brightness: 2, warmth: 2, presence: 4, rasp: 0.3, breath: 0, reverbRoom: 0.22,
-    distortion: 0.35, metallic: 0.4
-  },
-  anime: {
-    icon:'🌸', name:'Anime Karakter', category:'cinema',
-    pitchSemitones: 6, formantRatio: 1.28,
-    brightness: 6, warmth: -2, presence: 6, rasp: 0, breath: 0.3, reverbRoom: 0.05
-  },
-  ghost: {
-    icon:'👻', name:'Hayalet', category:'cinema',
-    pitchSemitones: -4, formantRatio: 0.85,
-    brightness: -2, warmth: -1, presence: 1, rasp: 0.1, breath: 0.6, reverbRoom: 0.85,
-    spectralShift: -200
-  },
-  radio: {
-    icon:'📡', name:'Radyo Sunucu', category:'cinema',
-    pitchSemitones: -1, formantRatio: 0.95,
-    brightness: 2, warmth: 4, presence: 8, rasp: 0.08, breath: 0.05, reverbRoom: 0.1,
-    bandLow: 200, bandHigh: 5500
+    pitch: -5,
+    f1: { freq: 550, gain: 5, q: 1.2 },
+    f2: { freq: 1100, gain: 4, q: 1.5 },
+    warmth: 6,
+    presence: 5,
+    brightness: 0,
+    reverbRoom: 0.25,
   },
   narrator: {
     icon:'📖', name:'Anlatıcı', category:'cinema',
-    pitchSemitones: -2, formantRatio: 0.92,
-    brightness: 1, warmth: 3, presence: 5, rasp: 0.05, breath: 0.2, reverbRoom: 0.15
+    pitch: -2,
+    f1: { freq: 650, gain: 3, q: 1.0 },
+    f2: { freq: 1500, gain: 3, q: 1.2 },
+    warmth: 3,
+    presence: 4,
+    brightness: 0,
+    reverbRoom: 0.1,
+  },
+  radio: {
+    icon:'📡', name:'Radyo', category:'cinema',
+    pitch: -1,
+    f1: { freq: 700, gain: 4, q: 1.0 },
+    f2: { freq: 1800, gain: 5, q: 1.2 },
+    warmth: 2,
+    presence: 6,
+    brightness: 1,
+    bandLow: 200,
+    bandHigh: 5500,
+  },
+  anime: {
+    icon:'🌸', name:'Anime', category:'cinema',
+    pitch: 5,
+    f1: { freq: 950, gain: 4, q: 1.2 },
+    f2: { freq: 2300, gain: 5, q: 1.5 },
+    warmth: -1,
+    presence: 4,
+    brightness: 3,
+  },
+  ghost: {
+    icon:'👻', name:'Hayalet', category:'cinema',
+    pitch: -3,
+    f1: { freq: 600, gain: 2, q: 1.0 },
+    f2: { freq: 1600, gain: 2, q: 1.2 },
+    warmth: -2,
+    presence: 1,
+    brightness: 0,
+    reverbRoom: 0.6,
+    bandHigh: 6000,
   },
 
-  // === GAMING SESLERİ ===
+  // === GAMING ===
+  robot: {
+    icon:'🤖', name:'Robot', category:'gaming',
+    pitch: 0,
+    f1: { freq: 700, gain: 2, q: 0.8 },
+    f2: { freq: 1600, gain: 2, q: 1.0 },
+    warmth: 0,
+    presence: 3,
+    brightness: 0,
+    bandLow: 300,
+    bandHigh: 4500,
+    rasp: 0.1,
+  },
   troll: {
     icon:'🧌', name:'Troll', category:'gaming',
-    pitchSemitones: -7, formantRatio: 0.72,
-    brightness: -2, warmth: 5, presence: 2, rasp: 0.55, breath: 0, reverbRoom: 0.15
+    pitch: -5,
+    f1: { freq: 520, gain: 4, q: 1.5 },
+    f2: { freq: 1200, gain: 3, q: 1.5 },
+    warmth: 4,
+    presence: 1,
+    brightness: -2,
+    rasp: 0.25,
   },
   monster: {
     icon:'👾', name:'Canavar', category:'gaming',
-    pitchSemitones: -8, formantRatio: 0.7,
-    brightness: -3, warmth: 7, presence: 3, rasp: 0.7, breath: 0, reverbRoom: 0.3,
-    distortion: 0.5
+    pitch: -7,
+    f1: { freq: 480, gain: 5, q: 1.5 },
+    f2: { freq: 1050, gain: 4, q: 1.5 },
+    warmth: 6,
+    presence: 2,
+    brightness: -3,
+    rasp: 0.35,
+    reverbRoom: 0.2,
   },
-  robot: {
-    icon:'🤖', name:'Robot', category:'gaming',
-    pitchSemitones: 0, formantRatio: 0.9,
-    brightness: 0, warmth: -2, presence: 2, rasp: 0, breath: 0, reverbRoom: 0.05,
-    metallic: 0.7, ringMod: 35
+  demon: {
+    icon:'👹', name:'İblis', category:'gaming',
+    pitch: -8,
+    f1: { freq: 450, gain: 6, q: 1.5 },
+    f2: { freq: 1000, gain: 5, q: 1.5 },
+    warmth: 5,
+    presence: 2,
+    brightness: -3,
+    rasp: 0.3,
+    reverbRoom: 0.3,
   },
   spaceCommander: {
     icon:'🚀', name:'Uzay Komutanı', category:'gaming',
-    pitchSemitones: -3, formantRatio: 0.88,
-    brightness: 2, warmth: 3, presence: 6, rasp: 0.15, breath: 0.1, reverbRoom: 0.35,
-    bandLow: 300, bandHigh: 4500
-  },
-  hacker: {
-    icon:'💻', name:'Hacker', category:'gaming',
-    pitchSemitones: -4, formantRatio: 0.85,
-    brightness: 1, warmth: 1, presence: 3, rasp: 0.4, breath: 0, reverbRoom: 0.1,
-    distortion: 0.3, metallic: 0.5
+    pitch: -2,
+    f1: { freq: 650, gain: 4, q: 1.0 },
+    f2: { freq: 1500, gain: 4, q: 1.2 },
+    warmth: 2,
+    presence: 4,
+    brightness: 1,
+    bandLow: 300,
+    bandHigh: 4500,
+    reverbRoom: 0.25,
   },
 };
 
 const VOICE_CATEGORIES = {
-  human: { name: '🧑 Gerçek İnsan Sesleri', order: 1 },
-  cinema: { name: '🎬 Sinematik Sesler', order: 2 },
-  gaming: { name: '🎮 Gaming Sesleri', order: 3 },
+  human: { name: '🧑 İnsan Sesleri', order: 1 },
+  cinema: { name: '🎬 Sinematik', order: 2 },
+  gaming: { name: '🎮 Gaming', order: 3 },
 };
 
-// ============= GLOBAL STATE =============
+// =====================================================================
+// GLOBAL STATE
+// =====================================================================
 const voiceFx = {
   ctx: null,
   micStream: null,
-  source: null,            // MediaStreamSource
-  destination: null,       // outgoing MediaStreamDestination
-  monitorGain: null,       // yerel test
-  analyser: null,
+  source: null,
+  destination: null,
   filteredStream: null,
-  workletNode: null,       // PSOLA processor
+  monitorGain: null,
+  analyser: null,
+  workletNode: null,
+  workletSupported: false,
   originalAudioTrack: null,
 
-  // DSP nodes (chain order)
-  noiseGate: null,
+  // DSP nodes
+  highPass: null,
   compressor: null,
-  // workletNode
+  noiseGate: null,
+  formantF1: null,
+  formantF2: null,
   warmthEQ: null,
-  brightnessEQ: null,
   presenceEQ: null,
-  spectralLP: null,
-  spectralHP: null,
-  ringModOsc: null,
-  ringModGain: null,
-  ringMixer: null,
-  saturation: null,
-  metallicDelay: null,
-  metallicFB: null,
+  brightnessEQ: null,
+  bandLow: null,
+  bandHigh: null,
+  raspWaveShaper: null,
   reverbConv: null,
   reverbWet: null,
   reverbDry: null,
   reverbMix: null,
+  limiter: null,
   outputGain: null,
-  preGain: null,
+  dryGain: null,
+  wetGain: null,
 
   selectedPreset: 'none',
   appliedPreset: 'none',
@@ -15392,14 +15474,14 @@ const voiceFx = {
   active: false,
 
   params: {
-    intensity: 1,            // 0..1
-    pitchOffset: 0,          // -12..+12 (preset üstüne ek)
-    formantOverride: 1.0,    // 0.6..1.6 (preset'i ezer eğer kullanıcı değişirse)
-    formantSet: false,       // kullanıcı slider'ı dokundu mu
-    genderShift: 0,          // -100..100 (preset üstüne ek)
-    tone: 0,                 // -12..+12 dB bas/tiz dengesi
-    reverbExtra: 0,          // 0..1 ek reverb
-    realism: 0.75,           // 0..1 AI insanlık
+    intensity: 1,
+    pitchOffset: 0,
+    formantOverride: 1.0,
+    formantSet: false,
+    genderShift: 0,
+    tone: 0,
+    reverbExtra: 0,
+    realism: 0.75,
     aiEnhance: true,
     compressor: true,
     noiseGate: true,
@@ -15409,65 +15491,40 @@ const voiceFx = {
   visualizerRaf: null,
 };
 
-// ============= AUDIO WORKLET KODU =============
-// PSOLA tabanlı pitch+formant shifter inline yazılır
+// =====================================================================
+// WORKLET: SoundTouch + Proper FIFO Output
+// =====================================================================
 const WORKLET_CODE = `
-// =====================================================================
-// VOICE FX PRO PROCESSOR
-// SoundTouch (profesyonel pitch+tempo) + Granular Formant Shifter
-// =====================================================================
-
 class VoiceFxProProcessor extends AudioWorkletProcessor {
   constructor() {
     super();
-
-    // SoundTouch instance
     this.soundtouch = new SoundTouch();
     this.soundtouch.pitchSemitones = 0;
     this.soundtouch.tempo = 1.0;
     this.soundtouch.rate = 1.0;
 
-    this.pitchSemitones = 0;
-
-    // OUTPUT FIFO - SoundTouch çıkışini biriktir
-    // Bu sayede her process()'te N sample garantili alınır
-    this.outFifo = new Float32Array(16384);
+    // FIFO output buffer
+    this.outFifo = new Float32Array(32768);
     this.outFifoRead = 0;
     this.outFifoWrite = 0;
 
-    // Initial latency build-up: SoundTouch'un internal buffer'ı doluncaya
-    // kadar sessizlik üret (discontinuity engelle)
-    this.warmupSamples = 4096;  // ~85ms @ 48kHz
+    // Warmup: SoundTouch internal latency için ilk N sample sessiz
+    this.warmupSamples = 4800;  // ~100ms @ 48kHz
     this.samplesProduced = 0;
 
     this.port.onmessage = (e) => {
       if (e.data.pitchSemitones !== undefined) {
-        this.pitchSemitones = e.data.pitchSemitones;
-        this.soundtouch.pitchSemitones = this.pitchSemitones;
+        this.soundtouch.pitchSemitones = e.data.pitchSemitones;
       }
-      // formant artik EQ ile yapiliyor - worklet'te kullanilmiyor
     };
   }
 
-  // FIFO'da kac sample var?
   fifoAvailable() {
     return (this.outFifoWrite - this.outFifoRead + this.outFifo.length) % this.outFifo.length;
   }
 
-  // FIFO'ya yaz
-  fifoPush(samples, count) {
-    for (let i = 0; i < count; i++) {
-      this.outFifo[this.outFifoWrite] = samples[i];
-      this.outFifoWrite = (this.outFifoWrite + 1) % this.outFifo.length;
-    }
-  }
-
-  // FIFO'dan oku
-  fifoPop(out, count) {
-    for (let i = 0; i < count; i++) {
-      out[i] = this.outFifo[this.outFifoRead];
-      this.outFifoRead = (this.outFifoRead + 1) % this.outFifo.length;
-    }
+  fifoSpace() {
+    return this.outFifo.length - this.fifoAvailable() - 1;
   }
 
   process(inputs, outputs) {
@@ -15479,51 +15536,67 @@ class VoiceFxProProcessor extends AudioWorkletProcessor {
     const outCh = output[0];
     const N = inCh.length;
 
-    // === SoundTouch'a sample gönder (STEREO interleaved) ===
+    // 1) SoundTouch'a STEREO interleaved gönder
     const stIn = new Float32Array(N * 2);
     for (let i = 0; i < N; i++) {
-      stIn[i * 2] = inCh[i];     // L
-      stIn[i * 2 + 1] = inCh[i]; // R (mono duplicate)
+      stIn[i * 2] = inCh[i];
+      stIn[i * 2 + 1] = inCh[i];
     }
     this.soundtouch.inputBuffer.putSamples(stIn, 0, N);
     this.soundtouch.process();
 
-    // === SoundTouch'tan çıkan tüm sample'ları FIFO'ya yığ ===
+    // 2) SoundTouch'tan çıkan tüm sample'ları al
     const outFrames = this.soundtouch.outputBuffer.frameCount;
     if (outFrames > 0) {
-      const stOut = new Float32Array(outFrames * 2);
-      this.soundtouch.outputBuffer.receiveSamples(stOut, outFrames);
-      // Stereo'dan mono al ve FIFO'ya yaz
-      const mono = new Float32Array(outFrames);
-      for (let i = 0; i < outFrames; i++) {
-        mono[i] = stOut[i * 2];
+      const space = this.fifoSpace();
+      const toWrite = Math.min(outFrames, space);
+      if (toWrite > 0) {
+        const stOut = new Float32Array(toWrite * 2);
+        this.soundtouch.outputBuffer.receiveSamples(stOut, toWrite);
+        for (let i = 0; i < toWrite; i++) {
+          this.outFifo[this.outFifoWrite] = stOut[i * 2];  // L kanal
+          this.outFifoWrite = (this.outFifoWrite + 1) % this.outFifo.length;
+        }
       }
-      this.fifoPush(mono, outFrames);
+      // Eğer space yetmediyse, gelen fazlayı at (overflow)
+      if (outFrames > toWrite) {
+        const overflow = new Float32Array((outFrames - toWrite) * 2);
+        this.soundtouch.outputBuffer.receiveSamples(overflow, outFrames - toWrite);
+      }
     }
 
-    // === WARMUP: İlk birkaç 100ms sessizlik (FIFO doluncaya) ===
+    // 3) Warmup süresinde sessizlik
     if (this.samplesProduced < this.warmupSamples) {
       for (let i = 0; i < N; i++) outCh[i] = 0;
       this.samplesProduced += N;
       return true;
     }
 
-    // === OUTPUT: FIFO'dan N sample al, eksikse 0 padding ===
-    const available = this.fifoAvailable();
-    if (available >= N) {
-      this.fifoPop(outCh, N);
-    } else if (available > 0) {
-      // Kısmi - mevcudu al, kalanı son sample ile interpolate (smooth fade)
-      this.fifoPop(outCh, available);
-      // Son sample'ı yumusçakca sıfıra getir (cizirti olmasın)
-      const lastSample = outCh[available - 1] || 0;
-      for (let i = available; i < N; i++) {
-        const fade = 1.0 - (i - available) / (N - available);
-        outCh[i] = lastSample * fade;
+    // 4) FIFO'dan N sample al
+    const avail = this.fifoAvailable();
+    if (avail >= N) {
+      for (let i = 0; i < N; i++) {
+        outCh[i] = this.outFifo[this.outFifoRead];
+        this.outFifoRead = (this.outFifoRead + 1) % this.outFifo.length;
       }
     } else {
-      // FIFO boş - sessizlik
-      for (let i = 0; i < N; i++) outCh[i] = 0;
+      // Underrun - mevcudu al, kalanı son sample'a smooth fade
+      for (let i = 0; i < avail; i++) {
+        outCh[i] = this.outFifo[this.outFifoRead];
+        this.outFifoRead = (this.outFifoRead + 1) % this.outFifo.length;
+      }
+      const lastSample = avail > 0 ? outCh[avail - 1] : 0;
+      for (let i = avail; i < N; i++) {
+        const t = (i - avail) / Math.max(1, N - avail);
+        outCh[i] = lastSample * (1 - t);  // smooth fade to 0
+      }
+    }
+
+    // Soft limiter (anti-clipping)
+    for (let i = 0; i < N; i++) {
+      const x = outCh[i];
+      if (x > 0.95) outCh[i] = 0.95 + (x - 0.95) * 0.05;
+      else if (x < -0.95) outCh[i] = -0.95 + (x + 0.95) * 0.05;
     }
 
     return true;
@@ -15533,8 +15606,9 @@ class VoiceFxProProcessor extends AudioWorkletProcessor {
 registerProcessor('voice-fx-pro', VoiceFxProProcessor);
 `;
 
-// ============= ENGINE =============
-
+// =====================================================================
+// ENGINE INIT
+// =====================================================================
 async function initVoiceFxEngine() {
   if (voiceFx.ctx) return true;
   try {
@@ -15543,38 +15617,33 @@ async function initVoiceFxEngine() {
       sampleRate: 48000,
     });
 
-    // AudioWorklet yükle (SoundTouch + Formant processor)
+    // SoundTouch source kodunu fetch et + worklet'e göm
     try {
-      // SoundTouch source kodunu fetch et
       let soundtouchSource = '';
       try {
         const stRes = await fetch('vendor/soundtouch.js');
         if (stRes.ok) {
           soundtouchSource = await stRes.text();
-          // Export satırını kaldır (worklet scope'unda export olmaz)
           soundtouchSource = soundtouchSource.replace(/^export\s*\{[^}]+\};?\s*$/m, '');
           soundtouchSource = soundtouchSource.replace(/\/\/#\s*sourceMappingURL.*$/m, '');
         }
       } catch(e) {
-        console.warn('SoundTouch fetch edilemedi:', e);
+        console.warn('SoundTouch fetch hatası:', e);
       }
 
-      // Combined worklet kodu: SoundTouch + WORKLET_CODE
       const finalCode = soundtouchSource + '\n' + WORKLET_CODE;
-
       const blob = new Blob([finalCode], { type: 'application/javascript' });
       const url = URL.createObjectURL(blob);
       await voiceFx.ctx.audioWorklet.addModule(url);
       URL.revokeObjectURL(url);
       voiceFx.workletSupported = true;
-      voiceFx.soundtouchInWorklet = soundtouchSource.length > 0;
     } catch(e) {
-      console.warn('AudioWorklet desteklenmiyor, fallback mod:', e);
+      console.warn('Worklet load hata:', e);
       voiceFx.workletSupported = false;
     }
     return true;
   } catch(e) {
-    console.error('AudioContext hatası:', e);
+    console.error('AudioContext hata:', e);
     return false;
   }
 }
@@ -15585,79 +15654,75 @@ async function getVoiceFxMicStream() {
     const constraints = {
       audio: {
         echoCancellation: voiceFx.params.echoCancel,
-        noiseSuppression: false,   // bizim noise gate var
-        autoGainControl: true,
+        noiseSuppression: true,    // browser native NS
+        autoGainControl: true,     // browser native AGC
         sampleRate: 48000,
       }
     };
     voiceFx.micStream = await navigator.mediaDevices.getUserMedia(constraints);
-
-    // localStream'deki orijinal track'i de yakala (reset için)
-    if (localStream && localStream.getAudioTracks().length > 0) {
-      if (!voiceFx.originalAudioTrack) {
-        voiceFx.originalAudioTrack = localStream.getAudioTracks()[0];
-      }
+    if (localStream && localStream.getAudioTracks().length > 0 && !voiceFx.originalAudioTrack) {
+      voiceFx.originalAudioTrack = localStream.getAudioTracks()[0];
     }
     return voiceFx.micStream;
   } catch(e) {
-    console.error('Mic stream hatası:', e);
+    console.error('Mic hata:', e);
     throw e;
   }
 }
 
+// =====================================================================
+// PIPELINE BUILD
+// =====================================================================
 function destroyFilterChain() {
   const v = voiceFx;
   const nodes = [
-    v.noiseGate, v.compressor, v.workletNode,
-    v.formantEQ1, v.formantEQ2,
-    v.warmthEQ, v.brightnessEQ, v.presenceEQ,
-    v.spectralLP, v.spectralHP,
-    v.ringModOsc, v.ringModGain, v.ringMixer,
-    v.saturation, v.metallicDelay, v.metallicFB,
+    v.highPass, v.compressor, v.noiseGate, v.workletNode,
+    v.formantF1, v.formantF2,
+    v.warmthEQ, v.presenceEQ, v.brightnessEQ,
+    v.bandLow, v.bandHigh,
+    v.raspWaveShaper,
     v.reverbConv, v.reverbWet, v.reverbDry, v.reverbMix,
-    v.outputGain, v.preGain,
+    v.limiter, v.outputGain, v.dryGain, v.wetGain,
   ];
   nodes.forEach(n => {
     if (!n) return;
     try { n.disconnect(); } catch(e) {}
-    try { if (typeof n.stop === 'function') n.stop(); } catch(e) {}
   });
-  v.noiseGate = v.compressor = v.workletNode = null;
-  v.formantEQ1 = v.formantEQ2 = null;
-  v.warmthEQ = v.brightnessEQ = v.presenceEQ = null;
-  v.spectralLP = v.spectralHP = null;
-  v.ringModOsc = v.ringModGain = v.ringMixer = null;
-  v.saturation = v.metallicDelay = v.metallicFB = null;
-  v.reverbConv = v.reverbWet = v.reverbDry = v.reverbMix = null;
-  v.outputGain = v.preGain = null;
+  Object.assign(v, {
+    highPass: null, compressor: null, noiseGate: null, workletNode: null,
+    formantF1: null, formantF2: null,
+    warmthEQ: null, presenceEQ: null, brightnessEQ: null,
+    bandLow: null, bandHigh: null,
+    raspWaveShaper: null,
+    reverbConv: null, reverbWet: null, reverbDry: null, reverbMix: null,
+    limiter: null, outputGain: null, dryGain: null, wetGain: null,
+  });
   if (v.source) { try { v.source.disconnect(); } catch(e) {} }
 }
 
-// Distortion curve (soft tube saturation)
-function makeSaturationCurve(amount) {
-  // Daha YUMUŞAK saturation (tube emulation tarzı)
-  // amount 0..1 → cizirti olmasin
-  const n = 4096;
+// Soft saturation curve (tanh-based, smooth)
+function makeRaspCurve(amount) {
+  const n = 2048;
   const curve = new Float32Array(n);
-  const drive = 1 + amount * 3;  // 1x ile 4x arası gain
+  const drive = 1 + amount * 3;
   for (let i = 0; i < n; i++) {
     const x = (i * 2) / n - 1;
-    // Tanh-based soft clip (smooth, no harsh harmonics)
-    curve[i] = Math.tanh(x * drive) * 0.95;
+    curve[i] = Math.tanh(x * drive) * 0.92;
   }
   return curve;
 }
 
-// Impulse response (cathedral-quality reverb)
-function makeReverbIR(ctx, duration, decay, reverse) {
+// Reverb impulse response (smooth)
+function makeReverbIR(ctx, duration, decay) {
   const rate = ctx.sampleRate;
   const length = Math.max(1, Math.floor(rate * duration));
   const ir = ctx.createBuffer(2, length, rate);
   for (let c = 0; c < 2; c++) {
     const data = ir.getChannelData(c);
     for (let i = 0; i < length; i++) {
-      const idx = reverse ? length - i : i;
-      data[i] = (Math.random() * 2 - 1) * Math.pow(1 - idx / length, decay);
+      // Smooth exponential decay
+      const t = i / length;
+      data[i] = (Math.random() * 2 - 1) * Math.pow(1 - t, decay);
     }
   }
   return ir;
@@ -15671,192 +15736,144 @@ function buildFilterChain() {
   const preset = VOICE_PRESETS[voiceFx.selectedPreset] || VOICE_PRESETS.none;
   const p = voiceFx.params;
 
-  // === 1) PreGain (single source split) ===
-  voiceFx.preGain = ctx.createGain();
-  voiceFx.preGain.gain.value = 1.0;
-  voiceFx.source.connect(voiceFx.preGain);
+  // ============= INPUT CHAIN =============
+  let chain = voiceFx.source;
 
-  let chain = voiceFx.preGain;
+  // 1) Highpass (rumble cut - 80Hz altını at)
+  voiceFx.highPass = ctx.createBiquadFilter();
+  voiceFx.highPass.type = 'highpass';
+  voiceFx.highPass.frequency.value = 80;
+  voiceFx.highPass.Q.value = 0.7;
+  chain.connect(voiceFx.highPass);
+  chain = voiceFx.highPass;
 
-  // === 2) Noise Gate (kullanıcı kapatabilir) ===
-  if (p.noiseGate && !preset.bypass) {
-    // Web Audio'da DynamicsCompressor reversed = noise gate yaklaşımı
-    voiceFx.noiseGate = ctx.createDynamicsCompressor();
-    voiceFx.noiseGate.threshold.value = -50;
-    voiceFx.noiseGate.knee.value = 5;
-    voiceFx.noiseGate.ratio.value = 1.5;  // hafif
-    voiceFx.noiseGate.attack.value = 0.003;
-    voiceFx.noiseGate.release.value = 0.1;
-    chain.connect(voiceFx.noiseGate);
-    chain = voiceFx.noiseGate;
-  }
-
-  // === 3) Compressor (vokal seviyesini düzleştir) ===
+  // 2) Gentle compressor (vokal seviyesi düzlemesi)
   if (p.compressor && !preset.bypass) {
     voiceFx.compressor = ctx.createDynamicsCompressor();
-    voiceFx.compressor.threshold.value = -24;
+    voiceFx.compressor.threshold.value = -20;
     voiceFx.compressor.knee.value = 6;
-    voiceFx.compressor.ratio.value = 4;
+    voiceFx.compressor.ratio.value = 3;
     voiceFx.compressor.attack.value = 0.005;
-    voiceFx.compressor.release.value = 0.15;
+    voiceFx.compressor.release.value = 0.1;
     chain.connect(voiceFx.compressor);
     chain = voiceFx.compressor;
   }
 
-  // === 4) PSOLA Pitch+Formant Shifter (kalbi engine'in) ===
-  const effectivePitch = preset.pitchSemitones + p.pitchOffset + (p.genderShift * 0.05);
-  const pitchRatio = Math.pow(2, effectivePitch / 12);
-  // Formant: preset + gender ekler ek + kullanıcı override
-  let effectiveFormant = p.formantSet ? p.formantOverride : preset.formantRatio;
-  effectiveFormant *= (1 + p.genderShift * 0.003); // gender slider formant'a da etki eder
+  // ============= BYPASS (none preset) =============
+  if (preset.bypass) {
+    voiceFx.outputGain = ctx.createGain();
+    voiceFx.outputGain.gain.value = 1.0;
+    chain.connect(voiceFx.outputGain);
+    chain = voiceFx.outputGain;
+    finalizeChain(chain);
+    return;
+  }
 
-  // SoundTouch pitch shift sadece büyük pitch değişimi varsa
+  // ============= PITCH SHIFT (SoundTouch worklet) =============
+  const effectivePitch = (preset.pitch || 0) + p.pitchOffset + (p.genderShift * 0.04);
   const needPitchShift = Math.abs(effectivePitch) >= 0.5;
 
-  if (voiceFx.workletSupported && !preset.bypass && needPitchShift) {
+  if (voiceFx.workletSupported && needPitchShift) {
     try {
       voiceFx.workletNode = new AudioWorkletNode(ctx, 'voice-fx-pro');
-      // SoundTouch sadece pitch shift - formant=1.0 (granular kapalı, daha temiz ses)
-      voiceFx.workletNode.port.postMessage({
-        pitchSemitones: effectivePitch,
-        formant: 1.0,
-      });
+      voiceFx.workletNode.port.postMessage({ pitchSemitones: effectivePitch });
       chain.connect(voiceFx.workletNode);
       chain = voiceFx.workletNode;
-
-      // === Vocal Tract EQ Simulation (FORMANT yerine) ===
-      // Vokal trakt boyu kontrolünü EQ ile simüle et (granular shifter'dan çok daha temiz)
-      // formantRatio > 1.0 → büyük trakt → düşük formant frequencies → boost bass+presence düşür
-      // formantRatio < 1.0 → küçük trakt → yüksek formant freq → boost treble+presence yukarı
-      if (Math.abs(1 - effectiveFormant) > 0.02) {
-        const formantDelta = effectiveFormant - 1.0;  // -0.4..+0.6
-        // F1 (700-1000Hz) shift
-        const formantEQ1 = ctx.createBiquadFilter();
-        formantEQ1.type = 'peaking';
-        formantEQ1.frequency.value = 700 * effectiveFormant;
-        formantEQ1.Q.value = 1.2;
-        formantEQ1.gain.value = formantDelta < 0 ? 3 : -2;  // küçük trakt: F1 yukarı
-        chain.connect(formantEQ1);
-        chain = formantEQ1;
-
-        // F2 (1200-2400Hz) shift
-        const formantEQ2 = ctx.createBiquadFilter();
-        formantEQ2.type = 'peaking';
-        formantEQ2.frequency.value = 1500 * effectiveFormant;
-        formantEQ2.Q.value = 1.5;
-        formantEQ2.gain.value = formantDelta < 0 ? 4 : -3;  // küçük trakt: F2 vurgu
-        chain.connect(formantEQ2);
-        chain = formantEQ2;
-
-        // Track these in voiceFx for cleanup
-        voiceFx.formantEQ1 = formantEQ1;
-        voiceFx.formantEQ2 = formantEQ2;
-      }
     } catch(e) {
-      console.warn('Worklet hata, fallback:', e);
+      console.warn('Worklet hata:', e);
     }
   }
 
-  // === 5) Warmth EQ (300 Hz low shelf) ===
-  if (preset.warmth !== 0 || p.tone !== 0) {
+  // ============= FORMANT EQ (vokal trakt simulation) =============
+  // F1 (Open vowel formant)
+  if (preset.f1) {
+    voiceFx.formantF1 = ctx.createBiquadFilter();
+    voiceFx.formantF1.type = 'peaking';
+    voiceFx.formantF1.frequency.value = preset.f1.freq;
+    voiceFx.formantF1.gain.value = preset.f1.gain * p.realism * 0.7;  // realism slider ile ölçekle
+    voiceFx.formantF1.Q.value = preset.f1.q;
+    chain.connect(voiceFx.formantF1);
+    chain = voiceFx.formantF1;
+  }
+
+  // F2 (Closed vowel formant)
+  if (preset.f2) {
+    voiceFx.formantF2 = ctx.createBiquadFilter();
+    voiceFx.formantF2.type = 'peaking';
+    voiceFx.formantF2.frequency.value = preset.f2.freq;
+    voiceFx.formantF2.gain.value = preset.f2.gain * p.realism * 0.7;
+    voiceFx.formantF2.Q.value = preset.f2.q;
+    chain.connect(voiceFx.formantF2);
+    chain = voiceFx.formantF2;
+  }
+
+  // ============= TONE EQ =============
+  // Warmth (bass shelf)
+  if ((preset.warmth || 0) !== 0 || p.tone !== 0) {
     voiceFx.warmthEQ = ctx.createBiquadFilter();
     voiceFx.warmthEQ.type = 'lowshelf';
-    voiceFx.warmthEQ.frequency.value = 300;
+    voiceFx.warmthEQ.frequency.value = 250;
     voiceFx.warmthEQ.gain.value = (preset.warmth || 0) + (p.tone < 0 ? -p.tone * 0.5 : 0);
     chain.connect(voiceFx.warmthEQ);
     chain = voiceFx.warmthEQ;
   }
 
-  // === 6) Presence EQ (2.5kHz peak — insan vokal alanı) ===
-  if ((preset.presence || 0) !== 0 || (p.aiEnhance && !preset.bypass)) {
+  // Presence (mid)
+  if ((preset.presence || 0) !== 0) {
     voiceFx.presenceEQ = ctx.createBiquadFilter();
     voiceFx.presenceEQ.type = 'peaking';
     voiceFx.presenceEQ.frequency.value = 2500;
-    voiceFx.presenceEQ.gain.value = (preset.presence || 0) * 0.7 + (p.aiEnhance ? 2 * p.realism : 0);
-    voiceFx.presenceEQ.Q.value = 1.5;
+    voiceFx.presenceEQ.gain.value = (preset.presence || 0);
+    voiceFx.presenceEQ.Q.value = 1.0;
     chain.connect(voiceFx.presenceEQ);
     chain = voiceFx.presenceEQ;
   }
 
-  // === 7) Brightness EQ (4kHz high shelf) ===
-  if (preset.brightness !== 0 || p.tone !== 0) {
+  // Brightness (high shelf)
+  if ((preset.brightness || 0) !== 0 || p.tone > 0) {
     voiceFx.brightnessEQ = ctx.createBiquadFilter();
     voiceFx.brightnessEQ.type = 'highshelf';
-    voiceFx.brightnessEQ.frequency.value = 4000;
+    voiceFx.brightnessEQ.frequency.value = 4500;
     voiceFx.brightnessEQ.gain.value = (preset.brightness || 0) + (p.tone > 0 ? p.tone * 0.5 : 0);
     chain.connect(voiceFx.brightnessEQ);
     chain = voiceFx.brightnessEQ;
   }
 
-  // === 8) Band-pass (radio/space stillerinde) ===
-  if (preset.bandLow || preset.bandHigh) {
-    if (preset.bandLow) {
-      voiceFx.spectralHP = ctx.createBiquadFilter();
-      voiceFx.spectralHP.type = 'highpass';
-      voiceFx.spectralHP.frequency.value = preset.bandLow;
-      voiceFx.spectralHP.Q.value = 1;
-      chain.connect(voiceFx.spectralHP);
-      chain = voiceFx.spectralHP;
-    }
-    if (preset.bandHigh) {
-      voiceFx.spectralLP = ctx.createBiquadFilter();
-      voiceFx.spectralLP.type = 'lowpass';
-      voiceFx.spectralLP.frequency.value = preset.bandHigh;
-      voiceFx.spectralLP.Q.value = 1;
-      chain.connect(voiceFx.spectralLP);
-      chain = voiceFx.spectralLP;
-    }
+  // ============= BAND-PASS (radio/space) =============
+  if (preset.bandLow) {
+    voiceFx.bandLow = ctx.createBiquadFilter();
+    voiceFx.bandLow.type = 'highpass';
+    voiceFx.bandLow.frequency.value = preset.bandLow;
+    voiceFx.bandLow.Q.value = 0.7;
+    chain.connect(voiceFx.bandLow);
+    chain = voiceFx.bandLow;
+  }
+  if (preset.bandHigh) {
+    voiceFx.bandHigh = ctx.createBiquadFilter();
+    voiceFx.bandHigh.type = 'lowpass';
+    voiceFx.bandHigh.frequency.value = preset.bandHigh;
+    voiceFx.bandHigh.Q.value = 0.7;
+    chain.connect(voiceFx.bandHigh);
+    chain = voiceFx.bandHigh;
   }
 
-  // === 9) Saturation (rasp/distortion) ===
-  const totalSaturation = (preset.rasp || 0) + (preset.distortion || 0);
-  if (totalSaturation > 0) {
-    voiceFx.saturation = ctx.createWaveShaper();
-    voiceFx.saturation.curve = makeSaturationCurve(totalSaturation);
-    voiceFx.saturation.oversample = '4x';
-    chain.connect(voiceFx.saturation);
-    chain = voiceFx.saturation;
+  // ============= RASP (gentle saturation, tanh-based) =============
+  if ((preset.rasp || 0) > 0.05) {
+    voiceFx.raspWaveShaper = ctx.createWaveShaper();
+    voiceFx.raspWaveShaper.curve = makeRaspCurve(preset.rasp);
+    voiceFx.raspWaveShaper.oversample = '4x';
+    chain.connect(voiceFx.raspWaveShaper);
+    chain = voiceFx.raspWaveShaper;
   }
 
-  // === 10) Ring Modulator (robot/metallic) ===
-  if (preset.ringMod) {
-    voiceFx.ringModOsc = ctx.createOscillator();
-    voiceFx.ringModOsc.type = 'sine';
-    voiceFx.ringModOsc.frequency.value = preset.ringMod;
-    voiceFx.ringModGain = ctx.createGain();
-    voiceFx.ringModGain.gain.value = 0.4;
-    voiceFx.ringModOsc.connect(voiceFx.ringModGain);
-    voiceFx.ringMixer = ctx.createGain();
-    voiceFx.ringModGain.connect(voiceFx.ringMixer.gain);
-    chain.connect(voiceFx.ringMixer);
-    voiceFx.ringModOsc.start();
-    chain = voiceFx.ringMixer;
-  }
-
-  // === 11) Metallic Delay (AI/robot) ===
-  if (preset.metallic) {
-    voiceFx.metallicDelay = ctx.createDelay(0.1);
-    voiceFx.metallicDelay.delayTime.value = 0.012;
-    voiceFx.metallicFB = ctx.createGain();
-    voiceFx.metallicFB.gain.value = preset.metallic * 0.5;
-    const metMix = ctx.createGain();
-    chain.connect(metMix);
-    chain.connect(voiceFx.metallicDelay);
-    voiceFx.metallicDelay.connect(voiceFx.metallicFB);
-    voiceFx.metallicFB.connect(voiceFx.metallicDelay);
-    voiceFx.metallicDelay.connect(metMix);
-    chain = metMix;
-  }
-
-  // === 12) Reverb ===
+  // ============= REVERB =============
   const totalReverb = (preset.reverbRoom || 0) + p.reverbExtra;
-  if (totalReverb > 0.01) {
+  if (totalReverb > 0.05) {
     voiceFx.reverbConv = ctx.createConvolver();
-    const dur = Math.min(3.0, 0.5 + totalReverb * 2.5);
-    const dec = Math.max(1.5, 4 - totalReverb * 2);
-    voiceFx.reverbConv.buffer = makeReverbIR(ctx, dur, dec);
+    const dur = Math.min(2.0, 0.4 + totalReverb * 1.5);
+    voiceFx.reverbConv.buffer = makeReverbIR(ctx, dur, 3);
     voiceFx.reverbWet = ctx.createGain();
-    voiceFx.reverbWet.gain.value = totalReverb * 0.55;
+    voiceFx.reverbWet.gain.value = totalReverb * 0.4;
     voiceFx.reverbDry = ctx.createGain();
     voiceFx.reverbDry.gain.value = 1.0;
     voiceFx.reverbMix = ctx.createGain();
@@ -15868,57 +15885,71 @@ function buildFilterChain() {
     chain = voiceFx.reverbMix;
   }
 
-  // === 13) Final intensity (dry/wet) + output ===
-  // Bypass modunda (none) - direkt orijinal
-  const isBypass = preset.bypass;
-  voiceFx.outputGain = ctx.createGain();
+  // ============= LIMITER (anti-clipping) =============
+  voiceFx.limiter = ctx.createDynamicsCompressor();
+  voiceFx.limiter.threshold.value = -3;
+  voiceFx.limiter.knee.value = 0;
+  voiceFx.limiter.ratio.value = 20;
+  voiceFx.limiter.attack.value = 0.001;
+  voiceFx.limiter.release.value = 0.05;
+  chain.connect(voiceFx.limiter);
+  chain = voiceFx.limiter;
 
-  if (isBypass) {
-    voiceFx.preGain.connect(voiceFx.outputGain);
+  // ============= DRY/WET =============
+  if (p.intensity < 0.99) {
+    voiceFx.dryGain = ctx.createGain();
+    voiceFx.wetGain = ctx.createGain();
+    voiceFx.dryGain.gain.value = 1 - p.intensity;
+    voiceFx.wetGain.gain.value = p.intensity;
+
+    voiceFx.outputGain = ctx.createGain();
+    voiceFx.outputGain.gain.value = 1.0;
+
+    voiceFx.source.connect(voiceFx.dryGain);  // dry direkt source'tan
+    chain.connect(voiceFx.wetGain);            // wet işlenmiş zincirden
+    voiceFx.dryGain.connect(voiceFx.outputGain);
+    voiceFx.wetGain.connect(voiceFx.outputGain);
+    chain = voiceFx.outputGain;
   } else {
-    const dryGain = ctx.createGain();
-    const wetGain = ctx.createGain();
-    dryGain.gain.value = 1 - p.intensity;
-    wetGain.gain.value = p.intensity;
-    voiceFx.preGain.connect(dryGain);
-    chain.connect(wetGain);
-    dryGain.connect(voiceFx.outputGain);
-    wetGain.connect(voiceFx.outputGain);
+    voiceFx.outputGain = ctx.createGain();
+    voiceFx.outputGain.gain.value = 1.0;
+    chain.connect(voiceFx.outputGain);
+    chain = voiceFx.outputGain;
   }
-  voiceFx.outputGain.gain.value = 1.0;
 
+  finalizeChain(chain);
+}
+
+function finalizeChain(chain) {
+  const ctx = voiceFx.ctx;
   // Analyser
-  if (voiceFx.analyser) voiceFx.outputGain.connect(voiceFx.analyser);
-
-  // Destination (peer'a)
+  if (voiceFx.analyser) chain.connect(voiceFx.analyser);
+  // Destination (peer'a giden)
   if (!voiceFx.destination) {
     voiceFx.destination = ctx.createMediaStreamDestination();
     voiceFx.filteredStream = voiceFx.destination.stream;
   }
-  voiceFx.outputGain.connect(voiceFx.destination);
-
-  // Monitor (yerel)
+  chain.connect(voiceFx.destination);
+  // Monitor (yerel test)
   if (!voiceFx.monitorGain) {
     voiceFx.monitorGain = ctx.createGain();
     voiceFx.monitorGain.gain.value = voiceFx.testing ? 0.85 : 0;
     voiceFx.monitorGain.connect(ctx.destination);
   }
-  voiceFx.outputGain.connect(voiceFx.monitorGain);
-
+  chain.connect(voiceFx.monitorGain);
   voiceFx.active = true;
 }
 
-// ============= UI =============
-
+// =====================================================================
+// UI
+// =====================================================================
 async function openVoiceFxPanel() {
   const backdrop = document.getElementById('vfx-backdrop');
   if (backdrop) backdrop.classList.add('open');
   renderVoicePresets();
   setupVisualizer();
 
-  if (!voiceFx.ctx) {
-    await initVoiceFxEngine();
-  }
+  if (!voiceFx.ctx) await initVoiceFxEngine();
   if (voiceFx.ctx.state === 'suspended') {
     try { await voiceFx.ctx.resume(); } catch(e) {}
   }
@@ -15932,7 +15963,6 @@ async function openVoiceFxPanel() {
     }
     buildFilterChain();
     startVisualizerLoop();
-
     const ind = document.getElementById('vfx-mic-indicator');
     const txt = document.getElementById('vfx-mic-text');
     if (ind) ind.classList.remove('muted');
@@ -15960,16 +15990,12 @@ function renderVoicePresets() {
   const area = document.getElementById('vfx-presets-area');
   if (!area) return;
   area.innerHTML = '';
-
-  // Kategorilere göre grupla
   const grouped = {};
   Object.entries(VOICE_PRESETS).forEach(([key, p]) => {
     const cat = p.category || 'human';
     if (!grouped[cat]) grouped[cat] = [];
     grouped[cat].push({ key, ...p });
   });
-
-  // Sıralı render
   Object.entries(VOICE_CATEGORIES)
     .sort((a, b) => a[1].order - b[1].order)
     .forEach(([catKey, catDef]) => {
@@ -15979,7 +16005,6 @@ function renderVoicePresets() {
       title.className = 'vfx-section-title';
       title.textContent = catDef.name;
       area.appendChild(title);
-
       const grid = document.createElement('div');
       grid.className = 'vfx-filters-grid';
       items.forEach(item => {
@@ -15987,10 +16012,7 @@ function renderVoicePresets() {
         card.className = 'vfx-filter-card';
         if (item.key === voiceFx.selectedPreset) card.classList.add('active');
         card.dataset.preset = item.key;
-        card.innerHTML = `
-          <div class="vfx-filter-icon">${item.icon}</div>
-          <div class="vfx-filter-name">${item.name}</div>
-        `;
+        card.innerHTML = `<div class="vfx-filter-icon">${item.icon}</div><div class="vfx-filter-name">${item.name}</div>`;
         card.onclick = () => selectVoicePreset(item.key);
         grid.appendChild(card);
       });
@@ -16003,7 +16025,6 @@ function selectVoicePreset(key) {
   document.querySelectorAll('.vfx-filter-card').forEach(c => {
     c.classList.toggle('active', c.dataset.preset === key);
   });
-  // Formant override resetle (preset değişti)
   voiceFx.params.formantSet = false;
   buildFilterChain();
   voiceFx.applied = false;
@@ -16013,7 +16034,6 @@ function selectVoicePreset(key) {
 function setVfxParam(key, value) {
   const v = Number(value);
   const p = voiceFx.params;
-
   if (key === 'intensity') {
     p.intensity = v / 100;
     document.getElementById('vfx-intensity-val').textContent = v + '%';
@@ -16045,7 +16065,6 @@ function setVfxParam(key, value) {
     else if (v > 3) label = 'Tiz (+' + v + ' dB)';
     document.getElementById('vfx-tone-val').textContent = label;
   }
-
   buildFilterChain();
   voiceFx.applied = false;
   updateApplyBtn();
@@ -16064,8 +16083,9 @@ function switchVfxTab(tab) {
   });
 }
 
-// ============= TEST/APPLY =============
-
+// =====================================================================
+// TEST / APPLY
+// =====================================================================
 function toggleVoiceTest() {
   if (voiceFx.testing) stopVoiceTest();
   else startVoiceTest();
@@ -16103,7 +16123,6 @@ function applyVoiceFx() {
   if (voiceFx.testing) stopVoiceTest();
   const newTrack = voiceFx.filteredStream.getAudioTracks()[0];
   if (!newTrack) { alert('Track oluşturulamadı'); return; }
-
   if (localStream) {
     const oldTrack = localStream.getAudioTracks()[0];
     if (oldTrack) {
@@ -16112,13 +16131,11 @@ function applyVoiceFx() {
     }
     localStream.addTrack(newTrack);
   }
-
-  // Peer connections
   if (typeof peerConnections !== 'undefined' && peerConnections) {
     Object.values(peerConnections).forEach(pc => {
       if (pc && pc.call && pc.call.peerConnection) {
         const sender = pc.call.peerConnection.getSenders().find(s => s.track && s.track.kind === 'audio');
-        if (sender) sender.replaceTrack(newTrack).catch(e => console.warn('replaceTrack:', e));
+        if (sender) sender.replaceTrack(newTrack).catch(e => console.warn(e));
       }
     });
   }
@@ -16133,7 +16150,6 @@ function applyVoiceFx() {
       });
     });
   }
-
   voiceFx.applied = true;
   voiceFx.appliedPreset = voiceFx.selectedPreset;
   updateApplyBtn();
@@ -16142,9 +16158,8 @@ function applyVoiceFx() {
     if (voiceFx.selectedPreset === 'none') badge.style.display = 'none';
     else { badge.style.display = ''; badge.textContent = VOICE_PRESETS[voiceFx.selectedPreset].icon; }
   }
-  const presetDef = VOICE_PRESETS[voiceFx.selectedPreset];
-  if (typeof toast === 'function') toast('🎤 ' + presetDef.name + ' sesi yayında!', 'success');
-
+  const def = VOICE_PRESETS[voiceFx.selectedPreset];
+  if (typeof toast === 'function') toast('🎤 ' + def.name + ' yayında!', 'success');
   const btn = document.getElementById('vfx-apply-btn');
   btn.classList.add('applied');
   document.getElementById('vfx-apply-label').textContent = 'UYGULANDI ✓';
@@ -16162,24 +16177,19 @@ function resetVoiceFx() {
     genderShift: 0, tone: 0, reverbExtra: 0, realism: 0.75,
     aiEnhance: true, compressor: true, noiseGate: true, echoCancel: true,
   };
-  document.getElementById('vfx-intensity').value = 100;
+  ['vfx-intensity','vfx-pitch','vfx-formant','vfx-gender','vfx-reverb','vfx-realism','vfx-tone'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = id === 'vfx-intensity' ? 100 : (id === 'vfx-formant' ? 100 : (id === 'vfx-realism' ? 75 : 0));
+  });
   document.getElementById('vfx-intensity-val').textContent = '100%';
-  document.getElementById('vfx-pitch').value = 0;
   document.getElementById('vfx-pitch-val').textContent = '0';
-  document.getElementById('vfx-formant').value = 100;
   document.getElementById('vfx-formant-val').textContent = '1.00x';
-  document.getElementById('vfx-gender').value = 0;
   document.getElementById('vfx-gender-val').textContent = 'Nötr';
-  document.getElementById('vfx-reverb').value = 0;
   document.getElementById('vfx-reverb-val').textContent = '0%';
-  document.getElementById('vfx-realism').value = 75;
   document.getElementById('vfx-realism-val').textContent = '75%';
-  document.getElementById('vfx-tone').value = 0;
   document.getElementById('vfx-tone-val').textContent = 'Nötr';
-
   renderVoicePresets();
   buildFilterChain();
-
   if (voiceFx.applied && voiceFx.originalAudioTrack && localStream) {
     try {
       const cur = localStream.getAudioTracks()[0];
@@ -16195,7 +16205,6 @@ function resetVoiceFx() {
       }
     } catch(e) { console.warn(e); }
   }
-
   voiceFx.applied = false;
   voiceFx.appliedPreset = 'none';
   updateApplyBtn();
@@ -16212,15 +16221,15 @@ function updateApplyBtn() {
   else { label.textContent = 'UYGULA & YAYINLA'; btn.classList.remove('applied'); }
 }
 
-// ============= VISUALIZER =============
-
+// =====================================================================
+// VISUALIZER
+// =====================================================================
 function setupVisualizer() {
   const vis = document.getElementById('vfx-visualizer');
   if (!vis) return;
   vis.innerHTML = '';
   voiceFx.visualizerBars = [];
-  const n = 32;
-  for (let i = 0; i < n; i++) {
+  for (let i = 0; i < 32; i++) {
     const b = document.createElement('div');
     b.className = 'vfx-vis-bar';
     b.style.height = '4px';
@@ -16249,7 +16258,6 @@ function startVisualizerLoop() {
   tick();
 }
 
-// Klavye kısayolu
 window.addEventListener('keydown', (e) => {
   if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
   if ((e.key === 'v' || e.key === 'V') && e.shiftKey) {
@@ -16258,7 +16266,6 @@ window.addEventListener('keydown', (e) => {
     if (open) closeVoiceFxPanel(); else openVoiceFxPanel();
   }
 });
-
 </script>
 </body>
 </html>
