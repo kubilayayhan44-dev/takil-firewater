@@ -15655,14 +15655,30 @@ async function initVoiceFxEngine() {
 }
 
 async function getVoiceFxMicStream() {
-  // Aramada zaten varsa onu kullan, yoksa yeni stream al
-  if (localStream && localStream.getAudioTracks().length > 0) {
-    // ORI MIC stream — biz bunun raw track'ini kullanacağız
-    if (!voiceFx.originalAudioTrack) {
-      voiceFx.originalAudioTrack = localStream.getAudioTracks()[0];
+  // ÖNEMLİ: AYRI bir mic stream al (audio only)
+  // Çünkü localStream'i değiştiriyoruz, source onun parentı olmasın
+  // Aramada zaten varsa: o stream'in audio track'inden YENİ stream yarat
+  try {
+    if (localStream && localStream.getAudioTracks().length > 0) {
+      const origTrack = localStream.getAudioTracks()[0];
+      if (!voiceFx.originalAudioTrack) {
+        voiceFx.originalAudioTrack = origTrack;
+      }
+      // Eğer daha önce yeni mic aldıysak, onu kullan
+      if (voiceFx.micStream && voiceFx.micStream.active) {
+        return voiceFx.micStream;
+      }
+      // Aksi halde yeni mic erişimi (track replace edildiğinde çaklışma olmasın)
+      voiceFx.micStream = await navigator.mediaDevices.getUserMedia({
+        audio: {
+          echoCancellation: voiceFx.params.echoCancel,
+          noiseSuppression: voiceFx.params.suppression,
+          autoGainControl: true,
+        }
+      });
+      return voiceFx.micStream;
     }
-    return localStream;
-  } else {
+    // Call yoksa yeni stream al
     voiceFx.micStream = await navigator.mediaDevices.getUserMedia({
       audio: {
         echoCancellation: voiceFx.params.echoCancel,
@@ -15671,100 +15687,136 @@ async function getVoiceFxMicStream() {
       }
     });
     return voiceFx.micStream;
+  } catch(e) {
+    console.error('Mic stream hatası:', e);
+    throw e;
+  }
+}
+
+// Tüm eski düğümleri kapat ve disconnect
+function destroyFilterChain() {
+  const v = voiceFx;
+  const all = [
+    v.bassFilter, v.pitchNode, v.dryGain, v.wetGain, v.outputGain,
+    v.reverbConvolver, v.reverbWet, v.reverbDry, v.reverbMix,
+    v.preGain,
+  ];
+  if (v.filterChain && v.filterChain.nodes) all.push(...v.filterChain.nodes);
+  all.forEach(n => {
+    if (!n) return;
+    try { n.disconnect(); } catch(e) {}
+    try { if (typeof n.stop === 'function') n.stop(); } catch(e) {}
+  });
+  v.bassFilter = v.pitchNode = v.dryGain = v.wetGain = v.outputGain = null;
+  v.reverbConvolver = v.reverbWet = v.reverbDry = v.reverbMix = null;
+  v.preGain = null;
+  v.filterChain = { output: null, nodes: [] };
+  // Source'u da disconnect et (yeni baglanmaz birden fazla path olmasın)
+  if (v.source) {
+    try { v.source.disconnect(); } catch(e) {}
   }
 }
 
 function buildFilterChain() {
   const ctx = voiceFx.ctx;
   if (!ctx) return;
-
-  // Eski zinciri temizle
-  if (voiceFx.filterChain && voiceFx.filterChain.nodes) {
-    voiceFx.filterChain.nodes.forEach(n => { try { n.disconnect(); n.stop && n.stop(); } catch(e){} });
-  }
-
-  // Source
   const source = voiceFx.source;
   if (!source) return;
 
-  // Bass boost (always-on if non-zero)
+  // Eski zinciri TAMAMEN temizle
+  destroyFilterChain();
+
+  // PreGain - source'tan tek çıkış, sonra dallan
+  voiceFx.preGain = ctx.createGain();
+  voiceFx.preGain.gain.value = 1.0;
+  source.connect(voiceFx.preGain);
+
+  // Bass boost
   voiceFx.bassFilter = ctx.createBiquadFilter();
   voiceFx.bassFilter.type = 'lowshelf';
   voiceFx.bassFilter.frequency.value = 150;
   voiceFx.bassFilter.gain.value = voiceFx.params.bass;
+  voiceFx.preGain.connect(voiceFx.bassFilter);
 
-  // Pitch shift (basit oktav: playbackRate ile yapamayız, delay modulation kullanırız)
-  // Sık bir pseudo-pitch: positive=highpass+treble boost, negative=lowpass+bass
-  let pitchNode;
-  if (voiceFx.params.pitch !== 0) {
-    pitchNode = ctx.createBiquadFilter();
-    pitchNode.type = 'peaking';
-    pitchNode.frequency.value = voiceFx.params.pitch > 0 ? 2500 : 400;
-    pitchNode.gain.value = Math.abs(voiceFx.params.pitch) * 1.2;
-    pitchNode.Q.value = 1.5;
-  }
-
-  source.connect(voiceFx.bassFilter);
   let chainStart = voiceFx.bassFilter;
-  if (pitchNode) {
-    voiceFx.bassFilter.connect(pitchNode);
-    chainStart = pitchNode;
+
+  // Pitch shift (basit pseudo-pitch)
+  if (voiceFx.params.pitch !== 0) {
+    voiceFx.pitchNode = ctx.createBiquadFilter();
+    voiceFx.pitchNode.type = 'peaking';
+    voiceFx.pitchNode.frequency.value = voiceFx.params.pitch > 0 ? 2500 : 400;
+    voiceFx.pitchNode.gain.value = Math.abs(voiceFx.params.pitch) * 1.2;
+    voiceFx.pitchNode.Q.value = 1.5;
+    voiceFx.bassFilter.connect(voiceFx.pitchNode);
+    chainStart = voiceFx.pitchNode;
   }
 
-  // Filtre uygula
+  // FILTRE UYGULA
   const filterDef = VOICE_FILTERS[voiceFx.selectedFilter] || VOICE_FILTERS.none;
   voiceFx.filterChain = filterDef.setup(ctx, chainStart);
+  let filterOut = voiceFx.filterChain.output;
+  // Eğer filtre 'none' ise chainStart dönüyor, source'a göre ham geçiyor
+  if (!filterOut) filterOut = chainStart;
 
-  // Reverb (eklenirse)
-  let reverbOut = voiceFx.filterChain.output;
+  // Reverb
+  let reverbOut = filterOut;
   if (voiceFx.params.reverb > 0) {
     voiceFx.reverbConvolver = ctx.createConvolver();
     voiceFx.reverbConvolver.buffer = makeReverbImpulse(ctx, 2, 3);
     voiceFx.reverbWet = ctx.createGain();
     voiceFx.reverbWet.gain.value = voiceFx.params.reverb;
-    const reverbDry = ctx.createGain();
-    reverbDry.gain.value = 1 - voiceFx.params.reverb * 0.5;
-    const reverbMix = ctx.createGain();
-    voiceFx.filterChain.output.connect(reverbDry);
-    voiceFx.filterChain.output.connect(voiceFx.reverbConvolver);
+    voiceFx.reverbDry = ctx.createGain();
+    voiceFx.reverbDry.gain.value = 1.0;
+    voiceFx.reverbMix = ctx.createGain();
+    filterOut.connect(voiceFx.reverbDry);
+    filterOut.connect(voiceFx.reverbConvolver);
     voiceFx.reverbConvolver.connect(voiceFx.reverbWet);
-    reverbDry.connect(reverbMix);
-    voiceFx.reverbWet.connect(reverbMix);
-    reverbOut = reverbMix;
+    voiceFx.reverbDry.connect(voiceFx.reverbMix);
+    voiceFx.reverbWet.connect(voiceFx.reverbMix);
+    reverbOut = voiceFx.reverbMix;
   }
 
   // Dry/Wet (intensity)
+  // Filtre 'none' ise intensity etkisi yok (ham ses gelir)
+  const isNone = voiceFx.selectedFilter === 'none';
   voiceFx.dryGain = ctx.createGain();
   voiceFx.wetGain = ctx.createGain();
-  voiceFx.dryGain.gain.value = 1 - voiceFx.params.intensity;
-  voiceFx.wetGain.gain.value = voiceFx.params.intensity;
+  if (isNone) {
+    voiceFx.dryGain.gain.value = 1.0;
+    voiceFx.wetGain.gain.value = 0;
+  } else {
+    voiceFx.dryGain.gain.value = 1 - voiceFx.params.intensity;
+    voiceFx.wetGain.gain.value = voiceFx.params.intensity;
+  }
+  voiceFx.preGain.connect(voiceFx.dryGain);    // dry: pre'den direkt
+  reverbOut.connect(voiceFx.wetGain);          // wet: işlenmiş sinyalden
 
-  source.connect(voiceFx.dryGain);
-  reverbOut.connect(voiceFx.wetGain);
-
+  // Output mixer
   voiceFx.outputGain = ctx.createGain();
   voiceFx.outputGain.gain.value = 1.0;
   voiceFx.dryGain.connect(voiceFx.outputGain);
   voiceFx.wetGain.connect(voiceFx.outputGain);
 
-  // Output: visualizer + destination (outgoing) + monitor (yerel test)
-  voiceFx.outputGain.connect(voiceFx.analyser);
+  // OUTPUT'u tüm hedeflere bağla
+  // 1) Analyser (visualizer)
+  if (voiceFx.analyser) voiceFx.outputGain.connect(voiceFx.analyser);
 
-  // OUTGOING stream destination
+  // 2) OUTGOING stream destination (peer'a giden) - TEK SEFER yarat
   if (!voiceFx.destination) {
     voiceFx.destination = ctx.createMediaStreamDestination();
+    voiceFx.filteredStream = voiceFx.destination.stream;
   }
   voiceFx.outputGain.connect(voiceFx.destination);
 
-  // Monitor (sadece TEST modunda çalışan): default mute
+  // 3) Monitor (yerel test) - TEK SEFER yarat ama her seferinde outputGain'e bağla
   if (!voiceFx.monitorGain) {
     voiceFx.monitorGain = ctx.createGain();
-    voiceFx.monitorGain.gain.value = 0;   // mute
-    voiceFx.outputGain.connect(voiceFx.monitorGain);
+    voiceFx.monitorGain.gain.value = voiceFx.testing ? 0.7 : 0;
     voiceFx.monitorGain.connect(ctx.destination);
   }
+  // outputGain her sefer yeni, monitorGain'e bağlanmalı
+  voiceFx.outputGain.connect(voiceFx.monitorGain);
 
-  voiceFx.filteredStream = voiceFx.destination.stream;
   voiceFx.active = true;
 }
 
@@ -15956,19 +16008,35 @@ function applyVoiceFx() {
     localStream.addTrack(newTrack);
   }
 
-  // Tüm peer connections'da replace et
-  if (typeof callPeer !== 'undefined' && callPeer) {
+  // Tüm peer connections'da audio sender'ı replace et
+  let replacedCount = 0;
+  if (typeof peerConnections !== 'undefined' && peerConnections) {
     try {
-      // Mevcut tüm aktif call'larda sender'ı güncelle
-      Object.values(callPeer.connections || {}).forEach(connArr => {
+      Object.values(peerConnections).forEach(pc => {
+        if (pc && pc.call && pc.call.peerConnection) {
+          const sender = pc.call.peerConnection.getSenders().find(s => s.track && s.track.kind === 'audio');
+          if (sender) {
+            sender.replaceTrack(newTrack).then(() => {
+              replacedCount++;
+            }).catch(e => console.warn('replaceTrack:', e));
+          }
+        }
+      });
+    } catch(e) { console.warn('Peer replace hata:', e); }
+  }
+  // PeerJS's internal connections de tara (fallback)
+  if (typeof callPeer !== 'undefined' && callPeer && callPeer.connections) {
+    try {
+      Object.values(callPeer.connections).forEach(connArr => {
+        if (!Array.isArray(connArr)) connArr = [connArr];
         connArr.forEach(conn => {
-          if (conn.peerConnection) {
+          if (conn && conn.peerConnection) {
             const sender = conn.peerConnection.getSenders().find(s => s.track && s.track.kind === 'audio');
-            if (sender) sender.replaceTrack(newTrack).catch(e => console.warn('replaceTrack:', e));
+            if (sender) sender.replaceTrack(newTrack).catch(e => console.warn('replaceTrack(call):', e));
           }
         });
       });
-    } catch(e) { console.warn('Peer replace hata:', e); }
+    } catch(e) { console.warn('callPeer replace hata:', e); }
   }
 
   voiceFx.applied = true;
@@ -16029,11 +16097,20 @@ function resetVoiceFx() {
       const cur = localStream.getAudioTracks()[0];
       if (cur) localStream.removeTrack(cur);
       localStream.addTrack(voiceFx.originalAudioTrack);
-      // Peer connections
-      if (typeof callPeer !== 'undefined' && callPeer) {
-        Object.values(callPeer.connections || {}).forEach(connArr => {
+      // Peer connections - hem peerConnections hem callPeer.connections taranr
+      if (typeof peerConnections !== 'undefined' && peerConnections) {
+        Object.values(peerConnections).forEach(pc => {
+          if (pc && pc.call && pc.call.peerConnection) {
+            const sender = pc.call.peerConnection.getSenders().find(s => s.track && s.track.kind === 'audio');
+            if (sender) sender.replaceTrack(voiceFx.originalAudioTrack).catch(e => console.warn(e));
+          }
+        });
+      }
+      if (typeof callPeer !== 'undefined' && callPeer && callPeer.connections) {
+        Object.values(callPeer.connections).forEach(connArr => {
+          if (!Array.isArray(connArr)) connArr = [connArr];
           connArr.forEach(conn => {
-            if (conn.peerConnection) {
+            if (conn && conn.peerConnection) {
               const sender = conn.peerConnection.getSenders().find(s => s.track && s.track.kind === 'audio');
               if (sender) sender.replaceTrack(voiceFx.originalAudioTrack).catch(e => console.warn(e));
             }
