@@ -15274,9 +15274,9 @@ const VOICE_PRESETS = {
   },
   demon: {
     icon:'👹', name:'İblis', category:'cinema',
-    pitchSemitones: -10, formantRatio: 0.65,
-    brightness: -4, warmth: 8, presence: 2, rasp: 0.85, breath: 0, reverbRoom: 0.5,
-    distortion: 0.6
+    pitchSemitones: -8, formantRatio: 0.75,
+    brightness: -3, warmth: 6, presence: 2, rasp: 0.25, breath: 0, reverbRoom: 0.4,
+    distortion: 0.2
   },
   aiAssistant: {
     icon:'🤖', name:'AI Asistan', category:'cinema',
@@ -15421,50 +15421,53 @@ class VoiceFxProProcessor extends AudioWorkletProcessor {
   constructor() {
     super();
 
-    // SoundTouch instance (worklet scope'una eklendi - global)
+    // SoundTouch instance
     this.soundtouch = new SoundTouch();
     this.soundtouch.pitchSemitones = 0;
     this.soundtouch.tempo = 1.0;
     this.soundtouch.rate = 1.0;
 
     this.pitchSemitones = 0;
-    this.formantRatio = 1.0;
 
-    // Formant granular post-processor buffer
-    this.formantBuf = new Float32Array(16384);
-    this.formantBufLen = 16384;
-    this.formantWriteIdx = 0;
-    this.formantGrainSize = 4096;
-    this.formantNumGrains = 4;
-    this.formantGrains = [];
-    for (let i = 0; i < this.formantNumGrains; i++) {
-      this.formantGrains.push({
-        phase: i * (this.formantGrainSize / this.formantNumGrains),
-        readPos: 0,
-      });
-    }
+    // OUTPUT FIFO - SoundTouch çıkışini biriktir
+    // Bu sayede her process()'te N sample garantili alınır
+    this.outFifo = new Float32Array(16384);
+    this.outFifoRead = 0;
+    this.outFifoWrite = 0;
+
+    // Initial latency build-up: SoundTouch'un internal buffer'ı doluncaya
+    // kadar sessizlik üret (discontinuity engelle)
+    this.warmupSamples = 4096;  // ~85ms @ 48kHz
+    this.samplesProduced = 0;
 
     this.port.onmessage = (e) => {
       if (e.data.pitchSemitones !== undefined) {
         this.pitchSemitones = e.data.pitchSemitones;
         this.soundtouch.pitchSemitones = this.pitchSemitones;
       }
-      if (e.data.formant !== undefined) {
-        this.formantRatio = Math.max(0.5, Math.min(2.0, e.data.formant));
-      }
+      // formant artik EQ ile yapiliyor - worklet'te kullanilmiyor
     };
   }
 
-  envelope(phase) {
-    return 0.5 * (1 - Math.cos(2 * Math.PI * phase / this.formantGrainSize));
+  // FIFO'da kac sample var?
+  fifoAvailable() {
+    return (this.outFifoWrite - this.outFifoRead + this.outFifo.length) % this.outFifo.length;
   }
 
-  readFormantSample(pos) {
-    let p = ((pos % this.formantBufLen) + this.formantBufLen) % this.formantBufLen;
-    const i0 = Math.floor(p);
-    const i1 = (i0 + 1) % this.formantBufLen;
-    const f = p - i0;
-    return this.formantBuf[i0] * (1 - f) + this.formantBuf[i1] * f;
+  // FIFO'ya yaz
+  fifoPush(samples, count) {
+    for (let i = 0; i < count; i++) {
+      this.outFifo[this.outFifoWrite] = samples[i];
+      this.outFifoWrite = (this.outFifoWrite + 1) % this.outFifo.length;
+    }
+  }
+
+  // FIFO'dan oku
+  fifoPop(out, count) {
+    for (let i = 0; i < count; i++) {
+      out[i] = this.outFifo[this.outFifoRead];
+      this.outFifoRead = (this.outFifoRead + 1) % this.outFifo.length;
+    }
   }
 
   process(inputs, outputs) {
@@ -15476,7 +15479,7 @@ class VoiceFxProProcessor extends AudioWorkletProcessor {
     const outCh = output[0];
     const N = inCh.length;
 
-    // === SoundTouch'a sample gönder (STEREO interleaved bekliyor) ===
+    // === SoundTouch'a sample gönder (STEREO interleaved) ===
     const stIn = new Float32Array(N * 2);
     for (let i = 0; i < N; i++) {
       stIn[i * 2] = inCh[i];     // L
@@ -15485,24 +15488,42 @@ class VoiceFxProProcessor extends AudioWorkletProcessor {
     this.soundtouch.inputBuffer.putSamples(stIn, 0, N);
     this.soundtouch.process();
 
-    // === SoundTouch'tan çıkış al (STEREO interleaved) ===
+    // === SoundTouch'tan çıkan tüm sample'ları FIFO'ya yığ ===
     const outFrames = this.soundtouch.outputBuffer.frameCount;
     if (outFrames > 0) {
       const stOut = new Float32Array(outFrames * 2);
       this.soundtouch.outputBuffer.receiveSamples(stOut, outFrames);
-      // Stereo'dan mono al (L kanalı) ve formant buffer'a yaz
+      // Stereo'dan mono al ve FIFO'ya yaz
+      const mono = new Float32Array(outFrames);
       for (let i = 0; i < outFrames; i++) {
-        this.formantBuf[this.formantWriteIdx] = stOut[i * 2];
-        this.formantWriteIdx = (this.formantWriteIdx + 1) % this.formantBufLen;
+        mono[i] = stOut[i * 2];
       }
+      this.fifoPush(mono, outFrames);
     }
 
-    // === PURE PASSTHROUGH ===
-    // SoundTouch çıkısını direkt outpu'ta yaz (granular formant kapalı - daha temiz)
-    // Formant shift dışarıda Vocal Tract EQ ile yapılıyor
-    for (let i = 0; i < N; i++) {
-      const readPos = (this.formantWriteIdx - N + i + this.formantBufLen) % this.formantBufLen;
-      outCh[i] = this.formantBuf[readPos] || 0;
+    // === WARMUP: İlk birkaç 100ms sessizlik (FIFO doluncaya) ===
+    if (this.samplesProduced < this.warmupSamples) {
+      for (let i = 0; i < N; i++) outCh[i] = 0;
+      this.samplesProduced += N;
+      return true;
+    }
+
+    // === OUTPUT: FIFO'dan N sample al, eksikse 0 padding ===
+    const available = this.fifoAvailable();
+    if (available >= N) {
+      this.fifoPop(outCh, N);
+    } else if (available > 0) {
+      // Kısmi - mevcudu al, kalanı son sample ile interpolate (smooth fade)
+      this.fifoPop(outCh, available);
+      // Son sample'ı yumusçakca sıfıra getir (cizirti olmasın)
+      const lastSample = outCh[available - 1] || 0;
+      for (let i = available; i < N; i++) {
+        const fade = 1.0 - (i - available) / (N - available);
+        outCh[i] = lastSample * fade;
+      }
+    } else {
+      // FIFO boş - sessizlik
+      for (let i = 0; i < N; i++) outCh[i] = 0;
     }
 
     return true;
@@ -15614,14 +15635,15 @@ function destroyFilterChain() {
 
 // Distortion curve (soft tube saturation)
 function makeSaturationCurve(amount) {
-  const k = amount * 100;
+  // Daha YUMUŞAK saturation (tube emulation tarzı)
+  // amount 0..1 → cizirti olmasin
   const n = 4096;
   const curve = new Float32Array(n);
-  const deg = Math.PI / 180;
+  const drive = 1 + amount * 3;  // 1x ile 4x arası gain
   for (let i = 0; i < n; i++) {
     const x = (i * 2) / n - 1;
-    // Soft asymmetric saturation
-    curve[i] = (3 + k) * x * 20 * deg / (Math.PI + k * Math.abs(x));
+    // Tanh-based soft clip (smooth, no harsh harmonics)
+    curve[i] = Math.tanh(x * drive) * 0.95;
   }
   return curve;
 }
