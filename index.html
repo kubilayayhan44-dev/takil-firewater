@@ -15259,12 +15259,26 @@ const VOICE_PRESETS = {
   // === İNSAN SESLERİ (kalitesi öncelik) ===
   realFemale: {
     icon:'👩', name:'Kadın', category:'human',
-    pitch: 4,                  // semitone (yumuşak, fazla yüksek değil)
-    f1: { freq: 850, gain: 4, q: 1.2 },   // F1 yukarı kaydır
-    f2: { freq: 2100, gain: 5, q: 1.5 },  // F2 vurgu
-    warmth: -2,                // bass az
-    presence: 3,
-    brightness: 2,
+    pitch: 8,                  // Erkek F0 ≈11×0Hz → Kadın F0 ≈220Hz = +8 semitone (gerçekçi)
+    // Praat-temelli gerçek kadın formantları (Hillenbrand 1995 veri)
+    f1: { freq: 850, gain: 7, q: 1.0 },    // F1 kadın alanı, GUCLU peak
+    f2: { freq: 2200, gain: 8, q: 1.2 },   // F2 kadın alanı, KUVVETLİ vurgu
+    f3: { freq: 3000, gain: 4, q: 1.5 },   // F3 ekstra (kadın parlaklığı)
+    warmth: -4,                // erkek bass'i kıs
+    presence: 5,               // mid presence
+    brightness: 5,             // tiz parlaklık (kadın karakteristik)
+    deEss: true,               // s/sh yumusçat
+  },
+  realFemaleSoft: {
+    icon:'💃', name:'Yumusçak Kadın', category:'human',
+    pitch: 6,
+    f1: { freq: 800, gain: 6, q: 1.0 },
+    f2: { freq: 2000, gain: 7, q: 1.2 },
+    f3: { freq: 2800, gain: 3, q: 1.5 },
+    warmth: -2,
+    presence: 4,
+    brightness: 3,
+    deEss: true,
   },
   realMale: {
     icon:'👨', name:'Erkek', category:'human',
@@ -15452,6 +15466,8 @@ const voiceFx = {
   noiseGate: null,
   formantF1: null,
   formantF2: null,
+  formantF3: null,
+  deEsser: null,
   warmthEQ: null,
   presenceEQ: null,
   brightnessEQ: null,
@@ -15677,7 +15693,7 @@ function destroyFilterChain() {
   const v = voiceFx;
   const nodes = [
     v.highPass, v.compressor, v.noiseGate, v.workletNode,
-    v.formantF1, v.formantF2,
+    v.formantF1, v.formantF2, v.formantF3, v.deEsser,
     v.warmthEQ, v.presenceEQ, v.brightnessEQ,
     v.bandLow, v.bandHigh,
     v.raspWaveShaper,
@@ -15690,7 +15706,7 @@ function destroyFilterChain() {
   });
   Object.assign(v, {
     highPass: null, compressor: null, noiseGate: null, workletNode: null,
-    formantF1: null, formantF2: null,
+    formantF1: null, formantF2: null, formantF3: null, deEsser: null,
     warmthEQ: null, presenceEQ: null, brightnessEQ: null,
     bandLow: null, bandHigh: null,
     raspWaveShaper: null,
@@ -15784,27 +15800,52 @@ function buildFilterChain() {
     }
   }
 
-  // ============= FORMANT EQ (vokal trakt simulation) =============
-  // F1 (Open vowel formant)
+  // ============= FORMANT EQ (vokal trakt simulation - Praat tabanlı) =============
+  // ÖNEMLİ: realism slider artık FULL gain'i geçiriyor (0.7'den 1.0'a, daha etkili)
+  const formantStrength = Math.max(0.6, p.realism); // minimum 0.6 ölçek
+
+  // F1 (Open vowel formant - vowel height)
   if (preset.f1) {
     voiceFx.formantF1 = ctx.createBiquadFilter();
     voiceFx.formantF1.type = 'peaking';
     voiceFx.formantF1.frequency.value = preset.f1.freq;
-    voiceFx.formantF1.gain.value = preset.f1.gain * p.realism * 0.7;  // realism slider ile ölçekle
+    voiceFx.formantF1.gain.value = preset.f1.gain * formantStrength;
     voiceFx.formantF1.Q.value = preset.f1.q;
     chain.connect(voiceFx.formantF1);
     chain = voiceFx.formantF1;
   }
 
-  // F2 (Closed vowel formant)
+  // F2 (Closed vowel formant - vowel backness)
   if (preset.f2) {
     voiceFx.formantF2 = ctx.createBiquadFilter();
     voiceFx.formantF2.type = 'peaking';
     voiceFx.formantF2.frequency.value = preset.f2.freq;
-    voiceFx.formantF2.gain.value = preset.f2.gain * p.realism * 0.7;
+    voiceFx.formantF2.gain.value = preset.f2.gain * formantStrength;
     voiceFx.formantF2.Q.value = preset.f2.q;
     chain.connect(voiceFx.formantF2);
     chain = voiceFx.formantF2;
+  }
+
+  // F3 (Brightness formant - kadın ve çocuk seslerinde önemli)
+  if (preset.f3) {
+    voiceFx.formantF3 = ctx.createBiquadFilter();
+    voiceFx.formantF3.type = 'peaking';
+    voiceFx.formantF3.frequency.value = preset.f3.freq;
+    voiceFx.formantF3.gain.value = preset.f3.gain * formantStrength;
+    voiceFx.formantF3.Q.value = preset.f3.q;
+    chain.connect(voiceFx.formantF3);
+    chain = voiceFx.formantF3;
+  }
+
+  // De-Esser (s/sh seslerini yumusçat - kadın preset için önemli)
+  if (preset.deEss) {
+    voiceFx.deEsser = ctx.createBiquadFilter();
+    voiceFx.deEsser.type = 'peaking';
+    voiceFx.deEsser.frequency.value = 6500;
+    voiceFx.deEsser.gain.value = -4;  // 6.5kHz'yi 4dB kıs
+    voiceFx.deEsser.Q.value = 2;
+    chain.connect(voiceFx.deEsser);
+    chain = voiceFx.deEsser;
   }
 
   // ============= TONE EQ =============
