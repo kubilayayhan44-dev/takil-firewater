@@ -15497,48 +15497,12 @@ class VoiceFxProProcessor extends AudioWorkletProcessor {
       }
     }
 
-    // === Formant shift (granular re-read) ===
-    // formantRatio > 1.0 → büyük vokal trakt → derin formant (kalın erkek)
-    // formantRatio < 1.0 → küçük vokal trakt → yüksek formant (çocuk/kadın)
-    //
-    // Mantık: pitch zaten SoundTouch ile shift edildi. Şimdi spektral envelope'u
-    // formantRatio'ya göre stretch/compress et (PSOLA-like granular)
-    const formantReadRate = 1.0 / this.formantRatio;
-    const hopStep = (this.formantGrainSize / this.formantNumGrains) / formantReadRate;
-
-    const lookback = this.formantGrainSize + 1024;
-    const readBase = this.formantWriteIdx - lookback;
-    const normFactor = 0.5;
-
-    // Formant bypass kontrolü
-    const isFormantBypass = this.formantRatio > 0.95 && this.formantRatio < 1.05;
-
+    // === PURE PASSTHROUGH ===
+    // SoundTouch çıkısını direkt outpu'ta yaz (granular formant kapalı - daha temiz)
+    // Formant shift dışarıda Vocal Tract EQ ile yapılıyor
     for (let i = 0; i < N; i++) {
-      // formantRatio yakln 1.0 ise grain'siz okuma (DAHA TEMİZ ses)
-      if (isFormantBypass) {
-        // Bypass formant - direkt SoundTouch çıkışı oku (gecikme yok)
-        const directPos = (this.formantWriteIdx - N + i + this.formantBufLen) % this.formantBufLen;
-        outCh[i] = this.formantBuf[directPos] || 0;
-        continue;
-      }
-
-      let sample = 0;
-      for (let g = 0; g < this.formantNumGrains; g++) {
-        const grain = this.formantGrains[g];
-        const samplePos = readBase + grain.readPos + grain.phase * formantReadRate;
-        const env = this.envelope(grain.phase);
-        sample += this.readFormantSample(samplePos) * env;
-
-        grain.phase++;
-        if (grain.phase >= this.formantGrainSize) {
-          grain.phase = 0;
-          grain.readPos += hopStep * this.formantNumGrains;
-          if (grain.readPos > this.formantBufLen * 2) grain.readPos -= this.formantBufLen;
-          if (grain.readPos < -this.formantBufLen * 2) grain.readPos += this.formantBufLen;
-        }
-      }
-      sample *= normFactor;
-      outCh[i] = Math.tanh(sample * 0.9);
+      const readPos = (this.formantWriteIdx - N + i + this.formantBufLen) % this.formantBufLen;
+      outCh[i] = this.formantBuf[readPos] || 0;
     }
 
     return true;
@@ -15624,6 +15588,7 @@ function destroyFilterChain() {
   const v = voiceFx;
   const nodes = [
     v.noiseGate, v.compressor, v.workletNode,
+    v.formantEQ1, v.formantEQ2,
     v.warmthEQ, v.brightnessEQ, v.presenceEQ,
     v.spectralLP, v.spectralHP,
     v.ringModOsc, v.ringModGain, v.ringMixer,
@@ -15637,13 +15602,13 @@ function destroyFilterChain() {
     try { if (typeof n.stop === 'function') n.stop(); } catch(e) {}
   });
   v.noiseGate = v.compressor = v.workletNode = null;
+  v.formantEQ1 = v.formantEQ2 = null;
   v.warmthEQ = v.brightnessEQ = v.presenceEQ = null;
   v.spectralLP = v.spectralHP = null;
   v.ringModOsc = v.ringModGain = v.ringMixer = null;
   v.saturation = v.metallicDelay = v.metallicFB = null;
   v.reverbConv = v.reverbWet = v.reverbDry = v.reverbMix = null;
   v.outputGain = v.preGain = null;
-  // Source de temizle
   if (v.source) { try { v.source.disconnect(); } catch(e) {} }
 }
 
@@ -15723,38 +15688,48 @@ function buildFilterChain() {
   let effectiveFormant = p.formantSet ? p.formantOverride : preset.formantRatio;
   effectiveFormant *= (1 + p.genderShift * 0.003); // gender slider formant'a da etki eder
 
-  // Pitch shift sadece BUYUK degisiklik gerektiren preset'lerde calistir
-  const needPitchShift = Math.abs(effectivePitch) >= 1.0 || Math.abs(1 - effectiveFormant) >= 0.05;
+  // SoundTouch pitch shift sadece büyük pitch değişimi varsa
+  const needPitchShift = Math.abs(effectivePitch) >= 0.5;
 
   if (voiceFx.workletSupported && !preset.bypass && needPitchShift) {
     try {
-      // Anti-aliasing lowpass ONCE (pitch yukseltirken Nyquist'i geçmemek için)
-      const combinedRate = pitchRatio * effectiveFormant;
-      if (combinedRate > 1.0) {
-        const antiAliasLP = ctx.createBiquadFilter();
-        antiAliasLP.type = 'lowpass';
-        antiAliasLP.frequency.value = Math.min(8000, ctx.sampleRate / 2 / combinedRate * 0.85);
-        antiAliasLP.Q.value = 0.7;
-        chain.connect(antiAliasLP);
-        chain = antiAliasLP;
-      }
-
       voiceFx.workletNode = new AudioWorkletNode(ctx, 'voice-fx-pro');
-      // SoundTouch için semitone direkt gönderiyoruz (ratio degil)
+      // SoundTouch sadece pitch shift - formant=1.0 (granular kapalı, daha temiz ses)
       voiceFx.workletNode.port.postMessage({
         pitchSemitones: effectivePitch,
-        formant: effectiveFormant,
+        formant: 1.0,
       });
       chain.connect(voiceFx.workletNode);
       chain = voiceFx.workletNode;
 
-      // Smoothing lowpass SONRA (high-freq noise gider)
-      const smoothLP = ctx.createBiquadFilter();
-      smoothLP.type = 'lowpass';
-      smoothLP.frequency.value = 7500;
-      smoothLP.Q.value = 0.5;
-      chain.connect(smoothLP);
-      chain = smoothLP;
+      // === Vocal Tract EQ Simulation (FORMANT yerine) ===
+      // Vokal trakt boyu kontrolünü EQ ile simüle et (granular shifter'dan çok daha temiz)
+      // formantRatio > 1.0 → büyük trakt → düşük formant frequencies → boost bass+presence düşür
+      // formantRatio < 1.0 → küçük trakt → yüksek formant freq → boost treble+presence yukarı
+      if (Math.abs(1 - effectiveFormant) > 0.02) {
+        const formantDelta = effectiveFormant - 1.0;  // -0.4..+0.6
+        // F1 (700-1000Hz) shift
+        const formantEQ1 = ctx.createBiquadFilter();
+        formantEQ1.type = 'peaking';
+        formantEQ1.frequency.value = 700 * effectiveFormant;
+        formantEQ1.Q.value = 1.2;
+        formantEQ1.gain.value = formantDelta < 0 ? 3 : -2;  // küçük trakt: F1 yukarı
+        chain.connect(formantEQ1);
+        chain = formantEQ1;
+
+        // F2 (1200-2400Hz) shift
+        const formantEQ2 = ctx.createBiquadFilter();
+        formantEQ2.type = 'peaking';
+        formantEQ2.frequency.value = 1500 * effectiveFormant;
+        formantEQ2.Q.value = 1.5;
+        formantEQ2.gain.value = formantDelta < 0 ? 4 : -3;  // küçük trakt: F2 vurgu
+        chain.connect(formantEQ2);
+        chain = formantEQ2;
+
+        // Track these in voiceFx for cleanup
+        voiceFx.formantEQ1 = formantEQ1;
+        voiceFx.formantEQ2 = formantEQ2;
+      }
     } catch(e) {
       console.warn('Worklet hata, fallback:', e);
     }
