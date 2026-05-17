@@ -8237,28 +8237,172 @@ function showJoinForm() {
   document.getElementById('join-form').style.display = 'block';
 }
 
-function joinGameRoom() {
-  const code = document.getElementById('join-code').value.trim();
-  if (!code) return alert('Oda kodu gir!');
+// ===================================================================
+// PROFESSİONAL JOIN ROOM SYSTEM — retry, loading states, validation
+// ===================================================================
+let joinAttempts = 0;
+const MAX_JOIN_ATTEMPTS = 3;
+
+function joinGameRoom(roomCode) {
+  // Code parametre veya input alanından
+  const code = (roomCode || document.getElementById('join-code')?.value || '').trim();
+  if (!code) {
+    showJoinError('Oda kodu giriniz');
+    return;
+  }
+  // Format validasyonu (takil-XXX veya benzer)
+  if (code.length < 4) {
+    showJoinError('Oda kodu çok kısa');
+    return;
+  }
+
+  joinAttempts = 0;
+  attemptJoinRoom(code);
+}
+
+function attemptJoinRoom(code) {
+  joinAttempts++;
+  showJoinLoading('Sunucuya bağlanılıyor...');
+
+  // Eski peer varsa temizle
+  if (game.peer) {
+    try { game.peer.destroy(); } catch(e) {}
+    game.peer = null;
+    game.hostConn = null;
+  }
 
   game.peer = new Peer();
   game.mode = 'guest';
+  game.players = {};
+
+  let openTimeout = setTimeout(() => {
+    handleJoinFailure(code, 'PeerJS sunucusu yanıt vermiyor');
+  }, 8000);
 
   game.peer.on('open', myId => {
+    clearTimeout(openTimeout);
     game.myPeerId = myId;
-    game.hostConn = game.peer.connect(code);
+    showJoinLoading('Oda aranıyor...');
+
+    let connectTimeout = setTimeout(() => {
+      handleJoinFailure(code, 'Oda bulunamadı (zaman aşımı)');
+    }, 10000);
+
+    try {
+      game.hostConn = game.peer.connect(code, { reliable: true });
+    } catch(e) {
+      clearTimeout(connectTimeout);
+      handleJoinFailure(code, 'Bağlantı oluşturulamadı');
+      return;
+    }
+
     game.hostConn.on('open', () => {
+      clearTimeout(connectTimeout);
+      showJoinLoading('Bağlandı ✓ Oyuncu listesi alınıyor...');
       game.players[myId] = { name: myName, char: null, gender: 'male', ready: false };
-      // Host bizi kabul edip init data gönderecek
+      // Host bize 'init' gönderecek
+      // Otomatik kapanma timeout (init gelmezse)
+      setTimeout(() => {
+        if (!game.players[game.myPeerId]?.char && !document.getElementById('char-select')?.style.display.includes('block')) {
+          // Henuz char select ekrani gosterilmediyse hala bekliyor
+          hideJoinLoading();
+        }
+      }, 3000);
     });
+
     game.hostConn.on('data', data => handlePeerData(data, code));
-    game.hostConn.on('error', () => alert('Bağlanılamadı, kodu kontrol et'));
+
+    game.hostConn.on('error', err => {
+      clearTimeout(connectTimeout);
+      console.warn('hostConn error:', err);
+      handleJoinFailure(code, 'Bağlantı hatası: ' + (err.type || 'bilinmiyor'));
+    });
+
+    game.hostConn.on('close', () => {
+      console.warn('hostConn closed');
+      hideJoinLoading();
+    });
   });
 
   game.peer.on('error', err => {
-    alert('Bağlantı hatası: ' + err.type);
-    console.error(err);
+    clearTimeout(openTimeout);
+    console.warn('peer error:', err);
+    const errType = err.type || 'unknown';
+
+    // Belirli hatalar için retry
+    if (errType === 'peer-unavailable') {
+      handleJoinFailure(code, 'Oda bulunamadı. Kod doğru mu?');
+    } else if (errType === 'network' || errType === 'server-error' || errType === 'socket-error') {
+      handleJoinFailure(code, 'Ağ hatası', true);
+    } else if (errType === 'disconnected') {
+      handleJoinFailure(code, 'Bağlantı koptu', true);
+    } else {
+      handleJoinFailure(code, 'Hata: ' + errType);
+    }
   });
+}
+
+function handleJoinFailure(code, message, retryable = false) {
+  hideJoinLoading();
+  if (retryable && joinAttempts < MAX_JOIN_ATTEMPTS) {
+    showJoinLoading(message + ' — Yeniden deneniyor... (' + joinAttempts + '/' + MAX_JOIN_ATTEMPTS + ')');
+    setTimeout(() => attemptJoinRoom(code), 1500);
+  } else {
+    showJoinError(message);
+  }
+}
+
+function showJoinLoading(message) {
+  let overlay = document.getElementById('vfx-join-overlay');
+  if (!overlay) {
+    overlay = document.createElement('div');
+    overlay.id = 'vfx-join-overlay';
+    overlay.style.cssText = 'position:fixed;inset:0;background:rgba(10,15,30,0.92);backdrop-filter:blur(10px);z-index:99999;display:flex;align-items:center;justify-content:center;animation:vfxFadeIn 0.3s;';
+    overlay.innerHTML = `
+      <div style="max-width:420px;width:90%;background:linear-gradient(135deg,#1a1f3a,#0f1428);border:1px solid rgba(124,58,237,0.4);border-radius:20px;padding:36px 28px;text-align:center;box-shadow:0 30px 100px rgba(0,0,0,0.6),0 0 80px rgba(124,58,237,0.25);">
+        <div id="join-spinner" style="width:60px;height:60px;margin:0 auto 20px;border:4px solid rgba(167,139,250,0.15);border-top-color:#a78bfa;border-radius:50%;animation:joinSpin 0.8s linear infinite;"></div>
+        <div style="font-size:14px;color:#a78bfa;letter-spacing:2px;font-weight:700;margin-bottom:8px;text-transform:uppercase;">Oyuna Katıl</div>
+        <div id="join-message" style="font-size:18px;color:#fff;font-weight:600;line-height:1.5;">Bağlanılıyor...</div>
+        <button id="join-cancel-btn" onclick="cancelJoin()" style="margin-top:24px;padding:10px 24px;background:rgba(239,68,68,0.15);border:1px solid rgba(239,68,68,0.4);color:#f87171;border-radius:10px;cursor:pointer;font-weight:600;font-family:inherit;">İptal</button>
+      </div>
+      <style>@keyframes joinSpin{to{transform:rotate(360deg)}}</style>
+    `;
+    document.body.appendChild(overlay);
+  }
+  const msgEl = document.getElementById('join-message');
+  if (msgEl) msgEl.textContent = message;
+  overlay.style.display = 'flex';
+}
+
+function hideJoinLoading() {
+  const overlay = document.getElementById('vfx-join-overlay');
+  if (overlay) overlay.style.display = 'none';
+}
+
+function showJoinError(message) {
+  hideJoinLoading();
+  const errOverlay = document.createElement('div');
+  errOverlay.style.cssText = 'position:fixed;inset:0;background:rgba(10,15,30,0.92);backdrop-filter:blur(10px);z-index:99999;display:flex;align-items:center;justify-content:center;animation:vfxFadeIn 0.3s;';
+  errOverlay.innerHTML = `
+    <div style="max-width:420px;width:90%;background:linear-gradient(135deg,#3a1a1a,#1a0a0a);border:1px solid rgba(239,68,68,0.5);border-radius:20px;padding:36px 28px;text-align:center;box-shadow:0 30px 100px rgba(0,0,0,0.6),0 0 60px rgba(239,68,68,0.3);">
+      <div style="font-size:48px;margin-bottom:16px;">⚠️</div>
+      <div style="font-size:14px;color:#f87171;letter-spacing:2px;font-weight:700;margin-bottom:8px;text-transform:uppercase;">Katılamadı</div>
+      <div style="font-size:16px;color:#fff;font-weight:600;line-height:1.5;margin-bottom:6px;">${message}</div>
+      <div style="font-size:12px;color:#cbd5e1;margin-bottom:24px;opacity:0.7;">Kod geçerli mi? Oda hâlâ açık mı? Tekrar dene.</div>
+      <button onclick="this.parentElement.parentElement.remove()" style="padding:12px 28px;background:linear-gradient(135deg,#a78bfa,#7c3aed);border:none;color:#fff;border-radius:10px;cursor:pointer;font-weight:700;font-size:14px;font-family:inherit;letter-spacing:1px;">TAMAM</button>
+    </div>
+  `;
+  document.body.appendChild(errOverlay);
+  setTimeout(() => { try { errOverlay.remove(); } catch(e){} }, 12000);
+}
+
+function cancelJoin() {
+  hideJoinLoading();
+  if (game.peer) {
+    try { game.peer.destroy(); } catch(e) {}
+    game.peer = null;
+    game.hostConn = null;
+  }
 }
 
 function copyRoomCode() {
@@ -12489,29 +12633,66 @@ const gameParam = params.get('game') || params.get('join');
 const fromParam = params.get('from') || 'Bir arkadaşın';
 
 function showInviteBanner(type, code, from) {
-  const homeContent = document.getElementById('page-home');
-  const banner = document.createElement('div');
-  banner.className = 'invite-banner';
+  // Eski banner yerine MODERN MODAL POPUP (Discord tarzı)
+  showModernInviteModal(type, code, from);
+}
 
-  if (type === 'call') {
-    banner.innerHTML = `
-      <h2>📹 ${from} seni görüşmeye davet etti!</h2>
-      <p>Hazır olduğunda görüşmeye katılabilirsin. Kamera/mikrofon izni vermen gerekecek.</p>
-      <div class="banner-buttons">
-        <button onclick="acceptCallInvite('${code}', '${from}')">📹 Görüşmeye Katıl</button>
-        <button class="dismiss" onclick="this.parentElement.parentElement.remove()">Daha Sonra</button>
-      </div>`;
-  } else if (type === 'game') {
-    banner.innerHTML = `
-      <h2>🎮 ${from} seni oyuna davet etti!</h2>
-      <p>🔥💧⚡❄️ 4'lü Macera — 2-4 kişi online co-op. Karakterini seçip oynayacaksın!</p>
-      <div class="banner-buttons">
-        <button onclick="acceptGameInvite('${code}', '${from}')">🎮 Oyuna Katıl</button>
-        <button class="dismiss" onclick="this.parentElement.parentElement.remove()">Daha Sonra</button>
-      </div>`;
-  }
+// Modern davet modalı - Discord/Slack tarzı
+function showModernInviteModal(type, code, from) {
+  // Eskileri sil
+  document.querySelectorAll('.invite-modal-bg').forEach(e => e.remove());
 
-  homeContent.insertBefore(banner, homeContent.firstChild);
+  const bg = document.createElement('div');
+  bg.className = 'invite-modal-bg';
+  bg.style.cssText = 'position:fixed;inset:0;background:radial-gradient(ellipse at center,rgba(10,15,30,0.7),rgba(0,0,0,0.92));backdrop-filter:blur(12px);z-index:99999;display:flex;align-items:center;justify-content:center;padding:20px;animation:inviteBgIn 0.4s ease-out;';
+
+  const isGame = type === 'game';
+  const isKarma = code.startsWith('karma-');
+  const title = type === 'call' ? 'Görüşme Daveti' : (isKarma ? 'Dövüş Daveti' : 'Oyun Daveti');
+  const icon = type === 'call' ? '📹' : (isKarma ? '🥊' : '🎮');
+  const subtitle = type === 'call' ? 'Sesli + Kameralı görüşme' : (isKarma ? 'Karma Dövüş - 3D battle' : '4’lü Macera — Co-op platformer');
+  const accept = type === 'call' ? "acceptCallInvite('" + code + "','" + from + "')" : "acceptGameInvite('" + code + "','" + from + "')";
+  const grad = type === 'call' ? 'linear-gradient(135deg,#38bdf8,#0ea5e9)' : (isKarma ? 'linear-gradient(135deg,#f87171,#dc2626)' : 'linear-gradient(135deg,#a78bfa,#7c3aed)');
+
+  bg.innerHTML = `
+    <div class="invite-card" style="max-width:440px;width:100%;background:linear-gradient(135deg,#1a1f3a 0%,#0f1428 100%);border:1.5px solid rgba(124,58,237,0.4);border-radius:24px;padding:0;overflow:hidden;box-shadow:0 40px 120px rgba(0,0,0,0.7),0 0 100px rgba(124,58,237,0.3);animation:inviteCardIn 0.5s cubic-bezier(.34,1.56,.64,1);">
+      <!-- Header banner -->
+      <div style="background:${grad};padding:32px 24px;text-align:center;position:relative;overflow:hidden;">
+        <div style="position:absolute;inset:0;background:radial-gradient(circle at 30% 50%,rgba(255,255,255,0.2),transparent 60%);"></div>
+        <div style="font-size:64px;margin-bottom:8px;position:relative;filter:drop-shadow(0 4px 12px rgba(0,0,0,0.3));">${icon}</div>
+        <div style="font-size:13px;color:rgba(255,255,255,0.85);letter-spacing:3px;text-transform:uppercase;font-weight:700;position:relative;">${title}</div>
+      </div>
+      <!-- Body -->
+      <div style="padding:28px 24px;">
+        <div style="text-align:center;margin-bottom:20px;">
+          <div style="display:inline-flex;align-items:center;gap:10px;padding:8px 16px;background:rgba(167,139,250,0.1);border:1px solid rgba(167,139,250,0.3);border-radius:30px;margin-bottom:14px;">
+            <div style="width:32px;height:32px;border-radius:50%;background:${grad};display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:900;color:#fff;">${(from||'?').charAt(0).toUpperCase()}</div>
+            <span style="color:#cbd5e1;font-weight:600;font-size:14px;">${from}</span>
+          </div>
+          <h2 style="color:#fff;font-size:22px;margin:0 0 6px;font-weight:800;line-height:1.3;">Seni davet ediyor!</h2>
+          <p style="color:#94a3b8;font-size:14px;margin:0;line-height:1.5;">${subtitle}</p>
+        </div>
+        <!-- Room code -->
+        <div style="background:rgba(0,0,0,0.3);border:1px dashed rgba(167,139,250,0.4);border-radius:12px;padding:14px;text-align:center;margin-bottom:20px;">
+          <div style="font-size:10px;color:#a78bfa;letter-spacing:2px;font-weight:700;margin-bottom:4px;">ODA KODU</div>
+          <div style="font-size:18px;color:#fff;font-family:monospace;font-weight:700;letter-spacing:1px;">${code}</div>
+        </div>
+        <!-- Action buttons -->
+        <div style="display:flex;gap:10px;">
+          <button onclick="this.closest('.invite-modal-bg').remove()" style="flex:1;padding:14px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);color:#cbd5e1;border-radius:12px;cursor:pointer;font-weight:700;font-size:13px;font-family:inherit;letter-spacing:1px;text-transform:uppercase;transition:all 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.1)'" onmouseout="this.style.background='rgba(255,255,255,0.05)'">Daha Sonra</button>
+          <button onclick="this.closest('.invite-modal-bg').remove();${accept}" style="flex:2;padding:14px;background:${grad};border:none;color:#fff;border-radius:12px;cursor:pointer;font-weight:800;font-size:13px;font-family:inherit;letter-spacing:1.5px;text-transform:uppercase;box-shadow:0 6px 20px rgba(124,58,237,0.4);transition:all 0.2s;" onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 10px 30px rgba(124,58,237,0.6)'" onmouseout="this.style.transform='';this.style.boxShadow='0 6px 20px rgba(124,58,237,0.4)'">→ ${type === 'call' ? 'Katıl' : 'Oyuna Katıl'}</button>
+        </div>
+      </div>
+    </div>
+    <style>
+      @keyframes inviteBgIn { from { opacity: 0; } to { opacity: 1; } }
+      @keyframes inviteCardIn { 0% { transform: scale(0.85) translateY(30px); opacity: 0; } 70% { transform: scale(1.03) translateY(-5px); } 100% { transform: scale(1) translateY(0); opacity: 1; } }
+    </style>
+  `;
+
+  // Background click → kapat
+  bg.addEventListener('click', e => { if (e.target === bg) bg.remove(); });
+  document.body.appendChild(bg);
 }
 
 function acceptCallInvite(code, from) {
@@ -12534,8 +12715,9 @@ function acceptGameInvite(code, from) {
   } else {
     goPage('game', null);
     showJoinForm();
-    document.getElementById('join-code').value = code;
-    setTimeout(() => joinGameRoom(), 400);
+    const inp = document.getElementById('join-code');
+    if (inp) inp.value = code;
+    setTimeout(() => joinGameRoom(code), 400);  // Code direkt geçiyoruz
   }
 }
 
@@ -15259,30 +15441,34 @@ const VOICE_PRESETS = {
   // === İNSAN SESLERİ (kalitesi öncelik) ===
   realFemale: {
     icon:'👩', name:'Kadın', category:'human',
-    pitch: 8,                  // Erkek F0 ≈11×0Hz → Kadın F0 ≈220Hz = +8 semitone (gerçekçi)
-    // Praat-temelli gerçek kadın formantları (Hillenbrand 1995 veri)
-    f1: { freq: 850, gain: 7, q: 1.0 },    // F1 kadın alanı, GUCLU peak
-    f2: { freq: 2200, gain: 8, q: 1.2 },   // F2 kadın alanı, KUVVETLİ vurgu
-    f3: { freq: 3000, gain: 4, q: 1.5 },   // F3 ekstra (kadın parlaklığı)
-    warmth: -4,                // erkek bass'i kıs
-    presence: 5,               // mid presence
-    brightness: 5,             // tiz parlaklık (kadın karakteristik)
-    deEss: true,               // s/sh yumusçat
+    pitch: 8,                  // +8 semitone (erkek 110Hz → kadın 220Hz)
+    formantShift: 1.18,        // Kadın vokal trakt (smaller = higher formants)
+                                // SoundTouch tempo trick ile pitch'ten BAĞIMSIZ
+    // Ek EQ formant pekistirme (Hillenbrand 1995 Praat data)
+    f1: { freq: 850, gain: 5, q: 1.0 },
+    f2: { freq: 2200, gain: 6, q: 1.2 },
+    f3: { freq: 3000, gain: 3, q: 1.5 },
+    warmth: -3,
+    presence: 4,
+    brightness: 3,
+    deEss: true,
   },
   realFemaleSoft: {
     icon:'💃', name:'Yumusçak Kadın', category:'human',
     pitch: 6,
-    f1: { freq: 800, gain: 6, q: 1.0 },
-    f2: { freq: 2000, gain: 7, q: 1.2 },
-    f3: { freq: 2800, gain: 3, q: 1.5 },
+    formantShift: 1.12,
+    f1: { freq: 800, gain: 4, q: 1.0 },
+    f2: { freq: 2000, gain: 5, q: 1.2 },
+    f3: { freq: 2800, gain: 2, q: 1.5 },
     warmth: -2,
-    presence: 4,
-    brightness: 3,
+    presence: 3,
+    brightness: 2,
     deEss: true,
   },
   realMale: {
     icon:'👨', name:'Erkek', category:'human',
     pitch: -3,
+    formantShift: 0.88,        // Küçük erkek vokal trakt compensate
     f1: { freq: 600, gain: 3, q: 1.2 },
     f2: { freq: 1300, gain: 2, q: 1.5 },
     warmth: 3,
@@ -15292,6 +15478,7 @@ const VOICE_PRESETS = {
   deepMale: {
     icon:'🗿', name:'Kalın Erkek', category:'human',
     pitch: -6,
+    formantShift: 0.82,        // Daha büyük trakt
     f1: { freq: 500, gain: 4, q: 1.5 },
     f2: { freq: 1100, gain: 3, q: 1.5 },
     warmth: 5,
@@ -15301,6 +15488,7 @@ const VOICE_PRESETS = {
   child: {
     icon:'👶', name:'Çocuk', category:'human',
     pitch: 6,
+    formantShift: 1.25,        // Daha küçük trakt (çocuk)
     f1: { freq: 1000, gain: 5, q: 1.2 },
     f2: { freq: 2500, gain: 6, q: 1.5 },
     warmth: -3,
@@ -15310,6 +15498,7 @@ const VOICE_PRESETS = {
   teen: {
     icon:'🧑', name:'Genç', category:'human',
     pitch: 2,
+    formantShift: 1.05,
     f1: { freq: 780, gain: 3, q: 1.2 },
     f2: { freq: 1800, gain: 3, q: 1.5 },
     warmth: -1,
@@ -15319,12 +15508,13 @@ const VOICE_PRESETS = {
   elder: {
     icon:'👴', name:'Yaşlı', category:'human',
     pitch: -2,
+    formantShift: 0.95,
     f1: { freq: 620, gain: 2, q: 1.0 },
     f2: { freq: 1400, gain: 1, q: 1.0 },
     warmth: 2,
     presence: 0,
     brightness: -3,
-    rasp: 0.15,  // hafif raspy
+    rasp: 0.15,
   },
 
   // === SİNEMATİK ===
@@ -15511,28 +15701,75 @@ const voiceFx = {
 // WORKLET: SoundTouch + Proper FIFO Output
 // =====================================================================
 const WORKLET_CODE = `
+// =====================================================================
+// VOICE FX PRO — Pitch + Formant Independent Shifter
+//
+// KILIT KONSEPT (Audacity'nin de kullandigi):
+//   SoundTouch tempo ve rate parametreleri ile pitch+formant ayri yapilir
+//
+//   tempo = formant_ratio (zaman gerilmesi ile spectral envelope kaydirilir)
+//   rate  = pitch_ratio (orijinal hizla okuma, sample rate degisir = pitch shift)
+//
+//   Sonuc:
+//     - pitch=2, formant=1 → tempo=1, rate=2 → ses 1 oktav yukari ama formant aynidir
+//     - pitch=1, formant=0.85 → tempo=0.85, rate=1.18 → erkek formant + ayni pitch
+//     - Kadin: pitch=1.6 (+8 ST), formant=1.18 (kadin trakt) → tempo=1.18, rate=1.36
+// =====================================================================
+
 class VoiceFxProProcessor extends AudioWorkletProcessor {
   constructor() {
     super();
     this.soundtouch = new SoundTouch();
-    this.soundtouch.pitchSemitones = 0;
     this.soundtouch.tempo = 1.0;
     this.soundtouch.rate = 1.0;
 
+    this.pitchSemitones = 0;
+    this.formantRatio = 1.0;  // 1.0 = orijinal, >1 = kucuk trakt (kadin/cocuk)
+    this.applySoundTouchParams();
+
     // FIFO output buffer
-    this.outFifo = new Float32Array(32768);
+    this.outFifo = new Float32Array(65536);
     this.outFifoRead = 0;
     this.outFifoWrite = 0;
 
-    // Warmup: SoundTouch internal latency için ilk N sample sessiz
-    this.warmupSamples = 4800;  // ~100ms @ 48kHz
+    // Warmup: SoundTouch internal latency
+    this.warmupSamples = 9600;  // ~200ms @ 48kHz (kalin start cizirti engelle)
     this.samplesProduced = 0;
 
     this.port.onmessage = (e) => {
+      let updated = false;
       if (e.data.pitchSemitones !== undefined) {
-        this.soundtouch.pitchSemitones = e.data.pitchSemitones;
+        this.pitchSemitones = e.data.pitchSemitones;
+        updated = true;
       }
+      if (e.data.formant !== undefined) {
+        this.formantRatio = Math.max(0.5, Math.min(2.0, e.data.formant));
+        updated = true;
+      }
+      if (updated) this.applySoundTouchParams();
     };
+  }
+
+  applySoundTouchParams() {
+    // Pitch ratio (2^(semi/12))
+    const pitchRatio = Math.pow(2, this.pitchSemitones / 12);
+    const formantRatio = this.formantRatio;
+
+    // TRICK: SoundTouch tempo+rate ile pitch ve formant ayir
+    // tempo controls time stretch (etkilemez pitch)
+    // rate controls sample rate (etkiler pitch ve formant)
+    //
+    // Hedef:
+    //   final_pitch  = rate (cunku rate sample rate degisir)
+    //   final_formant = rate / tempo (tempo formant'a ters etki eder)
+    //
+    // Verilen pitchRatio ve formantRatio icin:
+    //   rate = pitchRatio * formantRatio (sample rate degisimi)
+    //   tempo = formantRatio (time stretch, pitch'i geri getirir)
+    //   final_pitch = rate / tempo = pitchRatio * formantRatio / formantRatio = pitchRatio ✓
+    //   final_formant = formantRatio ✓
+    this.soundtouch.tempo = formantRatio;
+    this.soundtouch.rate = pitchRatio * formantRatio;
   }
 
   fifoAvailable() {
@@ -15552,7 +15789,7 @@ class VoiceFxProProcessor extends AudioWorkletProcessor {
     const outCh = output[0];
     const N = inCh.length;
 
-    // 1) SoundTouch'a STEREO interleaved gönder
+    // SoundTouch STEREO interleaved
     const stIn = new Float32Array(N * 2);
     for (let i = 0; i < N; i++) {
       stIn[i * 2] = inCh[i];
@@ -15561,7 +15798,7 @@ class VoiceFxProProcessor extends AudioWorkletProcessor {
     this.soundtouch.inputBuffer.putSamples(stIn, 0, N);
     this.soundtouch.process();
 
-    // 2) SoundTouch'tan çıkan tüm sample'ları al
+    // Output to FIFO
     const outFrames = this.soundtouch.outputBuffer.frameCount;
     if (outFrames > 0) {
       const space = this.fifoSpace();
@@ -15570,25 +15807,25 @@ class VoiceFxProProcessor extends AudioWorkletProcessor {
         const stOut = new Float32Array(toWrite * 2);
         this.soundtouch.outputBuffer.receiveSamples(stOut, toWrite);
         for (let i = 0; i < toWrite; i++) {
-          this.outFifo[this.outFifoWrite] = stOut[i * 2];  // L kanal
+          this.outFifo[this.outFifoWrite] = stOut[i * 2];
           this.outFifoWrite = (this.outFifoWrite + 1) % this.outFifo.length;
         }
       }
-      // Eğer space yetmediyse, gelen fazlayı at (overflow)
+      // Overflow drop
       if (outFrames > toWrite) {
         const overflow = new Float32Array((outFrames - toWrite) * 2);
         this.soundtouch.outputBuffer.receiveSamples(overflow, outFrames - toWrite);
       }
     }
 
-    // 3) Warmup süresinde sessizlik
+    // Warmup sessizlik
     if (this.samplesProduced < this.warmupSamples) {
       for (let i = 0; i < N; i++) outCh[i] = 0;
       this.samplesProduced += N;
       return true;
     }
 
-    // 4) FIFO'dan N sample al
+    // FIFO'dan oku
     const avail = this.fifoAvailable();
     if (avail >= N) {
       for (let i = 0; i < N; i++) {
@@ -15596,7 +15833,6 @@ class VoiceFxProProcessor extends AudioWorkletProcessor {
         this.outFifoRead = (this.outFifoRead + 1) % this.outFifo.length;
       }
     } else {
-      // Underrun - mevcudu al, kalanı son sample'a smooth fade
       for (let i = 0; i < avail; i++) {
         outCh[i] = this.outFifo[this.outFifoRead];
         this.outFifoRead = (this.outFifoRead + 1) % this.outFifo.length;
@@ -15604,15 +15840,15 @@ class VoiceFxProProcessor extends AudioWorkletProcessor {
       const lastSample = avail > 0 ? outCh[avail - 1] : 0;
       for (let i = avail; i < N; i++) {
         const t = (i - avail) / Math.max(1, N - avail);
-        outCh[i] = lastSample * (1 - t);  // smooth fade to 0
+        outCh[i] = lastSample * (1 - t);
       }
     }
 
-    // Soft limiter (anti-clipping)
+    // Soft limiter
     for (let i = 0; i < N; i++) {
       const x = outCh[i];
-      if (x > 0.95) outCh[i] = 0.95 + (x - 0.95) * 0.05;
-      else if (x < -0.95) outCh[i] = -0.95 + (x + 0.95) * 0.05;
+      if (x > 0.92) outCh[i] = 0.92 + (x - 0.92) * 0.08;
+      else if (x < -0.92) outCh[i] = -0.92 + (x + 0.92) * 0.08;
     }
 
     return true;
@@ -15621,7 +15857,6 @@ class VoiceFxProProcessor extends AudioWorkletProcessor {
 
 registerProcessor('voice-fx-pro', VoiceFxProProcessor);
 `;
-
 // =====================================================================
 // ENGINE INIT
 // =====================================================================
@@ -15785,14 +16020,19 @@ function buildFilterChain() {
     return;
   }
 
-  // ============= PITCH SHIFT (SoundTouch worklet) =============
+  // ============= PITCH + FORMANT SHIFT (SoundTouch worklet, INDEPENDENT) =============
   const effectivePitch = (preset.pitch || 0) + p.pitchOffset + (p.genderShift * 0.04);
-  const needPitchShift = Math.abs(effectivePitch) >= 0.5;
+  // Formant ratio: preset.formantShift varsa kullan, yoksa 1.0
+  const effectiveFormant = p.formantSet ? p.formantOverride : (preset.formantShift || 1.0);
+  const needShift = Math.abs(effectivePitch) >= 0.5 || Math.abs(1 - effectiveFormant) > 0.02;
 
-  if (voiceFx.workletSupported && needPitchShift) {
+  if (voiceFx.workletSupported && needShift) {
     try {
       voiceFx.workletNode = new AudioWorkletNode(ctx, 'voice-fx-pro');
-      voiceFx.workletNode.port.postMessage({ pitchSemitones: effectivePitch });
+      voiceFx.workletNode.port.postMessage({
+        pitchSemitones: effectivePitch,
+        formant: effectiveFormant,  // Pitch'ten BAGIMSIZ formant kontrolü
+      });
       chain.connect(voiceFx.workletNode);
       chain = voiceFx.workletNode;
     } catch(e) {
