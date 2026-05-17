@@ -1991,6 +1991,264 @@
   }
 
   /* SECTION GENERAL */
+  /* =========== ANA SAYFA DAVET LINK KARTI =========== */
+  .home-invite-card {
+    margin: 0 auto 32px;
+    max-width: 920px;
+    background: linear-gradient(135deg, #1a1138 0%, #0f1428 50%, #1a0f2e 100%);
+    border: 1.5px solid rgba(124, 58, 237, 0.4);
+    border-radius: 24px;
+    padding: 0;
+    overflow: hidden;
+    position: relative;
+    box-shadow:
+      0 20px 60px rgba(0,0,0,0.4),
+      0 0 80px rgba(124, 58, 237, 0.2),
+      inset 0 1px 0 rgba(255,255,255,0.05);
+  }
+  .home-invite-card::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: radial-gradient(circle at 20% 30%, rgba(167,139,250,0.15), transparent 50%),
+                radial-gradient(circle at 80% 70%, rgba(56,189,248,0.1), transparent 50%);
+    pointer-events: none;
+  }
+  .home-invite-card::after {
+    content: '';
+    position: absolute;
+    top: -50%; right: -20%;
+    width: 500px; height: 500px;
+    background: radial-gradient(circle, rgba(167,139,250,0.15) 0%, transparent 60%);
+    animation: inviteOrb 8s ease-in-out infinite;
+    pointer-events: none;
+  }
+  @keyframes inviteOrb {
+    0%, 100% { transform: translate(0, 0) scale(1); }
+    50% { transform: translate(-50px, 50px) scale(1.2); }
+  }
+
+  .home-invite-inner {
+    position: relative;
+    z-index: 2;
+    padding: 32px 36px;
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 28px;
+    align-items: center;
+  }
+
+  .home-invite-left {
+    flex: 1;
+  }
+
+  .home-invite-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 14px;
+    background: linear-gradient(135deg, rgba(167,139,250,0.2), rgba(56,189,248,0.15));
+    border: 1px solid rgba(167,139,250,0.4);
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: #a78bfa;
+    margin-bottom: 14px;
+  }
+  .home-invite-pill-dot {
+    width: 6px; height: 6px;
+    background: #a78bfa;
+    border-radius: 50%;
+    box-shadow: 0 0 8px #a78bfa;
+    animation: invitePulse 1.5s infinite;
+  }
+  @keyframes invitePulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.5; transform: scale(1.4); }
+  }
+
+  .home-invite-title {
+    font-size: 28px;
+    font-weight: 800;
+    color: #fff;
+    margin: 0 0 8px;
+    line-height: 1.2;
+    letter-spacing: -0.5px;
+  }
+  .home-invite-title-accent {
+    background: linear-gradient(90deg, #a78bfa 0%, #38bdf8 50%, #f472b6 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .home-invite-desc {
+    color: #94a3b8;
+    font-size: 14px;
+    line-height: 1.6;
+    margin: 0 0 20px;
+    max-width: 480px;
+  }
+
+  /* Link kutusu */
+  .home-invite-link-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(0,0,0,0.4);
+    border: 1px solid rgba(167,139,250,0.3);
+    border-radius: 12px;
+    padding: 4px 6px 4px 16px;
+    margin-bottom: 16px;
+    max-width: 520px;
+  }
+  .home-invite-link-text {
+    flex: 1;
+    color: #cbd5e1;
+    font-family: 'SF Mono', Monaco, Consolas, monospace;
+    font-size: 13px;
+    font-weight: 600;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .home-invite-copy-btn {
+    padding: 10px 18px;
+    background: linear-gradient(135deg, #a78bfa, #7c3aed);
+    border: none;
+    color: #fff;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 700;
+    font-size: 12px;
+    letter-spacing: 1.5px;
+    font-family: inherit;
+    transition: all 0.2s;
+    display: flex; align-items: center; gap: 6px;
+    flex-shrink: 0;
+  }
+  .home-invite-copy-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 20px rgba(124,58,237,0.5);
+  }
+  .home-invite-copy-btn.copied {
+    background: linear-gradient(135deg, #10b981, #059669);
+  }
+
+  /* Aksiyon butonları */
+  .home-invite-actions {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+  .home-invite-action {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 11px 18px;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.1);
+    color: #cbd5e1;
+    border-radius: 10px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 13px;
+    font-family: inherit;
+    text-decoration: none;
+    transition: all 0.2s;
+  }
+  .home-invite-action:hover {
+    background: rgba(255,255,255,0.08);
+    transform: translateY(-2px);
+    border-color: rgba(167,139,250,0.4);
+  }
+  .home-invite-action.whatsapp:hover { border-color: #25D366; color: #25D366; }
+  .home-invite-action.qr:hover { border-color: #38bdf8; color: #38bdf8; }
+  .home-invite-action.refresh:hover { border-color: #f472b6; color: #f472b6; }
+
+  /* Sağ taraf: QR kod alanı */
+  .home-invite-right {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+  }
+  .home-invite-qr-wrap {
+    width: 144px; height: 144px;
+    background: #fff;
+    padding: 10px;
+    border-radius: 16px;
+    box-shadow: 0 8px 30px rgba(0,0,0,0.4),
+                0 0 30px rgba(167,139,250,0.3);
+    position: relative;
+    transition: transform 0.3s;
+  }
+  .home-invite-qr-wrap:hover {
+    transform: rotate(-3deg) scale(1.05);
+  }
+  .home-invite-qr-wrap img,
+  .home-invite-qr-wrap canvas,
+  .home-invite-qr-wrap svg {
+    width: 100%;
+    height: 100%;
+    display: block;
+  }
+  .home-invite-qr-label {
+    font-size: 10px;
+    color: #a78bfa;
+    letter-spacing: 2px;
+    font-weight: 700;
+    text-transform: uppercase;
+  }
+
+  /* QR modal (büyük) */
+  .home-invite-qr-modal {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.92);
+    backdrop-filter: blur(12px);
+    z-index: 99998;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    animation: inviteBgIn 0.3s;
+  }
+  .home-invite-qr-modal.open { display: flex; }
+  .home-invite-qr-modal-card {
+    background: linear-gradient(135deg, #1a1f3a, #0f1428);
+    border: 1.5px solid rgba(124, 58, 237, 0.4);
+    border-radius: 24px;
+    padding: 36px;
+    text-align: center;
+    max-width: 400px;
+    box-shadow: 0 40px 120px rgba(0,0,0,0.7), 0 0 80px rgba(124,58,237,0.3);
+  }
+  .home-invite-qr-modal-img {
+    width: 280px; height: 280px;
+    background: #fff;
+    padding: 16px;
+    border-radius: 20px;
+    margin: 0 auto 20px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+  }
+  .home-invite-qr-modal-img img { width: 100%; height: 100%; }
+
+  @media (max-width: 720px) {
+    .home-invite-inner {
+      grid-template-columns: 1fr;
+      padding: 24px 20px;
+      gap: 20px;
+    }
+    .home-invite-right {
+      order: -1;
+    }
+    .home-invite-title { font-size: 22px; }
+    .home-invite-link-text { font-size: 11px; }
+    .home-invite-actions { flex-direction: column; }
+    .home-invite-action { justify-content: center; width: 100%; }
+  }
+
   .home-section {
     margin-bottom: 48px;
   }
@@ -5158,6 +5416,98 @@
               </div>
             </div>
           </div>
+        </div>
+      </div>
+
+      <!-- =========== DAVET KARTI =========== -->
+      <div class="home-invite-card" id="home-invite-card">
+        <div class="home-invite-inner">
+          <div class="home-invite-left">
+            <div class="home-invite-pill">
+              <span class="home-invite-pill-dot"></span>
+              <span>KİŞİSEL DAVET LİNKİ</span>
+            </div>
+            <h2 class="home-invite-title">
+              Arkadaşlarını <span class="home-invite-title-accent">tek tıkla davet et</span>
+            </h2>
+            <p class="home-invite-desc">
+              Aşağıdaki link sana özel. Arkadaşına gönder, tıklayınca direkt yanına gelsin —
+              görüşme, oyun, sohbet her şey hazır!
+            </p>
+
+            <!-- Link kutusu + Kopyala -->
+            <div class="home-invite-link-row">
+              <span class="home-invite-link-text" id="home-invite-link-text">Yükleniyor…</span>
+              <button class="home-invite-copy-btn" id="home-invite-copy-btn" onclick="copyHomeInviteLink()">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                  <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                  <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                </svg>
+                <span id="home-invite-copy-label">KOPYALA</span>
+              </button>
+            </div>
+
+            <!-- Aksiyon butonları -->
+            <div class="home-invite-actions">
+              <a class="home-invite-action whatsapp" id="home-invite-wa" href="#" target="_blank" rel="noopener">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413"/>
+                </svg>
+                <span>WhatsApp</span>
+              </a>
+              <button class="home-invite-action qr" onclick="openHomeInviteQR()">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <rect x="3" y="3" width="7" height="7"></rect>
+                  <rect x="14" y="3" width="7" height="7"></rect>
+                  <rect x="3" y="14" width="7" height="7"></rect>
+                  <line x1="14" y1="14" x2="14" y2="21"></line>
+                  <line x1="21" y1="21" x2="21" y2="14"></line>
+                  <line x1="14" y1="17" x2="21" y2="17"></line>
+                  <line x1="17" y1="14" x2="17" y2="21"></line>
+                </svg>
+                <span>QR Kod</span>
+              </button>
+              <button class="home-invite-action" onclick="shareHomeInvite()">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="18" cy="5" r="3"></circle>
+                  <circle cx="6" cy="12" r="3"></circle>
+                  <circle cx="18" cy="19" r="3"></circle>
+                  <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
+                  <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
+                </svg>
+                <span>Paylaş</span>
+              </button>
+              <button class="home-invite-action refresh" onclick="refreshHomeInviteLink()" title="Yeni link oluştur">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="23 4 23 10 17 10"></polyline>
+                  <polyline points="1 20 1 14 7 14"></polyline>
+                  <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
+                </svg>
+                <span>Yenile</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Sağ: QR kod (küçük preview) -->
+          <div class="home-invite-right">
+            <div class="home-invite-qr-wrap" id="home-invite-qr-mini" onclick="openHomeInviteQR()" title="Büyükte gör">
+              <!-- JS doldurur -->
+            </div>
+            <div class="home-invite-qr-label">İKONA TIKLA</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- QR Modal -->
+      <div class="home-invite-qr-modal" id="home-invite-qr-modal" onclick="if(event.target===this) closeHomeInviteQR()">
+        <div class="home-invite-qr-modal-card">
+          <div style="font-size:11px;color:#a78bfa;letter-spacing:3px;font-weight:700;margin-bottom:14px;text-transform:uppercase;">DAVET QR KODU</div>
+          <h3 style="color:#fff;font-size:20px;margin:0 0 18px;font-weight:800;">Telefondan okut!</h3>
+          <div class="home-invite-qr-modal-img" id="home-invite-qr-modal-img">
+            <!-- JS doldurur -->
+          </div>
+          <div style="color:#94a3b8;font-size:12px;margin-bottom:16px;line-height:1.5;">Arkadaşın telefonun kamerasıyla bu kodu okutsun, anında katılsın.</div>
+          <button onclick="closeHomeInviteQR()" style="padding:12px 28px;background:linear-gradient(135deg,#a78bfa,#7c3aed);border:none;color:#fff;border-radius:10px;cursor:pointer;font-weight:800;font-size:13px;font-family:inherit;letter-spacing:1.5px;">KAPAT</button>
         </div>
       </div>
 
@@ -16531,6 +16881,156 @@ window.addEventListener('keydown', (e) => {
     if (open) closeVoiceFxPanel(); else openVoiceFxPanel();
   }
 });
+
+// =====================================================================
+// ANA SAYFA DAVET LİNKİ SİSTEMİ
+// =====================================================================
+let homeInviteCode = null;
+let homeInviteLink = null;
+
+function generateHomeInviteCode() {
+  // localStorage'da kayıtlı varsa kullan, yoksa yeni üret
+  let code = localStorage.getItem('takil_personal_invite');
+  if (!code) {
+    // Format: tkl-ABC123XY (8 karakter, kısa+okunabilir)
+    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+    let s = '';
+    for (let i = 0; i < 8; i++) s += chars[Math.floor(Math.random() * chars.length)];
+    code = 'tkl-' + s;
+    localStorage.setItem('takil_personal_invite', code);
+  }
+  return code;
+}
+
+function getHomeInviteLink() {
+  const code = generateHomeInviteCode();
+  homeInviteCode = code;
+  // Kısa ve okunabilir link (kişisel davet)
+  const baseUrl = window.location.origin + window.location.pathname.replace(/\/index\.html$/, '/');
+  const name = (typeof myName !== 'undefined' && myName) ? myName : 'Bir arkadas';
+  homeInviteLink = baseUrl + '?join=' + code + '&from=' + encodeURIComponent(name);
+  return homeInviteLink;
+}
+
+function renderHomeInviteCard() {
+  const linkEl = document.getElementById('home-invite-link-text');
+  if (!linkEl) return;
+  const link = getHomeInviteLink();
+  // Kısa gösterim (UI temiz olsun)
+  let display = link;
+  if (link.length > 60) {
+    const parts = link.split('?');
+    display = parts[0].replace(/^https?:\/\//, '') + '?' + (parts[1] || '').substring(0, 24) + '…';
+  } else {
+    display = link.replace(/^https?:\/\//, '');
+  }
+  linkEl.textContent = display;
+  linkEl.title = link;  // hover'da tam link
+
+  // WhatsApp link
+  const waEl = document.getElementById('home-invite-wa');
+  if (waEl) {
+    const msg = '🎮 Takil’a benimle katıl! Şuradan giriş yap: ' + link;
+    waEl.href = 'https://wa.me/?text=' + encodeURIComponent(msg);
+  }
+
+  // QR kod (mini)
+  renderHomeInviteQR(link);
+}
+
+function renderHomeInviteQR(link) {
+  const mini = document.getElementById('home-invite-qr-mini');
+  const modal = document.getElementById('home-invite-qr-modal-img');
+  if (!mini && !modal) return;
+
+  // Google Charts API ile QR (basit + güvenilir)
+  // Backup: QR Server
+  const qrUrl = 'https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=' + encodeURIComponent(link) + '&color=7c3aed&bgcolor=ffffff&margin=10';
+
+  if (mini) {
+    mini.innerHTML = '<img src="' + qrUrl + '" alt="QR" loading="lazy"/>';
+  }
+  if (modal) {
+    modal.innerHTML = '<img src="' + qrUrl + '" alt="QR"/>';
+  }
+}
+
+function copyHomeInviteLink() {
+  const link = homeInviteLink || getHomeInviteLink();
+  navigator.clipboard.writeText(link).then(() => {
+    const btn = document.getElementById('home-invite-copy-btn');
+    const label = document.getElementById('home-invite-copy-label');
+    if (btn && label) {
+      btn.classList.add('copied');
+      label.textContent = 'KOPYALANDI ✓';
+      setTimeout(() => {
+        btn.classList.remove('copied');
+        label.textContent = 'KOPYALA';
+      }, 2000);
+    }
+    if (typeof toast === 'function') toast('📋 Davet linki kopyalandı!', 'success');
+  }).catch(() => {
+    // Fallback: prompt
+    prompt('Davet linkini kopyala:', link);
+  });
+}
+
+function openHomeInviteQR() {
+  if (!homeInviteLink) renderHomeInviteCard();
+  const modal = document.getElementById('home-invite-qr-modal');
+  if (modal) modal.classList.add('open');
+  // QR'i tekrar render et (büyük modal için)
+  renderHomeInviteQR(homeInviteLink);
+}
+
+function closeHomeInviteQR() {
+  const modal = document.getElementById('home-invite-qr-modal');
+  if (modal) modal.classList.remove('open');
+}
+
+function shareHomeInvite() {
+  const link = homeInviteLink || getHomeInviteLink();
+  const name = (typeof myName !== 'undefined' && myName) ? myName : 'Bir arkadas';
+  const shareData = {
+    title: 'Takil’a Davet',
+    text: name + ' seni Takil’a davet ediyor!',
+    url: link,
+  };
+  if (navigator.share) {
+    navigator.share(shareData).catch(e => console.warn('Share iptal:', e));
+  } else {
+    // Fallback: copy
+    copyHomeInviteLink();
+  }
+}
+
+function refreshHomeInviteLink() {
+  // Yeni kod üret
+  localStorage.removeItem('takil_personal_invite');
+  renderHomeInviteCard();
+  if (typeof toast === 'function') toast('🔄 Yeni davet linki oluşturuldu', 'info');
+}
+
+// Sayfa yüklenince render et (kullanıcı login olmuşsa)
+function initHomeInviteCard() {
+  // Card varsa ve görünürse render
+  if (document.getElementById('home-invite-card')) {
+    renderHomeInviteCard();
+  }
+}
+
+// Auth ekranı geçince render et
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', () => setTimeout(initHomeInviteCard, 800));
+} else {
+  setTimeout(initHomeInviteCard, 800);
+}
+
+// Login sonrası güncelle
+window.addEventListener('takil:loggedin', initHomeInviteCard);
+// Periyodik check (kullanıcı adı sonra yükleniyorsa)
+setTimeout(initHomeInviteCard, 2500);
+
 </script>
 </body>
 </html>
