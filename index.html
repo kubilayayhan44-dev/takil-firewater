@@ -7499,7 +7499,6 @@ function toggleMenu() { document.getElementById('sidebar').classList.toggle('ope
 // PeerJS ücretsiz public server + güçlü ICE config (STUN+TURN)
 // NAT/firewall arkasındaki kullanıcılar için TURN sunucuları kritik!
 const PEERJS_CONFIG = {
-  // PeerJS Cloud (default 0.peerjs.com, daha stabil)
   host: '0.peerjs.com',
   port: 443,
   path: '/',
@@ -7507,32 +7506,34 @@ const PEERJS_CONFIG = {
   debug: 1,
   config: {
     iceServers: [
-      // Google STUN'lar
+      // 1) KİŞİSEL TURN SUNUCUMUZ (Hetzner VPS - %100 çalışır!)
+      {
+        urls: [
+          'stun:178.105.90.130:3478',
+          'turn:178.105.90.130:3478?transport=udp',
+          'turn:178.105.90.130:3478?transport=tcp',
+        ],
+        username: 'takil',
+        credential: 'takil123pass',
+      },
+      // 2) STUN yedekleri
       { urls: 'stun:stun.l.google.com:19302' },
       { urls: 'stun:stun1.l.google.com:19302' },
-      { urls: 'stun:stun2.l.google.com:19302' },
-      { urls: 'stun:stun3.l.google.com:19302' },
-      { urls: 'stun:stun4.l.google.com:19302' },
-      // Cloudflare STUN
       { urls: 'stun:stun.cloudflare.com:3478' },
-      // Ücretsiz public TURN sunucuları (OpenRelay - Twilio sponsorlu)
+      // 3) Yedek public TURN (openrelay port 80 çalışıyor)
       {
         urls: 'turn:openrelay.metered.ca:80',
         username: 'openrelayproject',
-        credential: 'openrelayproject'
+        credential: 'openrelayproject',
       },
       {
-        urls: 'turn:openrelay.metered.ca:443',
+        urls: 'turn:openrelay.metered.ca:80?transport=tcp',
         username: 'openrelayproject',
-        credential: 'openrelayproject'
-      },
-      {
-        urls: 'turn:openrelay.metered.ca:443?transport=tcp',
-        username: 'openrelayproject',
-        credential: 'openrelayproject'
+        credential: 'openrelayproject',
       },
     ],
     iceCandidatePoolSize: 10,
+    iceTransportPolicy: 'all',
   }
 };
 
