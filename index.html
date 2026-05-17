@@ -7714,8 +7714,17 @@ async function startCall() {
     return alert(msg);
   }
 
-  // PeerJS odası oluştur
-  const code = 'call-' + Math.random().toString(36).substring(2, 8);
+  // PeerJS odası oluştur - KİŞİSEL KOD KULLAN (tkl-XXX formatı)
+  // Böylece arkadaşların davet linki tkladığında direkt buraya gelir!
+  let code = localStorage.getItem('takil_personal_invite');
+  if (!code) {
+    // İlk defa - yeni üret
+    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+    let s = '';
+    for (let i = 0; i < 8; i++) s += chars[Math.floor(Math.random() * chars.length)];
+    code = 'tkl-' + s;
+    localStorage.setItem('takil_personal_invite', code);
+  }
   callPeer = createPeer(code);
   isHost = true;
   hostRoomCode = code;
@@ -7773,9 +7782,34 @@ async function startCall() {
     console.error('Peer error:', err);
     const errType = err.type || 'unknown';
     if (errType === 'unavailable-id') {
-      // Kod çakışması - yeni kod üret
-      console.warn('Kod çakışması, yeniden oluşturuluyor...');
-      setTimeout(() => startCall(), 500);
+      // Kişisel kod başka cihazda zaten kullanılıyor - sayac ekle
+      console.warn('Kişisel kod meşgul, suffix ekleniyor...');
+      const baseCode = localStorage.getItem('takil_personal_invite');
+      // Suffix 2 karakter rastgele
+      const suffix = Math.random().toString(36).substring(2, 4);
+      const altCode = baseCode + '-' + suffix;
+      localStorage.setItem('takil_personal_invite_active', altCode);
+      try { callPeer.destroy(); } catch(e) {}
+      // Manuel olarak yeniden başlat alt kod ile
+      setTimeout(() => {
+        callPeer = createPeer(altCode);
+        isHost = true;
+        hostRoomCode = altCode;
+        callPeer.on('open', async id => {
+          myCallId = id;
+          document.getElementById('call-room-code').textContent = id;
+          document.getElementById('call-room-display').style.display = 'block';
+          document.getElementById('call-status').textContent = '⏳ Arkadaş bekleniyor... ' + id;
+          let publicBase = baseUrl;
+          try { if (typeof detectPublicBaseUrl === 'function') publicBase = await detectPublicBaseUrl(); } catch(e) {}
+          const link = publicBase + '?call=' + id + '&from=' + encodeURIComponent(myCallName);
+          const msg = '📹 *' + myCallName + '* seninle görüşmek istiyor!\n\n👇 Anında katılmak için:\n' + link;
+          document.getElementById('call-wa-link').href = 'https://wa.me/?text=' + encodeURIComponent(msg);
+          setupDeviceList();
+        });
+        // Diğer event'leri tekrar tanımlamak yerine tek seferlik error
+        callPeer.on('error', e => console.error('Yeniden hata:', e));
+      }, 1000);
     } else {
       showCallJoinError('Görüşme başlatılamadı', 'PeerJS sunucusu hata: ' + errType + '. Tekrar dene.', true, () => startCall());
     }
@@ -13723,13 +13757,21 @@ function acceptPersonalInvite(code, from, isLoggedIn) {
     if (!isLoggedIn) {
       // Login sonrası davet işlemini bekletmek için sakla
       localStorage.setItem('takil_pending_invite', JSON.stringify({ code, from, ts: Date.now() }));
-      // Auth sayfası zaten görünüyor olmalı
-      if (typeof toast === 'function') toast('🔑 Önce giriş yap ya da kayıt ol, sonra arkadaşın yanına gelirsin', 'info');
+      if (typeof toast === 'function') toast('🔑 Önce giriş yap, sonra otomatik katılacaksın', 'info');
     } else {
-      // Direkt yönlendirme - ana sayfada davet veren kişi için bilgi göster
-      if (typeof toast === 'function') toast('🎮 ' + from + ' seni davet etti! Ana sayfadan işlem yapabilirsin.', 'success');
-      // Davet kodu kullanıcı için hazır olsun (görüşme veya oyuna katılmak isterse)
-      localStorage.setItem('takil_pending_invite', JSON.stringify({ code, from, ts: Date.now() }));
+      // KİŞİSEL KOD DOĞRUDAN GÖRÜŞME KODU OLARAK KULLANıLıR
+      // Davet eden kişi görüşme başlatmışsa onun kodu = tkl-XXX formatı
+      // Direkt görüşmeye katıl
+      if (typeof toast === 'function') toast('📹 ' + from + '’ın görüşmesine katılıyorsun...', 'success');
+      goPage('video', null);
+      setTimeout(() => {
+        if (typeof showJoinCallForm === 'function') showJoinCallForm();
+        const inp = document.getElementById('call-join-code');
+        if (inp) inp.value = code;
+        setTimeout(() => {
+          if (typeof joinCall === 'function') joinCall();
+        }, 600);
+      }, 600);
     }
     // URL temizle
     if (history.replaceState) {
@@ -13737,6 +13779,26 @@ function acceptPersonalInvite(code, from, isLoggedIn) {
     }
   }, 400);
 }
+
+// Login sonrası pending invite'ı işle
+function processPendingInvite() {
+  const pending = localStorage.getItem('takil_pending_invite');
+  if (!pending) return;
+  try {
+    const inv = JSON.parse(pending);
+    // 1 saatten eski daveti sil
+    if (Date.now() - inv.ts > 3600000) {
+      localStorage.removeItem('takil_pending_invite');
+      return;
+    }
+    localStorage.removeItem('takil_pending_invite');
+    setTimeout(() => acceptPersonalInvite(inv.code, inv.from, true), 1500);
+  } catch(e) { localStorage.removeItem('takil_pending_invite'); }
+}
+// Login geçtiği event'i dinle
+window.addEventListener('takil:loggedin', processPendingInvite);
+// Yedek: sayfa yüklendiğinde token varsa kontrol
+setTimeout(() => { if (localStorage.getItem('takil_token')) processPendingInvite(); }, 3000);
 
 // Sayfa yüklenince davet linki var mı kontrol
 handleInviteLinkOnLoad();
