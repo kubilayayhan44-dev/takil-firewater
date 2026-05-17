@@ -15751,25 +15751,12 @@ class VoiceFxProProcessor extends AudioWorkletProcessor {
   }
 
   applySoundTouchParams() {
-    // Pitch ratio (2^(semi/12))
-    const pitchRatio = Math.pow(2, this.pitchSemitones / 12);
-    const formantRatio = this.formantRatio;
-
-    // TRICK: SoundTouch tempo+rate ile pitch ve formant ayir
-    // tempo controls time stretch (etkilemez pitch)
-    // rate controls sample rate (etkiler pitch ve formant)
-    //
-    // Hedef:
-    //   final_pitch  = rate (cunku rate sample rate degisir)
-    //   final_formant = rate / tempo (tempo formant'a ters etki eder)
-    //
-    // Verilen pitchRatio ve formantRatio icin:
-    //   rate = pitchRatio * formantRatio (sample rate degisimi)
-    //   tempo = formantRatio (time stretch, pitch'i geri getirir)
-    //   final_pitch = rate / tempo = pitchRatio * formantRatio / formantRatio = pitchRatio ✓
-    //   final_formant = formantRatio ✓
-    this.soundtouch.tempo = formantRatio;
-    this.soundtouch.rate = pitchRatio * formantRatio;
+    // STABILITY FIX: SoundTouch realtime'da tempo degısıkligi instabilite yapiyor
+    // Sadece pitchSemitones kullaniyoruz (en stabil mod)
+    // Formant ayrimi disarida granular post-processor ile yapilacak
+    this.soundtouch.tempo = 1.0;
+    this.soundtouch.rate = 1.0;
+    this.soundtouch.pitchSemitones = this.pitchSemitones;
   }
 
   fifoAvailable() {
@@ -16020,19 +16007,16 @@ function buildFilterChain() {
     return;
   }
 
-  // ============= PITCH + FORMANT SHIFT (SoundTouch worklet, INDEPENDENT) =============
+  // ============= PITCH SHIFT (SoundTouch worklet) =============
+  // SoundTouch sadece pitch shift yapar (formant + pitch birlikte kayar)
+  // Formant ayrimi icin EQ chain post-process yapilir (aşağıda)
   const effectivePitch = (preset.pitch || 0) + p.pitchOffset + (p.genderShift * 0.04);
-  // Formant ratio: preset.formantShift varsa kullan, yoksa 1.0
-  const effectiveFormant = p.formantSet ? p.formantOverride : (preset.formantShift || 1.0);
-  const needShift = Math.abs(effectivePitch) >= 0.5 || Math.abs(1 - effectiveFormant) > 0.02;
+  const needPitchShift = Math.abs(effectivePitch) >= 0.5;
 
-  if (voiceFx.workletSupported && needShift) {
+  if (voiceFx.workletSupported && needPitchShift) {
     try {
       voiceFx.workletNode = new AudioWorkletNode(ctx, 'voice-fx-pro');
-      voiceFx.workletNode.port.postMessage({
-        pitchSemitones: effectivePitch,
-        formant: effectiveFormant,  // Pitch'ten BAGIMSIZ formant kontrolü
-      });
+      voiceFx.workletNode.port.postMessage({ pitchSemitones: effectivePitch });
       chain.connect(voiceFx.workletNode);
       chain = voiceFx.workletNode;
     } catch(e) {
