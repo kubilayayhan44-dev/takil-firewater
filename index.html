@@ -7137,6 +7137,324 @@
     .vfx-header { padding: 14px 16px; }
     .vfx-actions { padding: 12px 16px; }
   }
+
+  /* =========== DAVET LANDING PAGE =========== */
+  .invite-landing-bg {
+    position: fixed; inset: 0;
+    z-index: 99999;
+    background: linear-gradient(135deg, #0a0518 0%, #1a0f3e 50%, #0a0518 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    overflow: hidden;
+    transition: opacity 0.4s;
+    animation: inviteLandingFadeIn 0.5s;
+  }
+  @keyframes inviteLandingFadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+  .invite-landing-bg-layer {
+    position: absolute; inset: 0;
+    background:
+      radial-gradient(ellipse at top, rgba(167,139,250,0.15), transparent 50%),
+      radial-gradient(ellipse at bottom, rgba(56,189,248,0.1), transparent 50%);
+    pointer-events: none;
+  }
+
+  .invite-landing-orbs { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
+  .invite-landing-orb {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(80px);
+    animation: inviteLandingOrbFloat 15s ease-in-out infinite;
+  }
+  .invite-landing-orb-1 {
+    width: 400px; height: 400px;
+    background: rgba(167,139,250,0.3);
+    top: -100px; left: -100px;
+  }
+  .invite-landing-orb-2 {
+    width: 350px; height: 350px;
+    background: rgba(56,189,248,0.25);
+    bottom: -100px; right: -100px;
+    animation-delay: -5s;
+  }
+  .invite-landing-orb-3 {
+    width: 300px; height: 300px;
+    background: rgba(244,114,182,0.2);
+    top: 50%; right: 20%;
+    animation-delay: -10s;
+  }
+  @keyframes inviteLandingOrbFloat {
+    0%, 100% { transform: translate(0, 0) scale(1); }
+    33% { transform: translate(40px, -50px) scale(1.1); }
+    66% { transform: translate(-50px, 30px) scale(0.95); }
+  }
+
+  /* Yıldız parçacık animasyonu */
+  .invite-landing-stars { position: absolute; inset: 0; pointer-events: none; }
+  .invite-star {
+    position: absolute;
+    left: var(--x);
+    top: var(--y);
+    width: 3px; height: 3px;
+    background: rgba(255,255,255,0.8);
+    border-radius: 50%;
+    transform: scale(var(--s));
+    animation: inviteStarTwinkle 3s ease-in-out infinite;
+    animation-delay: var(--d);
+    box-shadow: 0 0 6px rgba(255,255,255,0.6);
+  }
+  @keyframes inviteStarTwinkle {
+    0%, 100% { opacity: 0.3; transform: scale(var(--s)); }
+    50% { opacity: 1; transform: scale(calc(var(--s) * 1.5)); }
+  }
+
+  /* Card */
+  .invite-landing-card {
+    position: relative;
+    z-index: 2;
+    max-width: 480px;
+    width: 100%;
+    background: linear-gradient(135deg, rgba(26, 17, 56, 0.95), rgba(15, 20, 40, 0.95));
+    border: 1.5px solid rgba(167,139,250,0.4);
+    border-radius: 28px;
+    padding: 36px 32px;
+    text-align: center;
+    backdrop-filter: blur(20px);
+    box-shadow:
+      0 30px 100px rgba(0,0,0,0.7),
+      0 0 80px rgba(124,58,237,0.4),
+      inset 0 1px 0 rgba(255,255,255,0.1);
+    animation: inviteLandingCardIn 0.7s cubic-bezier(.34,1.56,.64,1);
+    max-height: 90vh;
+    overflow-y: auto;
+  }
+  @keyframes inviteLandingCardIn {
+    0% { transform: scale(0.85) translateY(40px); opacity: 0; }
+    70% { transform: scale(1.03) translateY(-5px); }
+    100% { transform: scale(1) translateY(0); opacity: 1; }
+  }
+
+  /* Logo */
+  .invite-landing-logo {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 24px;
+  }
+  .invite-landing-logo-icon {
+    width: 44px; height: 44px;
+    background: linear-gradient(135deg, #a78bfa, #7c3aed);
+    border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 24px;
+    box-shadow: 0 6px 20px rgba(124,58,237,0.5);
+  }
+  .invite-landing-logo-text {
+    font-size: 22px;
+    font-weight: 900;
+    background: linear-gradient(90deg, #a78bfa, #38bdf8);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    letter-spacing: -0.5px;
+  }
+
+  /* Davet eden */
+  .invite-landing-from {
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 16px 10px 10px;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(167,139,250,0.3);
+    border-radius: 50px;
+    margin-bottom: 24px;
+  }
+  .invite-landing-avatar {
+    width: 36px; height: 36px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #f472b6, #a78bfa);
+    display: flex; align-items: center; justify-content: center;
+    color: #fff;
+    font-weight: 900;
+    font-size: 16px;
+    box-shadow: 0 4px 12px rgba(167,139,250,0.4);
+  }
+  .invite-landing-from-info { text-align: left; }
+  .invite-landing-from-label {
+    font-size: 9px;
+    color: #a78bfa;
+    letter-spacing: 1.5px;
+    font-weight: 700;
+    line-height: 1;
+  }
+  .invite-landing-from-name {
+    color: #fff;
+    font-size: 15px;
+    font-weight: 700;
+    margin-top: 2px;
+  }
+
+  /* Title */
+  .invite-landing-title {
+    font-size: 36px;
+    font-weight: 900;
+    color: #fff;
+    margin: 0 0 12px;
+    line-height: 1.1;
+    letter-spacing: -1px;
+  }
+  .invite-landing-title-line { display: block; }
+  .invite-landing-title-accent {
+    display: block;
+    background: linear-gradient(90deg, #a78bfa 0%, #38bdf8 50%, #f472b6 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    animation: inviteTitleShine 3s ease-in-out infinite;
+  }
+  @keyframes inviteTitleShine {
+    0%, 100% { filter: drop-shadow(0 0 10px rgba(167,139,250,0.5)); }
+    50% { filter: drop-shadow(0 0 20px rgba(167,139,250,0.8)); }
+  }
+
+  .invite-landing-subtitle {
+    color: #cbd5e1;
+    font-size: 14px;
+    line-height: 1.6;
+    margin: 0 0 28px;
+    opacity: 0.85;
+  }
+
+  /* Features */
+  .invite-landing-features {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    margin-bottom: 24px;
+  }
+  .invite-landing-feature {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 14px;
+    padding: 14px 8px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.25s;
+  }
+  .invite-landing-feature:hover {
+    background: rgba(255,255,255,0.08);
+    transform: translateY(-3px);
+    border-color: rgba(167,139,250,0.3);
+  }
+  .invite-landing-feature-icon {
+    width: 40px; height: 40px;
+    border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    color: #fff;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.3);
+  }
+  .invite-landing-feature-title {
+    color: #fff;
+    font-size: 13px;
+    font-weight: 700;
+  }
+  .invite-landing-feature-desc {
+    color: #94a3b8;
+    font-size: 11px;
+    margin-top: 2px;
+  }
+
+  /* Code */
+  .invite-landing-code {
+    background: rgba(0,0,0,0.4);
+    border: 1px dashed rgba(167,139,250,0.4);
+    border-radius: 12px;
+    padding: 12px;
+    margin-bottom: 20px;
+  }
+  .invite-landing-code-label {
+    font-size: 10px;
+    color: #a78bfa;
+    letter-spacing: 2px;
+    font-weight: 700;
+    margin-bottom: 4px;
+  }
+  .invite-landing-code-value {
+    color: #fff;
+    font-family: 'SF Mono', Monaco, Consolas, monospace;
+    font-size: 18px;
+    font-weight: 700;
+    letter-spacing: 2px;
+  }
+
+  /* CTA Button */
+  .invite-landing-cta {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    width: 100%;
+    padding: 18px 24px;
+    background: linear-gradient(135deg, #a78bfa 0%, #7c3aed 50%, #ec4899 100%);
+    background-size: 200% 200%;
+    border: none;
+    border-radius: 16px;
+    color: #fff;
+    font-weight: 900;
+    font-size: 15px;
+    letter-spacing: 1.5px;
+    cursor: pointer;
+    font-family: inherit;
+    text-transform: uppercase;
+    box-shadow:
+      0 10px 30px rgba(124,58,237,0.5),
+      0 0 50px rgba(167,139,250,0.3);
+    transition: all 0.3s;
+    margin-bottom: 12px;
+    animation: inviteCtaGlow 3s ease-in-out infinite;
+  }
+  @keyframes inviteCtaGlow {
+    0%, 100% { background-position: 0% 50%; box-shadow: 0 10px 30px rgba(124,58,237,0.5), 0 0 50px rgba(167,139,250,0.3); }
+    50% { background-position: 100% 50%; box-shadow: 0 10px 40px rgba(124,58,237,0.7), 0 0 70px rgba(244,114,182,0.4); }
+  }
+  .invite-landing-cta:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 18px 50px rgba(124,58,237,0.7), 0 0 80px rgba(167,139,250,0.5);
+  }
+  .invite-landing-cta:active { transform: translateY(0); }
+
+  .invite-landing-cancel {
+    background: none;
+    border: none;
+    color: #94a3b8;
+    font-size: 13px;
+    cursor: pointer;
+    padding: 8px;
+    font-family: inherit;
+    transition: color 0.2s;
+  }
+  .invite-landing-cancel:hover { color: #fff; }
+
+  .invite-landing-footer {
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 1px solid rgba(255,255,255,0.05);
+    color: #64748b;
+    font-size: 11px;
+    letter-spacing: 0.5px;
+  }
+
+  @media (max-width: 520px) {
+    .invite-landing-card { padding: 28px 22px; border-radius: 22px; }
+    .invite-landing-title { font-size: 28px; }
+    .invite-landing-features { grid-template-columns: 1fr; }
+    .invite-landing-feature { flex-direction: row; padding: 12px 14px; }
+  }
 </style>
 
 <script>
@@ -13071,8 +13389,169 @@ function acceptGameInvite(code, from) {
   }
 }
 
-if (callParam) setTimeout(() => showInviteBanner('call', callParam, fromParam), 300);
-else if (gameParam) setTimeout(() => showInviteBanner('game', gameParam, fromParam), 300);
+// =====================================================================
+// DAVET LİNKİ HANDLER — 'tkl-' prefix çin landing page
+// =====================================================================
+function handleInviteLinkOnLoad() {
+  // Login durumunu kontrol et
+  const isLoggedIn = !!localStorage.getItem('takil_token');
+
+  // tkl- prefix = kişisel davet linki (yeni format)
+  if (gameParam && gameParam.startsWith('tkl-')) {
+    showPersonalInviteLanding(gameParam, fromParam, isLoggedIn);
+  } else if (callParam) {
+    setTimeout(() => showInviteBanner('call', callParam, fromParam), 300);
+  } else if (gameParam) {
+    setTimeout(() => showInviteBanner('game', gameParam, fromParam), 300);
+  }
+}
+
+// Modern landing page - tkl- davet linki için
+function showPersonalInviteLanding(code, from, isLoggedIn) {
+  // Eski varsa sil
+  document.querySelectorAll('.invite-landing-bg').forEach(e => e.remove());
+
+  const fromName = decodeURIComponent(from);
+  const fromInitial = fromName.charAt(0).toUpperCase();
+
+  const bg = document.createElement('div');
+  bg.className = 'invite-landing-bg';
+  bg.innerHTML = `
+    <!-- Animasyonlu arka plan -->
+    <div class="invite-landing-bg-layer"></div>
+    <div class="invite-landing-orbs">
+      <div class="invite-landing-orb invite-landing-orb-1"></div>
+      <div class="invite-landing-orb invite-landing-orb-2"></div>
+      <div class="invite-landing-orb invite-landing-orb-3"></div>
+    </div>
+    <!-- Yaildir parcacik animasyonu -->
+    <div class="invite-landing-stars">
+      ${Array.from({length: 30}).map((_, i) => `<span class="invite-star" style="--d:${Math.random()*5}s;--x:${Math.random()*100}%;--y:${Math.random()*100}%;--s:${Math.random()*0.8+0.2}"></span>`).join('')}
+    </div>
+
+    <!-- Card -->
+    <div class="invite-landing-card">
+      <!-- Logo -->
+      <div class="invite-landing-logo">
+        <div class="invite-landing-logo-icon">🎮</div>
+        <div class="invite-landing-logo-text">Takıl</div>
+      </div>
+
+      <!-- Davet eden kişi -->
+      <div class="invite-landing-from">
+        <div class="invite-landing-avatar">${fromInitial}</div>
+        <div class="invite-landing-from-info">
+          <div class="invite-landing-from-label">SENİ DAVET EDEN</div>
+          <div class="invite-landing-from-name">${fromName}</div>
+        </div>
+      </div>
+
+      <!-- Main title -->
+      <h1 class="invite-landing-title">
+        <span class="invite-landing-title-line">Takıl’a</span>
+        <span class="invite-landing-title-accent">davet edildin!</span>
+      </h1>
+      <p class="invite-landing-subtitle">
+        ${fromName} seninle Takıl’da görüşme, oyun ve sohbet için zaman geçirmek istiyor.
+      </p>
+
+      <!-- Features -->
+      <div class="invite-landing-features">
+        <div class="invite-landing-feature">
+          <div class="invite-landing-feature-icon" style="background:linear-gradient(135deg,#38bdf8,#0ea5e9)">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="23 7 16 12 23 17 23 7"></polygon><rect x="1" y="5" width="15" height="14" rx="2"></rect></svg>
+          </div>
+          <div class="invite-landing-feature-text">
+            <div class="invite-landing-feature-title">Görüşme</div>
+            <div class="invite-landing-feature-desc">HD video & ses</div>
+          </div>
+        </div>
+        <div class="invite-landing-feature">
+          <div class="invite-landing-feature-icon" style="background:linear-gradient(135deg,#a78bfa,#7c3aed)">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="6" y1="11" x2="10" y2="11"></line><line x1="8" y1="9" x2="8" y2="13"></line><line x1="15" y1="12" x2="15.01" y2="12"></line><line x1="18" y1="10" x2="18.01" y2="10"></line><path d="M17.32 5H6.68a4 4 0 0 0-3.978 3.59c-.006.052-.01.101-.017.152C2.604 9.416 2 14.456 2 16a3 3 0 0 0 3 3c1 0 1.5-.5 2-1l1.414-1.414A2 2 0 0 1 9.828 16h4.344a2 2 0 0 1 1.414.586L17 18c.5.5 1 1 2 1a3 3 0 0 0 3-3c0-1.545-.604-6.584-.685-7.258-.007-.05-.011-.1-.017-.151A4 4 0 0 0 17.32 5z"></path></svg>
+          </div>
+          <div class="invite-landing-feature-text">
+            <div class="invite-landing-feature-title">Oyunlar</div>
+            <div class="invite-landing-feature-desc">Macera + Karma</div>
+          </div>
+        </div>
+        <div class="invite-landing-feature">
+          <div class="invite-landing-feature-icon" style="background:linear-gradient(135deg,#f472b6,#db2777)">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+          </div>
+          <div class="invite-landing-feature-text">
+            <div class="invite-landing-feature-title">Sohbet</div>
+            <div class="invite-landing-feature-desc">Tepkiler & emoji</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Davet kodu -->
+      <div class="invite-landing-code">
+        <div class="invite-landing-code-label">DAVET KODU</div>
+        <div class="invite-landing-code-value">${code}</div>
+      </div>
+
+      <!-- Action button -->
+      <button class="invite-landing-cta" onclick="acceptPersonalInvite('${code}', '${fromName}', ${isLoggedIn})">
+        <span>${isLoggedIn ? 'KATIL VE BAŞLA' : 'KAYIT OL & KATIL'}</span>
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+      </button>
+
+      <button class="invite-landing-cancel" onclick="dismissInviteLanding()">Daha sonra</button>
+
+      <!-- Footer -->
+      <div class="invite-landing-footer">
+        <span>🔒 Davet linki sadece sana özel</span>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(bg);
+
+  // Body scroll disable
+  document.body.style.overflow = 'hidden';
+}
+
+function dismissInviteLanding() {
+  const bg = document.querySelector('.invite-landing-bg');
+  if (bg) {
+    bg.style.opacity = '0';
+    setTimeout(() => bg.remove(), 400);
+  }
+  document.body.style.overflow = '';
+  // URL'den parametreyi temizle
+  if (history.replaceState) {
+    history.replaceState(null, '', window.location.pathname);
+  }
+}
+
+function acceptPersonalInvite(code, from, isLoggedIn) {
+  const bg = document.querySelector('.invite-landing-bg');
+  if (bg) bg.style.opacity = '0';
+  setTimeout(() => {
+    if (bg) bg.remove();
+    document.body.style.overflow = '';
+
+    if (!isLoggedIn) {
+      // Login sonrası davet işlemini bekletmek için sakla
+      localStorage.setItem('takil_pending_invite', JSON.stringify({ code, from, ts: Date.now() }));
+      // Auth sayfası zaten görünüyor olmalı
+      if (typeof toast === 'function') toast('🔑 Önce giriş yap ya da kayıt ol, sonra arkadaşın yanına gelirsin', 'info');
+    } else {
+      // Direkt yönlendirme - ana sayfada davet veren kişi için bilgi göster
+      if (typeof toast === 'function') toast('🎮 ' + from + ' seni davet etti! Ana sayfadan işlem yapabilirsin.', 'success');
+      // Davet kodu kullanıcı için hazır olsun (görüşme veya oyuna katılmak isterse)
+      localStorage.setItem('takil_pending_invite', JSON.stringify({ code, from, ts: Date.now() }));
+    }
+    // URL temizle
+    if (history.replaceState) {
+      history.replaceState(null, '', window.location.pathname);
+    }
+  }, 400);
+}
+
+// Sayfa yüklenince davet linki var mı kontrol
+handleInviteLinkOnLoad();
 
 // ============================================================
 // ============================================================
