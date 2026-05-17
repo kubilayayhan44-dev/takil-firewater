@@ -7495,6 +7495,52 @@ function toggleMenu() { document.getElementById('sidebar').classList.toggle('ope
 // ============================================================
 // WEBRTC GÖRÜNTÜLÜ GÖRÜŞME (Çoklu kullanıcı, P2P mesh)
 // ============================================================
+
+// PeerJS ücretsiz public server + güçlü ICE config (STUN+TURN)
+// NAT/firewall arkasındaki kullanıcılar için TURN sunucuları kritik!
+const PEERJS_CONFIG = {
+  // PeerJS Cloud (default 0.peerjs.com, daha stabil)
+  host: '0.peerjs.com',
+  port: 443,
+  path: '/',
+  secure: true,
+  debug: 1,
+  config: {
+    iceServers: [
+      // Google STUN'lar
+      { urls: 'stun:stun.l.google.com:19302' },
+      { urls: 'stun:stun1.l.google.com:19302' },
+      { urls: 'stun:stun2.l.google.com:19302' },
+      { urls: 'stun:stun3.l.google.com:19302' },
+      { urls: 'stun:stun4.l.google.com:19302' },
+      // Cloudflare STUN
+      { urls: 'stun:stun.cloudflare.com:3478' },
+      // Ücretsiz public TURN sunucuları (OpenRelay - Twilio sponsorlu)
+      {
+        urls: 'turn:openrelay.metered.ca:80',
+        username: 'openrelayproject',
+        credential: 'openrelayproject'
+      },
+      {
+        urls: 'turn:openrelay.metered.ca:443',
+        username: 'openrelayproject',
+        credential: 'openrelayproject'
+      },
+      {
+        urls: 'turn:openrelay.metered.ca:443?transport=tcp',
+        username: 'openrelayproject',
+        credential: 'openrelayproject'
+      },
+    ],
+    iceCandidatePoolSize: 10,
+  }
+};
+
+function createPeer(id) {
+  // Eğer id verilmişse onunla, yoksa otomatik
+  return id ? new Peer(id, PEERJS_CONFIG) : new Peer(PEERJS_CONFIG);
+}
+
 let callPeer = null;
 let localStream = null;
 let screenStream = null;
@@ -7670,17 +7716,23 @@ async function startCall() {
 
   // PeerJS odası oluştur
   const code = 'call-' + Math.random().toString(36).substring(2, 8);
-  callPeer = new Peer(code);
+  callPeer = createPeer(code);
   isHost = true;
   hostRoomCode = code;
 
-  callPeer.on('open', id => {
+  callPeer.on('open', async id => {
     myCallId = id;
     document.getElementById('call-room-code').textContent = id;
     document.getElementById('call-room-display').style.display = 'block';
     document.getElementById('call-status').textContent = '⏳ Arkadaş bekleniyor... ' + id;
-    const link = baseUrl + '?call=' + id + '&from=' + encodeURIComponent(myCallName);
-    document.getElementById('call-wa-link').href = 'https://wa.me/?text=' + encodeURIComponent(link);
+    // Tunnel URL kullan (localhost yerine)
+    let publicBase = baseUrl;
+    try {
+      if (typeof detectPublicBaseUrl === 'function') publicBase = await detectPublicBaseUrl();
+    } catch(e) {}
+    const link = publicBase + '?call=' + id + '&from=' + encodeURIComponent(myCallName);
+    const msg = '📹 *' + myCallName + '* seninle görüşmek istiyor!\n\n👇 Anında katılmak için:\n' + link;
+    document.getElementById('call-wa-link').href = 'https://wa.me/?text=' + encodeURIComponent(msg);
     setupDeviceList();
   });
 
@@ -7719,7 +7771,14 @@ async function startCall() {
 
   callPeer.on('error', err => {
     console.error('Peer error:', err);
-    alert('Peer hatası: ' + err.type);
+    const errType = err.type || 'unknown';
+    if (errType === 'unavailable-id') {
+      // Kod çakışması - yeni kod üret
+      console.warn('Kod çakışması, yeniden oluşturuluyor...');
+      setTimeout(() => startCall(), 500);
+    } else {
+      showCallJoinError('Görüşme başlatılamadı', 'PeerJS sunucusu hata: ' + errType + '. Tekrar dene.', true, () => startCall());
+    }
   });
 
   showCallActive();
@@ -7760,13 +7819,45 @@ async function joinCall() {
     return alert(msg);
   }
 
-  callPeer = new Peer();
+  // Modern loading overlay göster
+  showCallJoinLoading('PeerJS sunucusuna bağlanılıyor...');
+
+  // Eski peer'ı temizle
+  if (callPeer) {
+    try { callPeer.destroy(); } catch(e) {}
+    callPeer = null;
+  }
+
+  callPeer = createPeer();
   isHost = false;
+
+  let openTimeout = setTimeout(() => {
+    hideCallJoinLoading();
+    showCallJoinError('PeerJS sunucusu yanıt vermiyor', 'Server bagılantısı zaman aşımına uğradı. Tekrar dene.', true, () => joinCall());
+  }, 10000);
+
   callPeer.on('open', myId => {
+    clearTimeout(openTimeout);
     myCallId = myId;
+    showCallJoinLoading('Arkadaşın aranıyor (' + code + ')...');
+
+    // Connect timeout
+    let connectTimeout = setTimeout(() => {
+      hideCallJoinLoading();
+      showCallJoinError('Arkadaş bulunamadı', 'Oda kodu hatalı ya da arkadaşın henüz görüşme başlatmadı. "' + code + '" kodunu kontrol et.', true, () => joinCall());
+    }, 12000);
+
+    // İlk çagrıyı yap, başarılı olunca timeout temizlenir
     callPeerToPeer(code);
-    showCallActive();
-    setupDeviceList();
+    setTimeout(() => {
+      // Eğer 3sn içinde stream yoksa hala bekliyor
+      if (peerConnections[code] && peerConnections[code].call) {
+        clearTimeout(connectTimeout);
+        hideCallJoinLoading();
+        showCallActive();
+        setupDeviceList();
+      }
+    }, 3500);
   });
 
   callPeer.on('call', incomingCall => {
@@ -7777,6 +7868,11 @@ async function joinCall() {
     peerConnections[peerId].call = incomingCall;
     peerConnections[peerId].name = (incomingCall.metadata && incomingCall.metadata.name) || 'Arkadaş';
     setupRemoteStream(incomingCall, peerId);
+    // Stream geldi - aktif yap
+    clearTimeout(openTimeout);
+    hideCallJoinLoading();
+    showCallActive();
+    setupDeviceList();
   });
 
   callPeer.on('connection', conn => {
@@ -7790,9 +7886,88 @@ async function joinCall() {
   });
 
   callPeer.on('error', err => {
+    clearTimeout(openTimeout);
     console.error('Peer error:', err);
-    alert('Bağlanılamadı: ' + err.type + '\nKodu kontrol et veya yeniden dene.');
+    hideCallJoinLoading();
+    const errType = err.type || 'unknown';
+    let msg, retry = true;
+    if (errType === 'peer-unavailable') {
+      msg = 'Arkadaş çevrimdışı. Henuz görüşme başlatmamış olabilir.';
+    } else if (errType === 'network') {
+      msg = 'Ağ bağlantısında sorun var. İnterneti kontrol et.';
+    } else if (errType === 'server-error' || errType === 'socket-error') {
+      msg = 'PeerJS sunucusunda sorun. Birkaç saniye sonra tekrar dene.';
+    } else if (errType === 'browser-incompatible') {
+      msg = 'Tarayıcı desteklenmiyor. Chrome veya Safari kullan.';
+      retry = false;
+    } else {
+      msg = 'Hata: ' + errType;
+    }
+    showCallJoinError('Bağlantı hatası', msg, retry, () => joinCall());
   });
+}
+
+// Görüşme join loading & error UI
+function showCallJoinLoading(message) {
+  let overlay = document.getElementById('call-join-overlay');
+  if (!overlay) {
+    overlay = document.createElement('div');
+    overlay.id = 'call-join-overlay';
+    overlay.style.cssText = 'position:fixed;inset:0;background:rgba(10,15,30,0.92);backdrop-filter:blur(10px);z-index:99999;display:flex;align-items:center;justify-content:center;animation:vfxFadeIn 0.3s;';
+    overlay.innerHTML = `
+      <div style="max-width:440px;width:90%;background:linear-gradient(135deg,#1a1f3a,#0f1428);border:1.5px solid rgba(56,189,248,0.4);border-radius:20px;padding:36px 28px;text-align:center;box-shadow:0 30px 100px rgba(0,0,0,0.6),0 0 80px rgba(56,189,248,0.25);">
+        <div style="width:64px;height:64px;margin:0 auto 20px;border:4px solid rgba(56,189,248,0.15);border-top-color:#38bdf8;border-radius:50%;animation:joinSpin 0.8s linear infinite;"></div>
+        <div style="font-size:13px;color:#38bdf8;letter-spacing:2px;font-weight:700;margin-bottom:8px;text-transform:uppercase;">Görüşmeye Katıl</div>
+        <div id="call-join-message" style="font-size:18px;color:#fff;font-weight:600;line-height:1.5;">Bağlanılıyor...</div>
+        <div style="margin-top:10px;color:#94a3b8;font-size:12px;">İlk bağlantı 15 saniye sürebilir, lütfen bekle</div>
+        <button onclick="cancelCallJoin()" style="margin-top:24px;padding:10px 24px;background:rgba(239,68,68,0.15);border:1px solid rgba(239,68,68,0.4);color:#f87171;border-radius:10px;cursor:pointer;font-weight:600;font-family:inherit;">İptal Et</button>
+      </div>
+      <style>@keyframes joinSpin{to{transform:rotate(360deg)}}</style>
+    `;
+    document.body.appendChild(overlay);
+  }
+  const msgEl = document.getElementById('call-join-message');
+  if (msgEl) msgEl.textContent = message;
+  overlay.style.display = 'flex';
+}
+
+function hideCallJoinLoading() {
+  const overlay = document.getElementById('call-join-overlay');
+  if (overlay) overlay.style.display = 'none';
+}
+
+function showCallJoinError(title, message, retryable, retryFn) {
+  hideCallJoinLoading();
+  const errOverlay = document.createElement('div');
+  errOverlay.style.cssText = 'position:fixed;inset:0;background:rgba(10,15,30,0.92);backdrop-filter:blur(10px);z-index:99999;display:flex;align-items:center;justify-content:center;padding:20px;animation:vfxFadeIn 0.3s;';
+  errOverlay.innerHTML = `
+    <div style="max-width:440px;width:100%;background:linear-gradient(135deg,#3a1a1a,#1a0a0a);border:1.5px solid rgba(239,68,68,0.5);border-radius:20px;padding:36px 28px;text-align:center;box-shadow:0 30px 100px rgba(0,0,0,0.6),0 0 60px rgba(239,68,68,0.3);">
+      <div style="font-size:56px;margin-bottom:16px;">📡⚠️</div>
+      <div style="font-size:13px;color:#f87171;letter-spacing:2px;font-weight:700;margin-bottom:8px;text-transform:uppercase;">${title}</div>
+      <div style="font-size:15px;color:#fff;font-weight:600;line-height:1.5;margin-bottom:24px;">${message}</div>
+      <div style="display:flex;gap:10px;justify-content:center;">
+        ${retryable ? '<button id="call-err-retry" style="padding:12px 28px;background:linear-gradient(135deg,#38bdf8,#0284c7);border:none;color:#fff;border-radius:10px;cursor:pointer;font-weight:800;font-size:13px;font-family:inherit;letter-spacing:1.5px;">TEKRAR DENE</button>' : ''}
+        <button onclick="this.closest('div[style*=fixed]').remove()" style="padding:12px 28px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.15);color:#cbd5e1;border-radius:10px;cursor:pointer;font-weight:700;font-size:13px;font-family:inherit;letter-spacing:1.5px;">VAZGEÇ</button>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(errOverlay);
+  if (retryable && retryFn) {
+    const btn = errOverlay.querySelector('#call-err-retry');
+    if (btn) btn.onclick = () => { errOverlay.remove(); retryFn(); };
+  }
+}
+
+function cancelCallJoin() {
+  hideCallJoinLoading();
+  if (callPeer) {
+    try { callPeer.destroy(); } catch(e) {}
+    callPeer = null;
+  }
+  if (localStream) {
+    try { localStream.getTracks().forEach(t => t.stop()); } catch(e) {}
+    localStream = null;
+  }
 }
 
 function callPeerToPeer(peerId) {
@@ -8675,7 +8850,20 @@ let jitsiApi = null;
 // ============================================================
 // myName artık localStorage'dan gelir (login sonrası)
 let myName = localStorage.getItem('takil_user_name') || 'Misafir';
-const baseUrl = window.location.origin + window.location.pathname;
+let baseUrl = window.location.origin + window.location.pathname;
+
+// Public URL'i async detect et - localhost'taysa tunnel URL kullan
+(async function() {
+  try {
+    if (typeof detectPublicBaseUrl === 'function') {
+      const publicUrl = await detectPublicBaseUrl();
+      if (publicUrl) {
+        baseUrl = publicUrl;
+        console.log('[Davet] Public baseUrl:', baseUrl);
+      }
+    }
+  } catch(e) { console.warn('Public URL alinamadi:', e); }
+})();
 
 // ============================================================
 // YENI DAVET SISTEMI (One-click)
@@ -8859,7 +9047,7 @@ function setPlayerCount(n, el) {
 // ============================================================
 function createGameRoom() {
   const code = 'takil-' + Math.random().toString(36).substring(2, 8);
-  game.peer = new Peer(code);
+  game.peer = createPeer(code);
   game.mode = 'host';
   game.myPeerId = code;
 
@@ -8939,7 +9127,7 @@ function attemptJoinRoom(code) {
     game.hostConn = null;
   }
 
-  game.peer = new Peer();
+  game.peer = createPeer();
   game.mode = 'guest';
   game.players = {};
 
@@ -13608,7 +13796,7 @@ function karmaShowError(msg, detail) {
 
 function createKarmaRoom() {
   const code = 'karma-' + Math.random().toString(36).substring(2, 8);
-  karma.peer = new Peer(code);
+  karma.peer = createPeer(code);
   karma.mode = 'host';
   karma.myPeerId = code;
   karma.myId = 0;
@@ -13643,7 +13831,7 @@ function showKarmaJoinForm() {
 function joinKarmaRoom() {
   const code = document.getElementById('karma-join-code').value.trim();
   if (!code) return alert('Oda kodu gir!');
-  karma.peer = new Peer();
+  karma.peer = createPeer();
   karma.mode = 'guest';
   karma.peer.on('open', myPid => {
     karma.myPeerId = myPid;
