@@ -5302,11 +5302,11 @@
 <div class="app" id="main-app" style="display:none;">
   <aside class="sidebar" id="sidebar">
     <div class="logo">Takıl 🎮<span>Arkadaşlarla online</span></div>
-    <div class="menu-item active" onclick="goPage('home', this)"><span class="icon">🏠</span><span>Ana Sayfa</span></div>
-    <div class="menu-item" onclick="goPage('video', this)"><span class="icon">📹</span><span>Görüntülü Görüşme</span></div>
-    <div class="menu-item" onclick="goPage('games', this)"><span class="icon">🎮</span><span>Oyunlar</span></div>
-    <div class="menu-item" onclick="goPage('worldly', this)"><span class="icon">🌍</span><span>Worldly</span><span style="margin-left:auto;font-size:9px;background:linear-gradient(135deg,#a78bfa,#7c3aed);color:#fff;padding:2px 6px;border-radius:8px;font-weight:800;letter-spacing:0.5px;">YENİ</span></div>
-    <div class="menu-item" onclick="goPage('invite', this)"><span class="icon">👥</span><span>Arkadaş Davet Et</span></div>
+    <div class="menu-item active" onclick="goPage('home', this)"><span class="icon">🏠</span><span data-i18n="menu.home">Ana Sayfa</span></div>
+    <div class="menu-item" onclick="goPage('video', this)"><span class="icon">📹</span><span data-i18n="menu.video">Görüntülü Görüşme</span></div>
+    <div class="menu-item" onclick="goPage('games', this)"><span class="icon">🎮</span><span data-i18n="menu.games">Oyunlar</span></div>
+    <div class="menu-item" onclick="goPage('worldly', this)"><span class="icon">🌍</span><span data-i18n="menu.worldly">Worldly</span><span data-i18n="menu.new" style="margin-left:auto;font-size:9px;background:linear-gradient(135deg,#a78bfa,#7c3aed);color:#fff;padding:2px 6px;border-radius:8px;font-weight:800;letter-spacing:0.5px;">YENİ</span></div>
+    <div class="menu-item" onclick="goPage('invite', this)"><span class="icon">👥</span><span data-i18n="menu.invite">Arkadaş Davet Et</span></div>
     <div style="margin-top:auto;padding:14px;border-top:1px solid rgba(255,255,255,0.06);">
       <div style="display:flex;align-items:center;gap:12px;padding:10px 12px;background:rgba(255,255,255,0.03);border-radius:14px;border:1px solid rgba(255,255,255,0.05);transition:all 0.2s;margin-bottom:10px;" id="user-card">
         <div style="position:relative;">
@@ -5315,10 +5315,26 @@
         </div>
         <div style="flex:1;overflow:hidden;">
           <div id="sidebar-user-name" style="font-size:13px;font-weight:700;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;letter-spacing:-0.01em;">Kullanıcı</div>
-          <div style="font-size:10px;color:#10b981;font-weight:600;letter-spacing:0.5px;text-transform:uppercase;">Çevrimiçi</div>
+          <div data-i18n="menu.online" style="font-size:10px;color:#10b981;font-weight:600;letter-spacing:0.5px;text-transform:uppercase;">Çevrimiçi</div>
         </div>
         <button onclick="doLogout()" title="Çıkış" style="background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.2);color:#ef4444;width:34px;height:34px;border-radius:10px;cursor:pointer;font-size:14px;transition:all 0.2s;display:flex;align-items:center;justify-content:center;" onmouseover="this.style.background='rgba(239,68,68,0.2)'" onmouseout="this.style.background='rgba(239,68,68,0.08)'">🚪</button>
       </div>
+
+      <!-- DİL SEÇİCİ -->
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;padding:8px 10px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);border-radius:12px;">
+        <span style="font-size:14px;">🌐</span>
+        <select id="lang-select" onchange="setLanguage(this.value)" style="flex:1;background:transparent;border:none;color:#cbd5e1;font-family:inherit;font-size:12px;font-weight:600;cursor:pointer;outline:none;letter-spacing:0.3px;">
+          <option value="tr" style="background:#1a1f3a;color:#fff;">🇹🇷 Türkçe</option>
+          <option value="en" style="background:#1a1f3a;color:#fff;">🇬🇧 English</option>
+          <option value="de" style="background:#1a1f3a;color:#fff;">🇩🇪 Deutsch</option>
+          <option value="es" style="background:#1a1f3a;color:#fff;">🇪🇸 Español</option>
+          <option value="fr" style="background:#1a1f3a;color:#fff;">🇫🇷 Français</option>
+          <option value="ar" style="background:#1a1f3a;color:#fff;">🇸🇦 العربية</option>
+          <option value="ru" style="background:#1a1f3a;color:#fff;">🇷🇺 Русский</option>
+          <option value="ja" style="background:#1a1f3a;color:#fff;">🇯🇵 日本語</option>
+        </select>
+      </div>
+
       <div style="font-size:10px;color:#50586a;text-align:center;letter-spacing:0.8px;text-transform:uppercase;font-weight:600;">v0.7 • Aurora UI</div>
     </div>
   </aside>
@@ -6564,6 +6580,9 @@
     <div class="page" id="page-worldly">
       <!-- Hero -->
       <div class="worldly-hero">
+        <!-- 3D Globe arka plan -->
+        <canvas class="worldly-globe-canvas" id="worldly-globe-canvas"></canvas>
+        <div class="worldly-globe-vignette"></div>
         <div class="worldly-orbs">
           <div class="worldly-orb worldly-orb-1"></div>
           <div class="worldly-orb worldly-orb-2"></div>
@@ -6574,32 +6593,33 @@
         <div class="worldly-hero-content">
           <div class="worldly-badge">
             <span class="worldly-badge-dot"></span>
-            <span>AI WORLD DİSCOVERY</span>
+            <span data-i18n="worldly.badge">AI WORLD DISCOVERY</span>
           </div>
 
           <h1 class="worldly-title">
-            Tell us what you crave.
-            <span class="worldly-title-accent">We'll find the world.</span>
+            <span data-i18n="worldly.title1">Tell us what you crave.</span>
+            <span class="worldly-title-accent" data-i18n="worldly.title2">We'll find the world.</span>
           </h1>
-          <p class="worldly-subtitle">
+          <p class="worldly-subtitle" data-i18n="worldly.subtitle">
             Şehir + ne arıyorsan yaz — yapay zeka senin için dunyayı tarayacak. Gizli kafeler, romantic restoranlar, secret spotlar...
           </p>
 
           <div class="worldly-search-wrap">
-            <div class="worldly-search-label">WHAT DO YOU WANT TO DISCOVER?</div>
+            <div class="worldly-search-label" data-i18n="worldly.searchLabel">WHAT DO YOU WANT TO DISCOVER?</div>
             <div class="worldly-search-box">
               <input type="text" class="worldly-search-input" id="worldly-search-input"
+                data-i18n-placeholder="worldly.searchPlaceholder"
                 placeholder="hidden cafés in Tokyo..."
                 onkeypress="if(event.key==='Enter')worldlySearch()" />
               <button class="worldly-search-btn" onclick="worldlySearch()">→</button>
             </div>
             <div class="worldly-chips">
-              <button class="worldly-chip" onclick="worldlyChip('coffee in tokyo')">☕ Coffee</button>
-              <button class="worldly-chip" onclick="worldlyChip('beach in bali')">🏖️ Beaches</button>
-              <button class="worldly-chip" onclick="worldlyChip('nightlife in istanbul')">🍷 Nightlife</button>
-              <button class="worldly-chip" onclick="worldlyChip('food in paris')">🍽️ Restaurants</button>
-              <button class="worldly-chip" onclick="worldlyChip('culture in lisbon')">🎨 Culture</button>
-              <button class="worldly-chip" onclick="worldlyChip('perfume in paris')">✨ Perfume</button>
+              <button class="worldly-chip" data-i18n="worldly.chip.coffee" onclick="worldlyChip('coffee in tokyo')">☕ Coffee</button>
+              <button class="worldly-chip" data-i18n="worldly.chip.beaches" onclick="worldlyChip('beach in bali')">🏖️ Beaches</button>
+              <button class="worldly-chip" data-i18n="worldly.chip.nightlife" onclick="worldlyChip('nightlife in istanbul')">🍷 Nightlife</button>
+              <button class="worldly-chip" data-i18n="worldly.chip.restaurants" onclick="worldlyChip('food in paris')">🍽️ Restaurants</button>
+              <button class="worldly-chip" data-i18n="worldly.chip.culture" onclick="worldlyChip('culture in lisbon')">🎨 Culture</button>
+              <button class="worldly-chip" data-i18n="worldly.chip.perfume" onclick="worldlyChip('perfume in paris')">✨ Perfume</button>
             </div>
           </div>
         </div>
@@ -6612,11 +6632,11 @@
           <p class="worldly-results-narrative" id="worldly-results-narrative"></p>
         </div>
         <div id="worldly-hidden-section" style="display:none;">
-          <div class="worldly-section-title">✨ Hidden Gems</div>
+          <div class="worldly-section-title" data-i18n="worldly.section.hidden">✨ Hidden Gems</div>
           <div class="worldly-grid" id="worldly-hidden-grid"></div>
         </div>
         <div id="worldly-all-section" style="margin-top:32px;">
-          <div class="worldly-section-title" style="color:#a78bfa;font-style:normal;">📍 All Places</div>
+          <div class="worldly-section-title" data-i18n="worldly.section.all" style="color:#a78bfa;font-style:normal;">📍 All Places</div>
           <div class="worldly-grid" id="worldly-all-grid"></div>
         </div>
       </div>
@@ -6625,7 +6645,7 @@
       <div class="worldly-thinking" id="worldly-thinking">
         <div class="worldly-thinking-card">
           <div class="worldly-spinner"></div>
-          <div class="worldly-thinking-label">AI çalışıyor</div>
+          <div class="worldly-thinking-label" data-i18n="worldly.thinking">AI ÇALIŞIYOR</div>
           <div class="worldly-thinking-status" id="worldly-thinking-status">Reading your mood…</div>
         </div>
       </div>
@@ -7547,13 +7567,31 @@
   }
   .worldly-hero {
     position: relative;
-    min-height: 70vh;
+    min-height: 80vh;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
     padding: 60px 24px;
     overflow: hidden;
+  }
+  .worldly-globe-canvas {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 0;
+    pointer-events: none;
+    opacity: 0.85;
+  }
+  .worldly-globe-vignette {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    pointer-events: none;
+    background:
+      radial-gradient(ellipse at center, transparent 30%, rgba(5,7,13,0.7) 80%),
+      linear-gradient(180deg, transparent 60%, #05070d);
   }
   /* Animasyonlu orb arka plan */
   .worldly-orbs { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
@@ -18670,6 +18708,162 @@ function worldlyNarrative(cityId, categoryId, count, hiddenCount) {
   return variants[Math.floor(Math.random() * variants.length)];
 }
 
+// 3D Globe (Three.js)
+let _worldlyGlobeState = null;
+function worldlyInitGlobe() {
+  if (_worldlyGlobeState) return;
+  if (typeof THREE === 'undefined') { console.warn('three.js not loaded'); return; }
+  const canvas = document.getElementById('worldly-globe-canvas');
+  if (!canvas) return;
+  const w = canvas.clientWidth || window.innerWidth;
+  const h = canvas.clientHeight || 600;
+  const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  renderer.setSize(w, h, false);
+  const scene = new THREE.Scene();
+  const camera = new THREE.PerspectiveCamera(45, w / h, 0.1, 100);
+  camera.position.set(0, 0, 4.5);
+
+  // Işıklar
+  scene.add(new THREE.AmbientLight(0x404060, 0.6));
+  const dir = new THREE.DirectionalLight(0xa78bfa, 1.5);
+  dir.position.set(-3, 2, 2);
+  scene.add(dir);
+  const dir2 = new THREE.DirectionalLight(0x38bdf8, 0.8);
+  dir2.position.set(3, -1, 1);
+  scene.add(dir2);
+
+  // Globe (Earth)
+  const globeGroup = new THREE.Group();
+  const earthTexture = new THREE.TextureLoader().load(
+    'https://unpkg.com/three-globe/example/img/earth-night.jpg',
+    () => {},
+    undefined,
+    () => console.warn('earth texture load failed')
+  );
+  const earthGeo = new THREE.SphereGeometry(1.5, 64, 64);
+  const earthMat = new THREE.MeshPhongMaterial({
+    map: earthTexture,
+    shininess: 5,
+    emissive: 0x111122,
+    emissiveIntensity: 0.3,
+  });
+  const earth = new THREE.Mesh(earthGeo, earthMat);
+  globeGroup.add(earth);
+
+  // Atmosfer halkası (fresnel feel)
+  const atmosphereGeo = new THREE.SphereGeometry(1.6, 64, 64);
+  const atmosphereMat = new THREE.ShaderMaterial({
+    vertexShader: `
+      varying vec3 vNormal;
+      void main() {
+        vNormal = normalize(normalMatrix * normal);
+        gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+      }`,
+    fragmentShader: `
+      varying vec3 vNormal;
+      void main() {
+        float intensity = pow(0.7 - dot(vNormal, vec3(0.0, 0.0, 1.0)), 2.5);
+        gl_FragColor = vec4(0.486, 0.227, 0.929, 1.0) * intensity;
+      }`,
+    blending: THREE.AdditiveBlending,
+    side: THREE.BackSide,
+    transparent: true,
+  });
+  const atmosphere = new THREE.Mesh(atmosphereGeo, atmosphereMat);
+  globeGroup.add(atmosphere);
+
+  scene.add(globeGroup);
+
+  // Pin'ler (şehirler)
+  const cityCoords = [
+    { lat: 35.6762, lng: 139.6503, hidden: true },   // Tokyo
+    { lat: 41.0082, lng: 28.9784, hidden: false },   // Istanbul
+    { lat: 48.8566, lng: 2.3522, hidden: true },     // Paris
+    { lat: 38.7223, lng: -9.1393, hidden: false },   // Lisbon
+    { lat: -8.4095, lng: 115.1889, hidden: true },   // Bali
+  ];
+  const pins = [];
+  cityCoords.forEach(c => {
+    const phi = (90 - c.lat) * Math.PI / 180;
+    const theta = (c.lng + 180) * Math.PI / 180;
+    const r = 1.52;
+    const x = -r * Math.sin(phi) * Math.cos(theta);
+    const y = r * Math.cos(phi);
+    const z = r * Math.sin(phi) * Math.sin(theta);
+    const pinGeo = new THREE.SphereGeometry(0.025, 16, 16);
+    const pinMat = new THREE.MeshBasicMaterial({
+      color: c.hidden ? 0xfcd34d : 0xa78bfa,
+      transparent: true,
+      opacity: 1,
+    });
+    const pin = new THREE.Mesh(pinGeo, pinMat);
+    pin.position.set(x, y, z);
+    globeGroup.add(pin);
+    // Halo
+    const haloGeo = new THREE.SphereGeometry(0.05, 16, 16);
+    const haloMat = new THREE.MeshBasicMaterial({
+      color: c.hidden ? 0xfcd34d : 0xa78bfa,
+      transparent: true,
+      opacity: 0.3,
+    });
+    const halo = new THREE.Mesh(haloGeo, haloMat);
+    halo.position.set(x, y, z);
+    halo.userData.baseScale = 1;
+    globeGroup.add(halo);
+    pins.push(halo);
+  });
+
+  // Yıldız arka plan (küre içinde noktalar)
+  const starGeo = new THREE.BufferGeometry();
+  const starCount = 800;
+  const starPos = new Float32Array(starCount * 3);
+  for (let i = 0; i < starCount; i++) {
+    const r = 30 + Math.random() * 20;
+    const t = Math.random() * Math.PI * 2;
+    const p = Math.acos(2 * Math.random() - 1);
+    starPos[i*3] = r * Math.sin(p) * Math.cos(t);
+    starPos[i*3+1] = r * Math.sin(p) * Math.sin(t);
+    starPos[i*3+2] = r * Math.cos(p);
+  }
+  starGeo.setAttribute('position', new THREE.BufferAttribute(starPos, 3));
+  const starMat = new THREE.PointsMaterial({ color: 0xffffff, size: 0.08, transparent: true, opacity: 0.8 });
+  const stars = new THREE.Points(starGeo, starMat);
+  scene.add(stars);
+
+  let raf;
+  let time = 0;
+  function animate() {
+    time += 0.005;
+    globeGroup.rotation.y += 0.0015; // yavaş auto-rotate
+    stars.rotation.y -= 0.0003;
+    // Pulse halo'lar
+    pins.forEach((p, i) => {
+      const pulse = 1 + Math.sin(time * 2 + i) * 0.3;
+      p.scale.set(pulse, pulse, pulse);
+      p.material.opacity = 0.3 - Math.sin(time * 2 + i) * 0.15;
+    });
+    renderer.render(scene, camera);
+    raf = requestAnimationFrame(animate);
+  }
+  animate();
+
+  // Resize
+  const onResize = () => {
+    const nw = canvas.clientWidth || window.innerWidth;
+    const nh = canvas.clientHeight || 600;
+    camera.aspect = nw / nh;
+    camera.updateProjectionMatrix();
+    renderer.setSize(nw, nh, false);
+  };
+  window.addEventListener('resize', onResize);
+
+  _worldlyGlobeState = { renderer, scene, camera, raf, cleanup: () => {
+    cancelAnimationFrame(raf);
+    window.removeEventListener('resize', onResize);
+  }};
+}
+
 // Yıldız parçacıklar oluştur
 function worldlyInitStars() {
   const container = document.getElementById('worldly-stars');
@@ -18699,10 +18893,10 @@ async function worldlySearch() {
   overlay.classList.add('open');
 
   const steps = [
-    { text: 'Reading your mood…', delay: 500 },
-    { text: 'Scanning 1,200+ sources…', delay: 600 },
-    { text: 'Analyzing vibe & atmosphere…', delay: 500 },
-    { text: 'Curating hidden gems…', delay: 500 },
+    { text: t('worldly.thinking.1'), delay: 500 },
+    { text: t('worldly.thinking.2'), delay: 600 },
+    { text: t('worldly.thinking.3'), delay: 500 },
+    { text: t('worldly.thinking.4'), delay: 500 },
   ];
   for (const step of steps) {
     statusEl.textContent = step.text;
@@ -18802,6 +18996,467 @@ function worldlyCloseDetail() {
   document.body.style.overflow = '';
 }
 
+// =====================================================================
+// I18N — Çokdilli sistem
+// =====================================================================
+const I18N = {
+  tr: {
+    // Menu
+    'menu.home': 'Ana Sayfa',
+    'menu.video': 'Görüntülü Görüşme',
+    'menu.games': 'Oyunlar',
+    'menu.worldly': 'Worldly',
+    'menu.invite': 'Arkadaş Davet Et',
+    'menu.new': 'YENİ',
+    'menu.online': 'Çevrimiçi',
+    'menu.logout': 'Çıkış',
+    // Hero
+    'hero.title': 'Selam',
+    'hero.subtitle': 'Bugün arkadaşlarınla nasıl takılmak istersin?',
+    'hero.subtitle2': 'Görütülü görüş, birlikte oyna, paylaşım yap.',
+    'hero.start': 'Hemen Başla',
+    'hero.invite': 'Arkadaş Davet Et',
+    'hero.online': 'Sistemler aktif',
+    'home.invite.label': 'KİŞİSEL DAVET LİNKİ',
+    'home.invite.title': 'Arkadaşlarını',
+    'home.invite.title2': 'tek tıkla davet et',
+    'home.invite.desc': 'Aşağıdaki link sana özel. Arkadaşına gönder, tıklayınca direkt yanına gelsin.',
+    'home.invite.copy': 'KOPYALA',
+    'home.invite.share': 'Paylaş',
+    'home.invite.qr': 'QR Kod',
+    'home.invite.refresh': 'Yenile',
+    'home.invite.iconClick': 'İKONA TIKLA',
+    'home.section.explore': 'KEŞFET',
+    'home.section.title': 'Ne yapmak istersin?',
+    // Worldly
+    'worldly.badge': 'AI WORLD DISCOVERY',
+    'worldly.title1': 'Tell us what you crave.',
+    'worldly.title2': "We'll find the world.",
+    'worldly.subtitle': 'Şehir + ne arıyorsan yaz — yapay zeka senin için dünyayı tarayacak. Gizli kafeler, romantik restoranlar, secret spotlar...',
+    'worldly.searchLabel': 'NE KEŞFETMEK İSTERSİN?',
+    'worldly.searchPlaceholder': 'gizli kafeler Tokyo…',
+    'worldly.chip.coffee': '☕ Kahve',
+    'worldly.chip.beaches': '🏖️ Plajlar',
+    'worldly.chip.nightlife': '🍷 Gece Hayatı',
+    'worldly.chip.restaurants': '🍽️ Restoran',
+    'worldly.chip.culture': '🎨 Kültür',
+    'worldly.chip.perfume': '✨ Parfüm',
+    'worldly.thinking': 'AI ÇALIŞIYOR',
+    'worldly.thinking.1': 'Mod yakalanıyor…',
+    'worldly.thinking.2': '1.200+ kaynak taranıyor…',
+    'worldly.thinking.3': 'Atmosfer analiz ediliyor…',
+    'worldly.thinking.4': 'Gizli yerler seçiliyor…',
+    'worldly.section.hidden': '✨ Gizli Hazineler',
+    'worldly.section.all': '📍 Tüm Yerler',
+    'worldly.cta.plan': '→ ZİYARETİNİ PLANLA',
+    // Common
+    'common.cancel': 'İptal',
+    'common.close': 'Kapat',
+    'common.ok': 'TAMAM',
+  },
+  en: {
+    'menu.home': 'Home',
+    'menu.video': 'Video Call',
+    'menu.games': 'Games',
+    'menu.worldly': 'Worldly',
+    'menu.invite': 'Invite Friends',
+    'menu.new': 'NEW',
+    'menu.online': 'Online',
+    'menu.logout': 'Logout',
+    'hero.title': 'Hi',
+    'hero.subtitle': 'How do you want to hang out with friends today?',
+    'hero.subtitle2': 'Video chat, play together, share moments.',
+    'hero.start': 'Get Started',
+    'hero.invite': 'Invite Friends',
+    'hero.online': 'All systems active',
+    'home.invite.label': 'YOUR PERSONAL INVITE LINK',
+    'home.invite.title': 'Invite your friends',
+    'home.invite.title2': 'with one click',
+    'home.invite.desc': 'This link is yours alone. Send it to a friend — one tap and they’re with you.',
+    'home.invite.copy': 'COPY',
+    'home.invite.share': 'Share',
+    'home.invite.qr': 'QR Code',
+    'home.invite.refresh': 'Refresh',
+    'home.invite.iconClick': 'TAP ICON',
+    'home.section.explore': 'EXPLORE',
+    'home.section.title': 'What do you want to do?',
+    'worldly.badge': 'AI WORLD DISCOVERY',
+    'worldly.title1': 'Tell us what you crave.',
+    'worldly.title2': "We'll find the world.",
+    'worldly.subtitle': 'Type a city + what you crave — our AI scans the world for you. Hidden cafes, romantic restaurants, secret spots...',
+    'worldly.searchLabel': 'WHAT DO YOU WANT TO DISCOVER?',
+    'worldly.searchPlaceholder': 'hidden cafés in Tokyo…',
+    'worldly.chip.coffee': '☕ Coffee',
+    'worldly.chip.beaches': '🏖️ Beaches',
+    'worldly.chip.nightlife': '🍷 Nightlife',
+    'worldly.chip.restaurants': '🍽️ Restaurants',
+    'worldly.chip.culture': '🎨 Culture',
+    'worldly.chip.perfume': '✨ Perfume',
+    'worldly.thinking': 'AI THINKING',
+    'worldly.thinking.1': 'Reading your mood…',
+    'worldly.thinking.2': 'Scanning 1,200+ sources…',
+    'worldly.thinking.3': 'Analyzing vibe & atmosphere…',
+    'worldly.thinking.4': 'Curating hidden gems…',
+    'worldly.section.hidden': '✨ Hidden Gems',
+    'worldly.section.all': '📍 All Places',
+    'worldly.cta.plan': '→ PLAN YOUR VISIT',
+    'common.cancel': 'Cancel',
+    'common.close': 'Close',
+    'common.ok': 'OK',
+  },
+  de: {
+    'menu.home': 'Startseite',
+    'menu.video': 'Videoanruf',
+    'menu.games': 'Spiele',
+    'menu.worldly': 'Worldly',
+    'menu.invite': 'Freunde einladen',
+    'menu.new': 'NEU',
+    'menu.online': 'Online',
+    'menu.logout': 'Abmelden',
+    'hero.title': 'Hallo',
+    'hero.subtitle': 'Wie willst du heute mit Freunden abhängen?',
+    'hero.subtitle2': 'Videochat, gemeinsam spielen, Momente teilen.',
+    'hero.start': 'Loslegen',
+    'hero.invite': 'Freunde einladen',
+    'hero.online': 'Alle Systeme aktiv',
+    'home.invite.label': 'PERSÖNLICHER EINLADUNGSLINK',
+    'home.invite.title': 'Lade deine Freunde',
+    'home.invite.title2': 'mit einem Klick ein',
+    'home.invite.desc': 'Dieser Link gehört nur dir. Sende ihn an einen Freund — ein Klick und er ist bei dir.',
+    'home.invite.copy': 'KOPIEREN',
+    'home.invite.share': 'Teilen',
+    'home.invite.qr': 'QR-Code',
+    'home.invite.refresh': 'Erneuern',
+    'home.invite.iconClick': 'SYMBOL ANTIPPEN',
+    'home.section.explore': 'ENTDECKEN',
+    'home.section.title': 'Was möchtest du tun?',
+    'worldly.badge': 'AI WELTENTDECKUNG',
+    'worldly.title1': 'Sag uns, wonach du suchst.',
+    'worldly.title2': 'Wir finden die Welt.',
+    'worldly.subtitle': 'Stadt + was du suchst — die KI durchsucht die Welt für dich. Versteckte Cafés, romantische Restaurants, Geheimtipps...',
+    'worldly.searchLabel': 'WAS WILLST DU ENTDECKEN?',
+    'worldly.searchPlaceholder': 'versteckte Cafés in Tokio…',
+    'worldly.chip.coffee': '☕ Kaffee',
+    'worldly.chip.beaches': '🏖️ Strände',
+    'worldly.chip.nightlife': '🍷 Nachtleben',
+    'worldly.chip.restaurants': '🍽️ Restaurants',
+    'worldly.chip.culture': '🎨 Kultur',
+    'worldly.chip.perfume': '✨ Parfüm',
+    'worldly.thinking': 'KI DENKT NACH',
+    'worldly.thinking.1': 'Stimmung erfasst…',
+    'worldly.thinking.2': '1.200+ Quellen werden gescannt…',
+    'worldly.thinking.3': 'Atmosphäre wird analysiert…',
+    'worldly.thinking.4': 'Versteckte Perlen werden kuratiert…',
+    'worldly.section.hidden': '✨ Versteckte Perlen',
+    'worldly.section.all': '📍 Alle Orte',
+    'worldly.cta.plan': '→ BESUCH PLANEN',
+    'common.cancel': 'Abbrechen',
+    'common.close': 'Schließen',
+    'common.ok': 'OK',
+  },
+  es: {
+    'menu.home': 'Inicio',
+    'menu.video': 'Videollamada',
+    'menu.games': 'Juegos',
+    'menu.worldly': 'Worldly',
+    'menu.invite': 'Invitar amigos',
+    'menu.new': 'NUEVO',
+    'menu.online': 'En línea',
+    'menu.logout': 'Cerrar sesión',
+    'hero.title': 'Hola',
+    'hero.subtitle': '¿Cómo quieres pasar el rato con tus amigos hoy?',
+    'hero.subtitle2': 'Videochat, juega juntos, comparte momentos.',
+    'hero.start': 'Empezar',
+    'hero.invite': 'Invitar amigos',
+    'hero.online': 'Todos los sistemas activos',
+    'home.invite.label': 'TU ENLACE DE INVITACIÓN PERSONAL',
+    'home.invite.title': 'Invita a tus amigos',
+    'home.invite.title2': 'con un solo clic',
+    'home.invite.desc': 'Este enlace es solo tuyo. Envíaselo a un amigo — un toque y está contigo.',
+    'home.invite.copy': 'COPIAR',
+    'home.invite.share': 'Compartir',
+    'home.invite.qr': 'Código QR',
+    'home.invite.refresh': 'Renovar',
+    'home.invite.iconClick': 'TOCAR ICONO',
+    'home.section.explore': 'EXPLORAR',
+    'home.section.title': '¿Qué quieres hacer?',
+    'worldly.badge': 'DESCUBRIMIENTO MUNDIAL CON IA',
+    'worldly.title1': 'Dinos qué anhelas.',
+    'worldly.title2': 'Encontraremos el mundo.',
+    'worldly.subtitle': 'Ciudad + lo que buscas — la IA escanea el mundo por ti. Cafeterías ocultas, restaurantes románticos, rincones secretos...',
+    'worldly.searchLabel': '¿QUÉ QUIERES DESCUBRIR?',
+    'worldly.searchPlaceholder': 'cafeterías ocultas en Tokio…',
+    'worldly.chip.coffee': '☕ Café',
+    'worldly.chip.beaches': '🏖️ Playas',
+    'worldly.chip.nightlife': '🍷 Vida nocturna',
+    'worldly.chip.restaurants': '🍽️ Restaurantes',
+    'worldly.chip.culture': '🎨 Cultura',
+    'worldly.chip.perfume': '✨ Perfume',
+    'worldly.thinking': 'IA PENSANDO',
+    'worldly.thinking.1': 'Leyendo tu mood…',
+    'worldly.thinking.2': 'Escaneando 1.200+ fuentes…',
+    'worldly.thinking.3': 'Analizando ambiente…',
+    'worldly.thinking.4': 'Curando joyas ocultas…',
+    'worldly.section.hidden': '✨ Joyas Ocultas',
+    'worldly.section.all': '📍 Todos los Lugares',
+    'worldly.cta.plan': '→ PLANEA TU VISITA',
+    'common.cancel': 'Cancelar',
+    'common.close': 'Cerrar',
+    'common.ok': 'OK',
+  },
+  fr: {
+    'menu.home': 'Accueil',
+    'menu.video': 'Appel vidéo',
+    'menu.games': 'Jeux',
+    'menu.worldly': 'Worldly',
+    'menu.invite': 'Inviter des amis',
+    'menu.new': 'NOUVEAU',
+    'menu.online': 'En ligne',
+    'menu.logout': 'Déconnexion',
+    'hero.title': 'Salut',
+    'hero.subtitle': 'Comment veux-tu passer du temps avec tes amis aujourd’hui ?',
+    'hero.subtitle2': 'Visio, joue ensemble, partage des moments.',
+    'hero.start': 'Commencer',
+    'hero.invite': 'Inviter des amis',
+    'hero.online': 'Tous les systèmes actifs',
+    'home.invite.label': 'TON LIEN D’INVITATION PERSONNEL',
+    'home.invite.title': 'Invite tes amis',
+    'home.invite.title2': 'en un clic',
+    'home.invite.desc': 'Ce lien est à toi. Envoie-le à un ami — un clic et il te rejoint.',
+    'home.invite.copy': 'COPIER',
+    'home.invite.share': 'Partager',
+    'home.invite.qr': 'Code QR',
+    'home.invite.refresh': 'Renouveler',
+    'home.invite.iconClick': 'TOUCHER L’ICÔNE',
+    'home.section.explore': 'EXPLORER',
+    'home.section.title': 'Que veux-tu faire ?',
+    'worldly.badge': 'DÉCOUVERTE MONDE IA',
+    'worldly.title1': 'Dis-nous ce que tu cherches.',
+    'worldly.title2': 'On te trouvera le monde.',
+    'worldly.subtitle': 'Ville + ce que tu cherches — l’IA scanne le monde pour toi. Cafés cachés, restaurants romantiques, lieux secrets...',
+    'worldly.searchLabel': 'QUE VEUX-TU DÉCOUVRIR ?',
+    'worldly.searchPlaceholder': 'cafés cachés à Tokyo…',
+    'worldly.chip.coffee': '☕ Café',
+    'worldly.chip.beaches': '🏖️ Plages',
+    'worldly.chip.nightlife': '🍷 Vie nocturne',
+    'worldly.chip.restaurants': '🍽️ Restaurants',
+    'worldly.chip.culture': '🎨 Culture',
+    'worldly.chip.perfume': '✨ Parfum',
+    'worldly.thinking': 'IA RÉFLÉCHIT',
+    'worldly.thinking.1': 'Lecture de ton humeur…',
+    'worldly.thinking.2': 'Scan de 1 200+ sources…',
+    'worldly.thinking.3': 'Analyse de l’ambiance…',
+    'worldly.thinking.4': 'Curation des pépites cachées…',
+    'worldly.section.hidden': '✨ Pépites Cachées',
+    'worldly.section.all': '📍 Tous les Lieux',
+    'worldly.cta.plan': '→ PLANIFIE TA VISITE',
+    'common.cancel': 'Annuler',
+    'common.close': 'Fermer',
+    'common.ok': 'OK',
+  },
+  ar: {
+    'menu.home': 'الرئيسية',
+    'menu.video': 'مكالمة فيديو',
+    'menu.games': 'ألعاب',
+    'menu.worldly': 'وورلدلي',
+    'menu.invite': 'دعوة أصدقاء',
+    'menu.new': 'جديد',
+    'menu.online': 'متصل',
+    'menu.logout': 'خروج',
+    'hero.title': 'مرحباً',
+    'hero.subtitle': 'كيف تريد قضاء الوقت مع أصدقائك اليوم؟',
+    'hero.subtitle2': 'دردشة بالفيديو، اللعب معاً، مشاركة اللحظات.',
+    'hero.start': 'ابدأ',
+    'hero.invite': 'دعوة أصدقاء',
+    'hero.online': 'جميع الأنظمة تعمل',
+    'home.invite.label': 'رابط دعوتك الخاص',
+    'home.invite.title': 'ادعُ أصدقاءك',
+    'home.invite.title2': 'بنقرة واحدة',
+    'home.invite.desc': 'هذا الرابط خاص بك. أرسله لصديق — نقرة واحدة وسينضم إليك.',
+    'home.invite.copy': 'نسخ',
+    'home.invite.share': 'مشاركة',
+    'home.invite.qr': 'رمز QR',
+    'home.invite.refresh': 'تجديد',
+    'home.invite.iconClick': 'اضغط الأيقونة',
+    'home.section.explore': 'استكشف',
+    'home.section.title': 'ماذا تريد أن تفعل؟',
+    'worldly.badge': 'اكتشاف العالم بالذكاء الاصطناعي',
+    'worldly.title1': 'أخبرنا عما ترغب.',
+    'worldly.title2': 'سنجد لك العالم.',
+    'worldly.subtitle': 'المدينة + ما تبحث عنه — الذكاء الاصطناعي يفحص العالم. مقاهي مخفية، مطاعم رومانسية، أماكن سرية...',
+    'worldly.searchLabel': 'ماذا تريد أن تكتشف؟',
+    'worldly.searchPlaceholder': 'مقاهي مخفية في طوكيو…',
+    'worldly.chip.coffee': '☕ قهوة',
+    'worldly.chip.beaches': '🏖️ شواطئ',
+    'worldly.chip.nightlife': '🍷 حياة ليلية',
+    'worldly.chip.restaurants': '🍽️ مطاعم',
+    'worldly.chip.culture': '🎨 ثقافة',
+    'worldly.chip.perfume': '✨ عطور',
+    'worldly.thinking': 'الذكاء يفكر',
+    'worldly.thinking.1': 'قراءة مزاجك…',
+    'worldly.thinking.2': 'فحص أكثر من 1200 مصدر…',
+    'worldly.thinking.3': 'تحليل الأجواء…',
+    'worldly.thinking.4': 'تنسيق الجواهر الخفية…',
+    'worldly.section.hidden': '✨ جواهر خفية',
+    'worldly.section.all': '📍 كل الأماكن',
+    'worldly.cta.plan': '→ خطط لزيارتك',
+    'common.cancel': 'إلغاء',
+    'common.close': 'إغلاق',
+    'common.ok': 'حسناً',
+  },
+  ru: {
+    'menu.home': 'Главная',
+    'menu.video': 'Видеозвонок',
+    'menu.games': 'Игры',
+    'menu.worldly': 'Worldly',
+    'menu.invite': 'Пригласить друзей',
+    'menu.new': 'НОВОЕ',
+    'menu.online': 'Онлайн',
+    'menu.logout': 'Выход',
+    'hero.title': 'Привет',
+    'hero.subtitle': 'Как хочешь провести время с друзьями сегодня?',
+    'hero.subtitle2': 'Видеозвонки, игры вместе, обмен моментами.',
+    'hero.start': 'Начать',
+    'hero.invite': 'Пригласить друзей',
+    'hero.online': 'Все системы активны',
+    'home.invite.label': 'ТВОЯ ЛИЧНАЯ ССЫЛКА',
+    'home.invite.title': 'Пригласи друзей',
+    'home.invite.title2': 'одним кликом',
+    'home.invite.desc': 'Эта ссылка только для тебя. Отправь другу — клик, и он рядом.',
+    'home.invite.copy': 'КОПИРОВАТЬ',
+    'home.invite.share': 'Поделиться',
+    'home.invite.qr': 'QR-код',
+    'home.invite.refresh': 'Обновить',
+    'home.invite.iconClick': 'НАЖМИ ИКОНКУ',
+    'home.section.explore': 'ИССЛЕДОВАТЬ',
+    'home.section.title': 'Что ты хочешь делать?',
+    'worldly.badge': 'AI ОТКРЫТИЕ МИРА',
+    'worldly.title1': 'Скажи, чего ты желаешь.',
+    'worldly.title2': 'Мы найдём тебе мир.',
+    'worldly.subtitle': 'Город + что ищешь — ИИ сканирует мир для тебя. Скрытые кафе, романтичные рестораны, секретные места...',
+    'worldly.searchLabel': 'ЧТО ТЫ ХОЧЕШЬ ОТКРЫТЬ?',
+    'worldly.searchPlaceholder': 'скрытые кафе в Токио…',
+    'worldly.chip.coffee': '☕ Кофе',
+    'worldly.chip.beaches': '🏖️ Пляжи',
+    'worldly.chip.nightlife': '🍷 Ночная жизнь',
+    'worldly.chip.restaurants': '🍽️ Рестораны',
+    'worldly.chip.culture': '🎨 Культура',
+    'worldly.chip.perfume': '✨ Парфюм',
+    'worldly.thinking': 'ИИ ДУМАЕТ',
+    'worldly.thinking.1': 'Читаем твоё настроение…',
+    'worldly.thinking.2': 'Сканируем 1200+ источников…',
+    'worldly.thinking.3': 'Анализ атмосферы…',
+    'worldly.thinking.4': 'Отбираем жемчужины…',
+    'worldly.section.hidden': '✨ Скрытые жемчужины',
+    'worldly.section.all': '📍 Все места',
+    'worldly.cta.plan': '→ СПЛАНИРОВАТЬ ВИЗИТ',
+    'common.cancel': 'Отмена',
+    'common.close': 'Закрыть',
+    'common.ok': 'ОК',
+  },
+  ja: {
+    'menu.home': 'ホーム',
+    'menu.video': 'ビデオ通話',
+    'menu.games': 'ゲーム',
+    'menu.worldly': 'Worldly',
+    'menu.invite': '友達を招待',
+    'menu.new': '新',
+    'menu.online': 'オンライン',
+    'menu.logout': 'ログアウト',
+    'hero.title': 'こんにちは',
+    'hero.subtitle': '今日は友達とどう過ごしたい？',
+    'hero.subtitle2': 'ビデオチャット、一緒にプレイ、シェアしよう。',
+    'hero.start': 'はじめる',
+    'hero.invite': '友達を招待',
+    'hero.online': 'すべてのシステムがアクティブ',
+    'home.invite.label': 'あなたのパーソナルリンク',
+    'home.invite.title': '友達を招待',
+    'home.invite.title2': 'ワンクリックで',
+    'home.invite.desc': 'このリンクはあなただけのものです。友達に送ろう — クリックですぐ参加。',
+    'home.invite.copy': 'コピー',
+    'home.invite.share': 'シェア',
+    'home.invite.qr': 'QRコード',
+    'home.invite.refresh': '更新',
+    'home.invite.iconClick': 'アイコンをタップ',
+    'home.section.explore': '探索',
+    'home.section.title': '何をしたい？',
+    'worldly.badge': 'AIワールドディスカバリー',
+    'worldly.title1': '何を求めているか教えて。',
+    'worldly.title2': '世界を見つけます。',
+    'worldly.subtitle': '都市と探しているものを入力 — AIが世界をスキャン。隠れたカフェ、ロマンチックなレストラン、秘密の場所...',
+    'worldly.searchLabel': '何を発見したい？',
+    'worldly.searchPlaceholder': '東京の隠れたカフェ…',
+    'worldly.chip.coffee': '☕ コーヒー',
+    'worldly.chip.beaches': '🏖️ ビーチ',
+    'worldly.chip.nightlife': '🍷 ナイトライフ',
+    'worldly.chip.restaurants': '🍽️ レストラン',
+    'worldly.chip.culture': '🎨 カルチャー',
+    'worldly.chip.perfume': '✨ 香水',
+    'worldly.thinking': 'AI思考中',
+    'worldly.thinking.1': 'あなたの気分を読み取り中…',
+    'worldly.thinking.2': '1,200+ソースをスキャン中…',
+    'worldly.thinking.3': '雰囲気を分析中…',
+    'worldly.thinking.4': '隠れた名所を厳選中…',
+    'worldly.section.hidden': '✨ 隠れた名所',
+    'worldly.section.all': '📍 すべての場所',
+    'worldly.cta.plan': '→ 訪問を計画',
+    'common.cancel': 'キャンセル',
+    'common.close': '閉じる',
+    'common.ok': 'OK',
+  },
+};
+
+let _currentLang = localStorage.getItem('takil_lang') || 'tr';
+
+function t(key) {
+  return (I18N[_currentLang] && I18N[_currentLang][key]) || I18N.tr[key] || key;
+}
+
+function setLanguage(lang) {
+  if (!I18N[lang]) return;
+  _currentLang = lang;
+  localStorage.setItem('takil_lang', lang);
+  // Select'i güncelle
+  const sel = document.getElementById('lang-select');
+  if (sel) sel.value = lang;
+  // RTL destegı (Arapça)
+  document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr';
+  document.documentElement.lang = lang;
+  applyTranslations();
+  if (typeof toast === 'function') {
+    const msgs = { tr:'🌐 Dil Türkçe olarak ayarlandı', en:'🌐 Language set to English', de:'🌐 Sprache auf Deutsch', es:'🌐 Idioma cambiado a Español', fr:'🌐 Langue : Français', ar:'🌐 تم تغيير اللغة', ru:'🌐 Язык изменён', ja:'🌐 言語を変更しました' };
+    toast(msgs[lang], 'success');
+  }
+}
+
+function applyTranslations() {
+  // Tüm data-i18n elemanları
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const key = el.getAttribute('data-i18n');
+    el.textContent = t(key);
+  });
+  document.querySelectorAll('[data-i18n-html]').forEach(el => {
+    el.innerHTML = t(el.getAttribute('data-i18n-html'));
+  });
+  document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+    el.placeholder = t(el.getAttribute('data-i18n-placeholder'));
+  });
+  document.querySelectorAll('[data-i18n-title]').forEach(el => {
+    el.title = t(el.getAttribute('data-i18n-title'));
+  });
+}
+
+// Sayfa yüklendiğinde dilı uygula
+document.addEventListener('DOMContentLoaded', () => {
+  const sel = document.getElementById('lang-select');
+  if (sel) sel.value = _currentLang;
+  document.documentElement.dir = _currentLang === 'ar' ? 'rtl' : 'ltr';
+  document.documentElement.lang = _currentLang;
+  applyTranslations();
+});
+// Yedek: setTimeout (çünkü bazı elemanlar dinamik render olur)
+setTimeout(() => { applyTranslations(); const sel = document.getElementById('lang-select'); if (sel) sel.value = _currentLang; }, 1500);
+
 // Sayfa worldly'ye geçtiğinde yıldızları init et + placeholder rotate
 let _worldlyPlaceholderInterval = null;
 const WORLDLY_PLACEHOLDERS = [
@@ -18822,6 +19477,7 @@ setInterval(() => {
     return;
   }
   worldlyInitStars();
+  worldlyInitGlobe();
   if (!_worldlyPlaceholderInterval) {
     let idx = 0;
     const inp = document.getElementById('worldly-search-input');
