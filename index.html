@@ -5305,6 +5305,7 @@
     <div class="menu-item active" onclick="goPage('home', this)"><span class="icon">🏠</span><span>Ana Sayfa</span></div>
     <div class="menu-item" onclick="goPage('video', this)"><span class="icon">📹</span><span>Görüntülü Görüşme</span></div>
     <div class="menu-item" onclick="goPage('games', this)"><span class="icon">🎮</span><span>Oyunlar</span></div>
+    <div class="menu-item" onclick="goPage('worldly', this)"><span class="icon">🌍</span><span>Worldly</span><span style="margin-left:auto;font-size:9px;background:linear-gradient(135deg,#a78bfa,#7c3aed);color:#fff;padding:2px 6px;border-radius:8px;font-weight:800;letter-spacing:0.5px;">YENİ</span></div>
     <div class="menu-item" onclick="goPage('invite', this)"><span class="icon">👥</span><span>Arkadaş Davet Et</span></div>
     <div style="margin-top:auto;padding:14px;border-top:1px solid rgba(255,255,255,0.06);">
       <div style="display:flex;align-items:center;gap:12px;padding:10px 12px;background:rgba(255,255,255,0.03);border-radius:14px;border:1px solid rgba(255,255,255,0.05);transition:all 0.2s;margin-bottom:10px;" id="user-card">
@@ -6559,6 +6560,87 @@
       </div>
     </div>
 
+    <!-- WORLDLY — AI World Discovery -->
+    <div class="page" id="page-worldly">
+      <!-- Hero -->
+      <div class="worldly-hero">
+        <div class="worldly-orbs">
+          <div class="worldly-orb worldly-orb-1"></div>
+          <div class="worldly-orb worldly-orb-2"></div>
+          <div class="worldly-orb worldly-orb-3"></div>
+        </div>
+        <div class="worldly-stars" id="worldly-stars"></div>
+
+        <div class="worldly-hero-content">
+          <div class="worldly-badge">
+            <span class="worldly-badge-dot"></span>
+            <span>AI WORLD DİSCOVERY</span>
+          </div>
+
+          <h1 class="worldly-title">
+            Tell us what you crave.
+            <span class="worldly-title-accent">We'll find the world.</span>
+          </h1>
+          <p class="worldly-subtitle">
+            Şehir + ne arıyorsan yaz — yapay zeka senin için dunyayı tarayacak. Gizli kafeler, romantic restoranlar, secret spotlar...
+          </p>
+
+          <div class="worldly-search-wrap">
+            <div class="worldly-search-label">WHAT DO YOU WANT TO DISCOVER?</div>
+            <div class="worldly-search-box">
+              <input type="text" class="worldly-search-input" id="worldly-search-input"
+                placeholder="hidden cafés in Tokyo..."
+                onkeypress="if(event.key==='Enter')worldlySearch()" />
+              <button class="worldly-search-btn" onclick="worldlySearch()">→</button>
+            </div>
+            <div class="worldly-chips">
+              <button class="worldly-chip" onclick="worldlyChip('coffee in tokyo')">☕ Coffee</button>
+              <button class="worldly-chip" onclick="worldlyChip('beach in bali')">🏖️ Beaches</button>
+              <button class="worldly-chip" onclick="worldlyChip('nightlife in istanbul')">🍷 Nightlife</button>
+              <button class="worldly-chip" onclick="worldlyChip('food in paris')">🍽️ Restaurants</button>
+              <button class="worldly-chip" onclick="worldlyChip('culture in lisbon')">🎨 Culture</button>
+              <button class="worldly-chip" onclick="worldlyChip('perfume in paris')">✨ Perfume</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Results -->
+      <div class="worldly-results" id="worldly-results" style="display:none;">
+        <div class="worldly-results-header">
+          <h2 class="worldly-results-title" id="worldly-results-title"></h2>
+          <p class="worldly-results-narrative" id="worldly-results-narrative"></p>
+        </div>
+        <div id="worldly-hidden-section" style="display:none;">
+          <div class="worldly-section-title">✨ Hidden Gems</div>
+          <div class="worldly-grid" id="worldly-hidden-grid"></div>
+        </div>
+        <div id="worldly-all-section" style="margin-top:32px;">
+          <div class="worldly-section-title" style="color:#a78bfa;font-style:normal;">📍 All Places</div>
+          <div class="worldly-grid" id="worldly-all-grid"></div>
+        </div>
+      </div>
+
+      <!-- AI Thinking Overlay -->
+      <div class="worldly-thinking" id="worldly-thinking">
+        <div class="worldly-thinking-card">
+          <div class="worldly-spinner"></div>
+          <div class="worldly-thinking-label">AI çalışıyor</div>
+          <div class="worldly-thinking-status" id="worldly-thinking-status">Reading your mood…</div>
+        </div>
+      </div>
+
+      <!-- Detail Modal -->
+      <div class="worldly-detail-modal" id="worldly-detail-modal" onclick="if(event.target===this)worldlyCloseDetail()">
+        <div class="worldly-detail-card">
+          <div class="worldly-detail-hero" id="worldly-detail-hero">
+            <button class="worldly-detail-close" onclick="worldlyCloseDetail()">×</button>
+          </div>
+          <div class="worldly-detail-body" id="worldly-detail-body"></div>
+        </div>
+      </div>
+    </div>
+
     <!-- INVITE -->
     <div class="page" id="page-invite">
       <div class="page-header">
@@ -7454,6 +7536,354 @@
     .invite-landing-title { font-size: 28px; }
     .invite-landing-features { grid-template-columns: 1fr; }
     .invite-landing-feature { flex-direction: row; padding: 12px 14px; }
+  }
+
+  /* ============== WORLDLY — AI Discovery Sekmesi ============== */
+  #page-worldly {
+    background: radial-gradient(ellipse at top, #1a0f3e 0%, #05070d 70%);
+    min-height: 100vh;
+    padding: 0 !important;
+    overflow-x: hidden;
+  }
+  .worldly-hero {
+    position: relative;
+    min-height: 70vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 60px 24px;
+    overflow: hidden;
+  }
+  /* Animasyonlu orb arka plan */
+  .worldly-orbs { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
+  .worldly-orb {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(80px);
+    animation: worldlyOrbFloat 14s ease-in-out infinite;
+  }
+  .worldly-orb-1 { width:400px;height:400px;background:rgba(167,139,250,0.25);top:-100px;left:-100px; }
+  .worldly-orb-2 { width:350px;height:350px;background:rgba(56,189,248,0.2);bottom:-80px;right:-80px;animation-delay:-5s; }
+  .worldly-orb-3 { width:280px;height:280px;background:rgba(244,114,182,0.18);top:40%;right:20%;animation-delay:-9s; }
+  @keyframes worldlyOrbFloat {
+    0%,100% { transform: translate(0,0) scale(1); }
+    33% { transform: translate(40px,-50px) scale(1.1); }
+    66% { transform: translate(-50px,30px) scale(0.95); }
+  }
+
+  /* Yıldız parçacıklar */
+  .worldly-stars { position: absolute; inset: 0; pointer-events: none; }
+  .worldly-star {
+    position: absolute;
+    width: 3px; height: 3px;
+    background: rgba(255,255,255,0.85);
+    border-radius: 50%;
+    box-shadow: 0 0 6px rgba(255,255,255,0.6);
+    animation: worldlyStarTwinkle 3s ease-in-out infinite;
+  }
+  @keyframes worldlyStarTwinkle {
+    0%,100% { opacity:0.3; transform:scale(1); }
+    50% { opacity:1; transform:scale(1.5); }
+  }
+
+  .worldly-hero-content { position: relative; z-index: 2; text-align: center; max-width: 900px; }
+  .worldly-badge {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 6px 14px;
+    background: linear-gradient(135deg, rgba(167,139,250,0.2), rgba(56,189,248,0.15));
+    border: 1px solid rgba(167,139,250,0.4);
+    border-radius: 30px;
+    font-size: 11px; font-weight: 800;
+    letter-spacing: 2.5px; text-transform: uppercase;
+    color: #a78bfa; margin-bottom: 20px;
+  }
+  .worldly-badge-dot {
+    width: 6px; height: 6px; background: #a78bfa; border-radius: 50%;
+    box-shadow: 0 0 8px #a78bfa;
+    animation: invitePulse 1.5s infinite;
+  }
+
+  .worldly-title {
+    font-size: clamp(36px, 7vw, 72px);
+    font-weight: 900;
+    color: #fff;
+    line-height: 1;
+    letter-spacing: -2px;
+    margin: 0 0 16px;
+  }
+  .worldly-title-accent {
+    display: block;
+    background: linear-gradient(90deg, #a78bfa 0%, #38bdf8 50%, #f472b6 100%);
+    -webkit-background-clip: text; background-clip: text;
+    -webkit-text-fill-color: transparent;
+    animation: inviteTitleShine 4s ease-in-out infinite;
+  }
+
+  .worldly-subtitle {
+    color: #cbd5e1; font-size: 16px; line-height: 1.6;
+    max-width: 560px; margin: 0 auto 36px; opacity: 0.85;
+  }
+
+  /* Search bar */
+  .worldly-search-wrap { max-width: 720px; width: 100%; margin: 0 auto; }
+  .worldly-search-label {
+    font-size: 10px; color: #a78bfa; letter-spacing: 3px; text-transform: uppercase;
+    font-weight: 800; margin-bottom: 12px; text-align: center;
+  }
+  .worldly-search-box {
+    display: flex; align-items: center; gap: 8px;
+    background: linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02));
+    backdrop-filter: blur(24px) saturate(140%);
+    border: 1.5px solid rgba(167,139,250,0.25);
+    border-radius: 18px;
+    padding: 6px 6px 6px 22px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.4), 0 0 60px rgba(167,139,250,0.15);
+    transition: all 0.3s;
+  }
+  .worldly-search-box:focus-within {
+    border-color: rgba(167,139,250,0.6);
+    box-shadow: 0 20px 60px rgba(0,0,0,0.4), 0 0 80px rgba(167,139,250,0.4);
+    transform: scale(1.01);
+  }
+  .worldly-search-input {
+    flex: 1;
+    background: transparent; border: none; outline: none;
+    color: #fff; font-family: inherit;
+    font-size: 18px; font-weight: 500;
+    padding: 18px 6px;
+  }
+  .worldly-search-input::placeholder { color: rgba(255,255,255,0.45); }
+  .worldly-search-btn {
+    background: linear-gradient(135deg, #a78bfa, #7c3aed);
+    border: none; color: #fff;
+    width: 52px; height: 52px;
+    border-radius: 12px; cursor: pointer;
+    font-size: 22px;
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 8px 24px rgba(124,58,237,0.4);
+    transition: all 0.2s;
+  }
+  .worldly-search-btn:hover { transform: translateY(-2px) scale(1.05); box-shadow: 0 12px 32px rgba(124,58,237,0.6); }
+
+  /* Kategori chip'leri */
+  .worldly-chips {
+    display: flex; flex-wrap: wrap; justify-content: center;
+    gap: 10px; margin-top: 28px;
+  }
+  .worldly-chip {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 10px 18px;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.1);
+    color: #cbd5e1;
+    border-radius: 50px; cursor: pointer;
+    font-size: 13px; font-weight: 600;
+    transition: all 0.25s;
+  }
+  .worldly-chip:hover {
+    background: rgba(167,139,250,0.15);
+    border-color: rgba(167,139,250,0.5);
+    color: #fff; transform: translateY(-2px);
+  }
+
+  /* AI Thinking overlay */
+  .worldly-thinking {
+    position: fixed; inset: 0; z-index: 99999;
+    background: rgba(5,7,13,0.94); backdrop-filter: blur(20px);
+    display: none; align-items: center; justify-content: center;
+    animation: vfxFadeIn 0.3s;
+  }
+  .worldly-thinking.open { display: flex; }
+  .worldly-thinking-card {
+    text-align: center; max-width: 420px;
+    padding: 40px 30px;
+  }
+  .worldly-spinner {
+    width: 80px; height: 80px; margin: 0 auto 24px;
+    border: 3px solid rgba(167,139,250,0.15);
+    border-top-color: #a78bfa;
+    border-radius: 50%;
+    animation: joinSpin 1s linear infinite;
+    box-shadow: 0 0 40px rgba(167,139,250,0.4);
+  }
+  .worldly-thinking-label {
+    font-size: 11px; color: #a78bfa; letter-spacing: 3px;
+    font-weight: 800; text-transform: uppercase; margin-bottom: 8px;
+  }
+  .worldly-thinking-status {
+    font-size: 22px; color: #fff; font-weight: 700; line-height: 1.4;
+    min-height: 32px;
+  }
+
+  /* Results */
+  .worldly-results { max-width: 1280px; margin: 0 auto; padding: 40px 24px 80px; }
+  .worldly-results-header { margin-bottom: 32px; }
+  .worldly-results-title {
+    font-size: clamp(28px, 5vw, 48px);
+    font-weight: 900; color: #fff;
+    line-height: 1.1; letter-spacing: -1.5px; margin: 0 0 8px;
+  }
+  .worldly-results-count {
+    background: linear-gradient(90deg, #a78bfa, #38bdf8);
+    -webkit-background-clip: text; background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .worldly-results-narrative {
+    color: #94a3b8; font-size: 15px; line-height: 1.6;
+    max-width: 700px; font-style: italic;
+  }
+
+  /* Hidden gems section */
+  .worldly-section-title {
+    font-size: 22px; font-weight: 800; color: #fcd34d;
+    display: flex; align-items: center; gap: 10px;
+    margin: 32px 0 18px;
+    font-style: italic;
+  }
+
+  .worldly-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 22px;
+  }
+
+  /* Card */
+  .worldly-card {
+    background: linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.01));
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 20px;
+    overflow: hidden;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+    position: relative;
+    backdrop-filter: blur(12px);
+  }
+  .worldly-card:hover {
+    transform: translateY(-6px) scale(1.02);
+    border-color: rgba(167,139,250,0.4);
+    box-shadow: 0 30px 60px rgba(0,0,0,0.5), 0 0 50px rgba(167,139,250,0.2);
+  }
+  .worldly-card.hidden-gem {
+    border-color: rgba(252,211,77,0.4);
+  }
+  .worldly-card.hidden-gem:hover {
+    border-color: rgba(252,211,77,0.8);
+    box-shadow: 0 30px 60px rgba(0,0,0,0.5), 0 0 60px rgba(252,211,77,0.3);
+  }
+  .worldly-card-img {
+    width: 100%; height: 200px; object-fit: cover;
+    transition: transform 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  .worldly-card:hover .worldly-card-img { transform: scale(1.08); }
+  .worldly-card-img-wrap { position: relative; overflow: hidden; }
+  .worldly-card-gem-badge {
+    position: absolute; top: 12px; left: 12px;
+    background: linear-gradient(135deg, #fcd34d, #f59e0b);
+    color: #1a1a1a; font-size: 11px; font-weight: 900;
+    padding: 4px 10px; border-radius: 20px;
+    letter-spacing: 1px; text-transform: uppercase;
+    display: flex; align-items: center; gap: 4px;
+    box-shadow: 0 4px 12px rgba(245,158,11,0.5);
+  }
+  .worldly-card-content { padding: 18px; }
+  .worldly-card-neighborhood {
+    font-size: 10px; color: #a78bfa; letter-spacing: 2px;
+    text-transform: uppercase; font-weight: 700; margin-bottom: 6px;
+  }
+  .worldly-card-name {
+    color: #fff; font-size: 18px; font-weight: 800;
+    margin: 0 0 10px; line-height: 1.2;
+  }
+  .worldly-card-meta {
+    display: flex; align-items: center; gap: 12px;
+    color: #94a3b8; font-size: 12px;
+    margin-bottom: 12px;
+  }
+  .worldly-card-rating {
+    display: inline-flex; align-items: center; gap: 4px;
+    color: #fcd34d; font-weight: 700;
+  }
+  .worldly-card-vibes {
+    display: flex; flex-wrap: wrap; gap: 6px;
+  }
+  .worldly-card-vibe {
+    background: rgba(167,139,250,0.1);
+    border: 1px solid rgba(167,139,250,0.2);
+    color: #cbd5e1;
+    padding: 3px 10px; border-radius: 30px;
+    font-size: 10px; font-weight: 600;
+    letter-spacing: 0.3px;
+  }
+
+  /* Detail modal */
+  .worldly-detail-modal {
+    position: fixed; inset: 0; z-index: 999998;
+    background: rgba(5,7,13,0.92); backdrop-filter: blur(20px);
+    display: none; align-items: flex-start; justify-content: center;
+    padding: 40px 20px; overflow-y: auto;
+    animation: vfxFadeIn 0.3s;
+  }
+  .worldly-detail-modal.open { display: flex; }
+  .worldly-detail-card {
+    max-width: 800px; width: 100%;
+    background: linear-gradient(180deg, #14182a, #0a0e1a);
+    border: 1px solid rgba(167,139,250,0.2);
+    border-radius: 28px; overflow: hidden;
+    animation: inviteLandingCardIn 0.5s cubic-bezier(0.34,1.56,0.64,1);
+  }
+  .worldly-detail-hero {
+    width: 100%; height: 360px;
+    background-size: cover; background-position: center;
+    position: relative;
+  }
+  .worldly-detail-hero::after {
+    content: ''; position: absolute; inset: 0;
+    background: linear-gradient(180deg, transparent 40%, #14182a);
+  }
+  .worldly-detail-close {
+    position: absolute; top: 16px; right: 16px;
+    background: rgba(0,0,0,0.6); border: none; color: #fff;
+    width: 40px; height: 40px; border-radius: 50%;
+    cursor: pointer; font-size: 20px;
+    z-index: 2;
+    backdrop-filter: blur(10px);
+  }
+  .worldly-detail-body { padding: 28px 32px 32px; }
+  .worldly-detail-title {
+    font-size: 32px; font-weight: 900;
+    color: #fff; line-height: 1.1; margin: 0 0 8px;
+    letter-spacing: -1px;
+  }
+  .worldly-detail-meta {
+    display: flex; align-items: center; gap: 18px;
+    margin: 16px 0 24px;
+    color: #cbd5e1; font-size: 13px;
+  }
+  .worldly-detail-meta-item { display: flex; align-items: center; gap: 6px; }
+  .worldly-detail-narrative {
+    color: #cbd5e1; font-size: 15px; line-height: 1.7;
+    font-style: italic;
+    padding: 18px 20px;
+    background: rgba(167,139,250,0.05);
+    border-left: 3px solid #a78bfa;
+    border-radius: 8px;
+    margin-bottom: 20px;
+  }
+  .worldly-detail-vibes {
+    display: flex; flex-wrap: wrap; gap: 8px;
+    margin-bottom: 20px;
+  }
+  .worldly-detail-section-title {
+    font-size: 11px; color: #a78bfa;
+    letter-spacing: 2px; text-transform: uppercase;
+    font-weight: 800; margin-bottom: 8px;
+  }
+
+  @media (max-width: 720px) {
+    .worldly-title { font-size: 36px; letter-spacing: -1px; }
+    .worldly-search-input { font-size: 16px; padding: 14px 6px; }
+    .worldly-grid { grid-template-columns: 1fr; }
   }
 </style>
 
@@ -18053,6 +18483,356 @@ if (document.readyState === 'loading') {
 window.addEventListener('takil:loggedin', initHomeInviteCard);
 // Periyodik check (kullanıcı adı sonra yükleniyorsa)
 setTimeout(initHomeInviteCard, 2500);
+
+// =====================================================================
+// WORLDLY — AI World Discovery Mini-app
+// =====================================================================
+
+const WORLDLY_CITIES = {
+  tokyo:    { name: 'Tokyo', country: 'Japan', neighborhoods: ['Shibuya','Shimokitazawa','Daikanyama','Naka-Meguro','Yanaka','Asakusa','Kichijoji','Harajuku'] },
+  istanbul: { name: 'Istanbul', country: 'Türkiye', neighborhoods: ['Kadıköy','Cihangir','Karaköy','Balık Pazarı','Bebek','Galata','Beyoğlu','Beşiktaş'] },
+  paris:    { name: 'Paris', country: 'France', neighborhoods: ['Le Marais','Saint-Germain','Montmartre','Belleville','Canal Saint-Martin','Pigalle','Bastille','Latin Quarter'] },
+  lisbon:   { name: 'Lisbon', country: 'Portugal', neighborhoods: ['Alfama','Bairro Alto','Chiado','LX Factory','Príncipe Real','Graca','Mouraria','Belem'] },
+  bali:     { name: 'Bali', country: 'Indonesia', neighborhoods: ['Ubud','Canggu','Seminyak','Uluwatu','Sanur','Nusa Lembongan','Amed','Munduk'] },
+};
+
+const WORLDLY_CATEGORIES = {
+  coffee:    { name: 'Coffee', emoji: '☕', vibes: ['cozy','artisanal','quiet','warm','minimal','third-wave'] },
+  beach:     { name: 'Beaches', emoji: '🏖️', vibes: ['secluded','paradise','untouched','crystal','turquoise','wild'] },
+  food:      { name: 'Restaurants', emoji: '🍽️', vibes: ['authentic','intimate','seasonal','farm-to-table','romantic','iconic'] },
+  nightlife: { name: 'Nightlife', emoji: '🍷', vibes: ['speakeasy','electric','underground','rooftop','live music','dive'] },
+  culture:   { name: 'Culture', emoji: '🎨', vibes: ['inspiring','historic','avant-garde','immersive','contemplative'] },
+  perfume:   { name: 'Perfume', emoji: '✨', vibes: ['niche','luxurious','mysterious','botanical','rare'] },
+};
+
+// Gerçek Unsplash photo ID'leri kategori başına
+const WORLDLY_IMAGES = {
+  coffee: [
+    'https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?w=800&q=80',
+    'https://images.unsplash.com/photo-1453614512568-c4024d13c247?w=800&q=80',
+    'https://images.unsplash.com/photo-1559925393-8be0ec4767c8?w=800&q=80',
+    'https://images.unsplash.com/photo-1442975631115-c4f7b05b8a2c?w=800&q=80',
+    'https://images.unsplash.com/photo-1554118811-1e0d58224f24?w=800&q=80',
+    'https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?w=800&q=80',
+    'https://images.unsplash.com/photo-1521017432531-fbd92d768814?w=800&q=80',
+    'https://images.unsplash.com/photo-1511920170033-f8396924c348?w=800&q=80',
+  ],
+  beach: [
+    'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&q=80',
+    'https://images.unsplash.com/photo-1519046904884-53103b34b206?w=800&q=80',
+    'https://images.unsplash.com/photo-1473116763249-2faaef81ccda?w=800&q=80',
+    'https://images.unsplash.com/photo-1468413253725-0d5181091126?w=800&q=80',
+    'https://images.unsplash.com/photo-1455587734955-081b22074882?w=800&q=80',
+    'https://images.unsplash.com/photo-1559136555-9303baea8ebd?w=800&q=80',
+    'https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=800&q=80',
+    'https://images.unsplash.com/photo-1483683804023-6ccdb62f86ef?w=800&q=80',
+  ],
+  food: [
+    'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=800&q=80',
+    'https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=800&q=80',
+    'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=800&q=80',
+    'https://images.unsplash.com/photo-1559339352-11d035aa65de?w=800&q=80',
+    'https://images.unsplash.com/photo-1466978913421-dad2ebd01d17?w=800&q=80',
+    'https://images.unsplash.com/photo-1552566626-52f8b828add9?w=800&q=80',
+    'https://images.unsplash.com/photo-1551218808-94e220e084d2?w=800&q=80',
+    'https://images.unsplash.com/photo-1424847651672-bf20a4b0982b?w=800&q=80',
+  ],
+  nightlife: [
+    'https://images.unsplash.com/photo-1514933651103-005eec06c04b?w=800&q=80',
+    'https://images.unsplash.com/photo-1572116469696-31de0f17cc34?w=800&q=80',
+    'https://images.unsplash.com/photo-1566417713940-fe7c737a9ef2?w=800&q=80',
+    'https://images.unsplash.com/photo-1493612276216-ee3925520721?w=800&q=80',
+    'https://images.unsplash.com/photo-1470337458703-46ad1756a187?w=800&q=80',
+    'https://images.unsplash.com/photo-1551024709-8f23befc6f87?w=800&q=80',
+    'https://images.unsplash.com/photo-1530035415911-c93e8d4b3fa3?w=800&q=80',
+    'https://images.unsplash.com/photo-1543007630-9710e4a00a20?w=800&q=80',
+  ],
+  culture: [
+    'https://images.unsplash.com/photo-1515169067868-5387ec356754?w=800&q=80',
+    'https://images.unsplash.com/photo-1554907984-15263bfd63bd?w=800&q=80',
+    'https://images.unsplash.com/photo-1577083552431-6e5fd01988ec?w=800&q=80',
+    'https://images.unsplash.com/photo-1503095396549-807759245b35?w=800&q=80',
+    'https://images.unsplash.com/photo-1564399579883-451a5d44ec08?w=800&q=80',
+    'https://images.unsplash.com/photo-1525373698358-041e3a460346?w=800&q=80',
+    'https://images.unsplash.com/photo-1581094289810-adf5d25690e3?w=800&q=80',
+    'https://images.unsplash.com/photo-1499781350541-7783f6c6a0c8?w=800&q=80',
+  ],
+  perfume: [
+    'https://images.unsplash.com/photo-1541643600914-78b084683601?w=800&q=80',
+    'https://images.unsplash.com/photo-1592945403244-b3fbafd7f539?w=800&q=80',
+    'https://images.unsplash.com/photo-1523293182086-7651a899d37f?w=800&q=80',
+    'https://images.unsplash.com/photo-1610461888750-10bfc601b874?w=800&q=80',
+    'https://images.unsplash.com/photo-1588405748880-12d1d2a59d75?w=800&q=80',
+    'https://images.unsplash.com/photo-1547887537-6158d64c35b3?w=800&q=80',
+    'https://images.unsplash.com/photo-1615634260167-c8cdede054de?w=800&q=80',
+    'https://images.unsplash.com/photo-1612869538502-bb1e1c4a4f73?w=800&q=80',
+  ],
+};
+
+const WORLDLY_NAME_PATTERNS = {
+  coffee:    ['The {n} Roastery','{n} Espresso Bar','Quiet {n}','Slow {n}','Hidden Bean','Ritual Coffee','{n} Brew Lab','The {n} Cup'],
+  beach:     ['Secret Cove','{n} Beach','Whisper Bay','Hidden Lagoon','Crystal Cove','Lost Bay','Paradise Point','Untouched Shore'],
+  food:      ['{n} Kitchen','La {n}','{n} Table','Chef’s {n}','The {n} Room','Wild {n}','{n} & Sons','Heritage {n}'],
+  nightlife: ['Underground {n}','{n} Speakeasy','Rooftop {n}','The {n} Bar','Velvet {n}','{n} After Dark','Midnight {n}','Neon {n}'],
+  culture:   ['{n} Gallery','The {n} Atelier','Studio {n}','{n} Museum','Art Space {n}','{n} Collective'],
+  perfume:   ['Maison {n}','{n} Parfumerie','The Scent Lab','{n} Apothecary','Le Nez {n}','Rare {n}'],
+};
+
+const WORLDLY_SIGNATURES = {
+  coffee: ['Matcha Latte','Single Origin Pour-Over','Yuzu Espresso','Honey Cortado','Cold Brew Tonic'],
+  beach: ['Sunset View','Crystal Snorkel','Tidepool Walk','Hidden Trail'],
+  food: ['Tasting Menu','Signature Risotto','Hand-Made Pasta','Wood-Fired Steak','Seasonal Tasting'],
+  nightlife: ['Smoked Old Fashioned','House Negroni','Late-Night Jazz','Signature Mezcal'],
+  culture: ['Permanent Collection','Sound Installation','Artist Residency','Private Tour'],
+  perfume: ['Custom Blend Session','Signature Oud','Rose & Iris','Niche Discovery Set'],
+};
+
+// Seeded random (Mulberry32) deterministik
+function worldlySeed(str) {
+  let h = 1779033703;
+  for (let i = 0; i < str.length; i++) h = Math.imul(h ^ str.charCodeAt(i), 3432918353);
+  return () => {
+    h |= 0; h = h + 0x6D2B79F5 | 0;
+    let t = Math.imul(h ^ h >>> 15, 1 | h);
+    t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+    return ((t ^ t >>> 14) >>> 0) / 4294967296;
+  };
+}
+
+function worldlyPick(arr, rand) { return arr[Math.floor(rand() * arr.length)]; }
+
+// Yer üret (cityId + categoryId için 8 yer)
+function worldlyGenerate(cityId, categoryId) {
+  const city = WORLDLY_CITIES[cityId];
+  const cat = WORLDLY_CATEGORIES[categoryId];
+  if (!city || !cat) return [];
+  const places = [];
+  for (let i = 0; i < 8; i++) {
+    const rand = worldlySeed(`${cityId}-${categoryId}-${i}`);
+    const neighborhood = worldlyPick(city.neighborhoods, rand);
+    const namePattern = worldlyPick(WORLDLY_NAME_PATTERNS[categoryId], rand);
+    const name = namePattern.replace('{n}', neighborhood);
+    const vibes = [worldlyPick(cat.vibes, rand), worldlyPick(cat.vibes, rand), worldlyPick(cat.vibes, rand)]
+      .filter((v, idx, a) => a.indexOf(v) === idx);
+    const signature = worldlyPick(WORLDLY_SIGNATURES[categoryId], rand);
+    const isHidden = i < 2; // ilk 2 hidden gem
+    const image = WORLDLY_IMAGES[categoryId][i % WORLDLY_IMAGES[categoryId].length];
+    const rating = (4.0 + rand() * 0.9).toFixed(1);
+    const priceLevel = 1 + Math.floor(rand() * 4);
+    const aiSummary = worldlyComposeSummary(name, neighborhood, vibes, signature, cat, city);
+    places.push({
+      id: `${cityId}-${categoryId}-${i+1}`,
+      name, cityId, categoryId, neighborhood,
+      image, rating, priceLevel,
+      vibes, signature, isHidden, aiSummary,
+      openHours: ['08:00 - 22:00','11:00 - 00:00','17:00 - 02:00','09:00 - 18:00'][i % 4],
+    });
+  }
+  return places;
+}
+
+function worldlyComposeSummary(name, neighborhood, vibes, signature, cat, city) {
+  const templates = [
+    `${name} sits quietly in ${neighborhood}, where ${vibes[0]} meets ${vibes[1] || 'authentic'}. The ${signature} alone is worth the visit — locals call it "the one that started everything".`,
+    `Tucked into ${neighborhood}, ${name} is the kind of place ${city.name} keeps to itself. Order the ${signature}; it's the move.`,
+    `Half-hidden behind ${neighborhood}'s busiest corner, ${name} stays understated on purpose. Their ${signature} is reason enough to find it.`,
+    `Locals don't share ${name} easily. Inside, the ${vibes[0]} energy and the ${signature} make ${neighborhood} feel like a different city.`,
+  ];
+  return templates[Math.floor(Math.random() * templates.length)];
+}
+
+// City/Category parser
+function worldlyParse(query) {
+  const q = (query || '').toLowerCase().trim();
+  let cityId = null, categoryId = null;
+  const cityKeys = { tokyo:['tokyo','tokio'], istanbul:['istanbul','ist','ıstanbul'], paris:['paris'], lisbon:['lisbon','lizbon','lisboa'], bali:['bali','ubud','canggu'] };
+  const catKeys = {
+    coffee:['coffee','kahve','café','cafe','espresso','kafe'],
+    beach:['beach','plaj','sahil','beaches','cove'],
+    food:['food','restoran','restaurant','eat','yemek','dining'],
+    nightlife:['nightlife','bar','club','gece','bars','rooftop'],
+    culture:['culture','art','museum','galeri','müze','kültür'],
+    perfume:['perfume','parfüm','fragrance','scent','niche','botique'],
+  };
+  for (const [id, keys] of Object.entries(cityKeys)) if (keys.some(k => q.includes(k))) { cityId = id; break; }
+  for (const [id, keys] of Object.entries(catKeys)) if (keys.some(k => q.includes(k))) { categoryId = id; break; }
+  return { cityId: cityId || 'tokyo', categoryId: categoryId || 'coffee' };
+}
+
+function worldlyNarrative(cityId, categoryId, count, hiddenCount) {
+  const city = WORLDLY_CITIES[cityId].name;
+  const cat = WORLDLY_CATEGORIES[categoryId].name;
+  const variants = [
+    `${city}'s ${cat.toLowerCase()} scene whispers more than it shouts. We sifted through ${city}'s alleys, side streets, and rooftops to find ${count} places worth knowing. ${hiddenCount} of these are barely on the map.`,
+    `We scanned ${city} from end to end and curated ${count} ${cat.toLowerCase()} spots where the vibe is just right. ${hiddenCount} of them are local secrets — you didn't hear it from us.`,
+    `Beyond the obvious, ${city} hides depth. These ${count} ${cat.toLowerCase()} places are the ones that locals quietly send their friends to. ${hiddenCount} barely make it to lists.`,
+  ];
+  return variants[Math.floor(Math.random() * variants.length)];
+}
+
+// Yıldız parçacıklar oluştur
+function worldlyInitStars() {
+  const container = document.getElementById('worldly-stars');
+  if (!container || container.dataset.init) return;
+  container.dataset.init = '1';
+  for (let i = 0; i < 50; i++) {
+    const star = document.createElement('span');
+    star.className = 'worldly-star';
+    star.style.left = (Math.random() * 100) + '%';
+    star.style.top = (Math.random() * 100) + '%';
+    star.style.animationDelay = (Math.random() * 3) + 's';
+    star.style.transform = `scale(${0.3 + Math.random() * 0.7})`;
+    container.appendChild(star);
+  }
+}
+
+let worldlyCurrentResults = [];
+
+async function worldlySearch() {
+  const inp = document.getElementById('worldly-search-input');
+  const query = (inp?.value || '').trim();
+  if (!query) { inp?.focus(); return; }
+
+  // Thinking overlay
+  const overlay = document.getElementById('worldly-thinking');
+  const statusEl = document.getElementById('worldly-thinking-status');
+  overlay.classList.add('open');
+
+  const steps = [
+    { text: 'Reading your mood…', delay: 500 },
+    { text: 'Scanning 1,200+ sources…', delay: 600 },
+    { text: 'Analyzing vibe & atmosphere…', delay: 500 },
+    { text: 'Curating hidden gems…', delay: 500 },
+  ];
+  for (const step of steps) {
+    statusEl.textContent = step.text;
+    await new Promise(r => setTimeout(r, step.delay));
+  }
+
+  const parsed = worldlyParse(query);
+  const places = worldlyGenerate(parsed.cityId, parsed.categoryId);
+  worldlyCurrentResults = places;
+  worldlyRender(parsed.cityId, parsed.categoryId, places);
+  overlay.classList.remove('open');
+  // Sonuçlara scroll
+  setTimeout(() => document.getElementById('worldly-results')?.scrollIntoView({behavior:'smooth',block:'start'}), 200);
+}
+
+function worldlyChip(query) {
+  document.getElementById('worldly-search-input').value = query;
+  worldlySearch();
+}
+
+function worldlyRender(cityId, categoryId, places) {
+  const city = WORLDLY_CITIES[cityId];
+  const hidden = places.filter(p => p.isHidden);
+  const normal = places.filter(p => !p.isHidden);
+
+  document.getElementById('worldly-results-title').innerHTML =
+    `AI curated <span class="worldly-results-count">${places.length} places</span> in ${city.name}`;
+  document.getElementById('worldly-results-narrative').textContent =
+    `“${worldlyNarrative(cityId, categoryId, places.length, hidden.length)}”`;
+
+  const hiddenGrid = document.getElementById('worldly-hidden-grid');
+  const allGrid = document.getElementById('worldly-all-grid');
+  hiddenGrid.innerHTML = hidden.map(worldlyCardHTML).join('');
+  allGrid.innerHTML = normal.map(worldlyCardHTML).join('');
+
+  document.getElementById('worldly-hidden-section').style.display = hidden.length ? 'block' : 'none';
+  document.getElementById('worldly-results').style.display = 'block';
+}
+
+function worldlyCardHTML(p) {
+  const stars = '★'.repeat(Math.round(p.rating));
+  const dollars = '$'.repeat(p.priceLevel);
+  const cat = WORLDLY_CATEGORIES[p.categoryId];
+  return `
+    <div class="worldly-card ${p.isHidden ? 'hidden-gem' : ''}" onclick="worldlyOpenDetail('${p.id}')">
+      <div class="worldly-card-img-wrap">
+        <img class="worldly-card-img" src="${p.image}" alt="${p.name}" loading="lazy"/>
+        ${p.isHidden ? '<div class="worldly-card-gem-badge">✨ Hidden Gem</div>' : ''}
+      </div>
+      <div class="worldly-card-content">
+        <div class="worldly-card-neighborhood">${cat.emoji} ${p.neighborhood}</div>
+        <h3 class="worldly-card-name">${p.name}</h3>
+        <div class="worldly-card-meta">
+          <span class="worldly-card-rating">★ ${p.rating}</span>
+          <span>${dollars}</span>
+          <span>· ${p.openHours}</span>
+        </div>
+        <div class="worldly-card-vibes">
+          ${p.vibes.map(v => `<span class="worldly-card-vibe">${v}</span>`).join('')}
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function worldlyOpenDetail(placeId) {
+  const p = worldlyCurrentResults.find(x => x.id === placeId);
+  if (!p) return;
+  const cat = WORLDLY_CATEGORIES[p.categoryId];
+  const city = WORLDLY_CITIES[p.cityId];
+  const hero = document.getElementById('worldly-detail-hero');
+  hero.style.backgroundImage = `url('${p.image}')`;
+  document.getElementById('worldly-detail-body').innerHTML = `
+    <div style="font-size:11px;color:#a78bfa;letter-spacing:2px;text-transform:uppercase;font-weight:800;margin-bottom:8px;">${cat.emoji} ${p.neighborhood} · ${city.name}</div>
+    <h2 class="worldly-detail-title">${p.name}</h2>
+    ${p.isHidden ? '<div style="display:inline-flex;align-items:center;gap:6px;background:linear-gradient(135deg,#fcd34d,#f59e0b);color:#1a1a1a;font-size:11px;font-weight:900;padding:5px 12px;border-radius:20px;margin-top:6px;letter-spacing:1px;">✨ HIDDEN GEM</div>' : ''}
+    <div class="worldly-detail-meta">
+      <span class="worldly-detail-meta-item" style="color:#fcd34d;">★ ${p.rating}</span>
+      <span class="worldly-detail-meta-item">${'$'.repeat(p.priceLevel)}</span>
+      <span class="worldly-detail-meta-item">🕐 ${p.openHours}</span>
+      <span class="worldly-detail-meta-item">✨ ${p.signature}</span>
+    </div>
+    <div class="worldly-detail-section-title">🤖 AI Narrative</div>
+    <div class="worldly-detail-narrative">“${p.aiSummary}”</div>
+    <div class="worldly-detail-section-title">Vibe</div>
+    <div class="worldly-detail-vibes">
+      ${p.vibes.map(v => `<span class="worldly-card-vibe" style="font-size:12px;padding:5px 14px;">${v}</span>`).join('')}
+    </div>
+    <button style="width:100%;margin-top:12px;padding:16px;background:linear-gradient(135deg,#a78bfa,#7c3aed,#ec4899);border:none;color:#fff;border-radius:14px;cursor:pointer;font-weight:900;font-size:14px;letter-spacing:1.5px;text-transform:uppercase;box-shadow:0 8px 24px rgba(124,58,237,0.5);">→ Plan your visit</button>
+  `;
+  document.getElementById('worldly-detail-modal').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function worldlyCloseDetail() {
+  document.getElementById('worldly-detail-modal').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+// Sayfa worldly'ye geçtiğinde yıldızları init et + placeholder rotate
+let _worldlyPlaceholderInterval = null;
+const WORLDLY_PLACEHOLDERS = [
+  'hidden cafés in Tokyo…',
+  'secret beaches in Bali…',
+  'speakeasy bars in Istanbul…',
+  'romantic restaurants in Paris…',
+  'rooftop spots in Lisbon…',
+  'niche perfume in Paris…',
+  'underground art in Berlin…',
+];
+
+// goPage hook'una eklemek yerine, periyodik kontrol
+setInterval(() => {
+  const page = document.getElementById('page-worldly');
+  if (!page || !page.classList.contains('active')) {
+    if (_worldlyPlaceholderInterval) { clearInterval(_worldlyPlaceholderInterval); _worldlyPlaceholderInterval = null; }
+    return;
+  }
+  worldlyInitStars();
+  if (!_worldlyPlaceholderInterval) {
+    let idx = 0;
+    const inp = document.getElementById('worldly-search-input');
+    _worldlyPlaceholderInterval = setInterval(() => {
+      if (inp && !inp.value) {
+        inp.placeholder = WORLDLY_PLACEHOLDERS[idx % WORLDLY_PLACEHOLDERS.length];
+        idx++;
+      }
+    }, 3000);
+  }
+}, 800);
 
 </script>
 </body>
