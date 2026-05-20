@@ -7791,7 +7791,7 @@
     padding: 80px 40px 60px;
     display: flex;
     align-items: center;
-    justify-content: flex-start;
+    justify-content: center;
     overflow: hidden;
     background:
       radial-gradient(ellipse at 20% 30%, rgba(167,139,250,0.18) 0%, transparent 50%),
@@ -7875,8 +7875,8 @@
   .games-hero-content {
     position: relative; z-index: 5;
     max-width: 900px; width: 100%;
-    text-align: left;
-    margin: 0;
+    text-align: center;
+    margin: 0 auto;
   }
 
   /* Live row */
@@ -7947,13 +7947,13 @@
     color: #94a3b8;
     line-height: 1.6;
     max-width: 580px;
-    margin: 0 0 32px;
+    margin: 0 auto 32px;
     font-weight: 400;
   }
 
   /* Stat chips */
   .games-stat-chips {
-    display: flex; flex-wrap: wrap; justify-content: flex-start;
+    display: flex; flex-wrap: wrap; justify-content: center;
     gap: 10px;
     margin-bottom: 36px;
   }
@@ -8008,13 +8008,15 @@
     max-width: 1320px;
     margin: 0 auto;
     padding: 70px 40px;
+    text-align: center;
   }
-  .games-section-header { margin-bottom: 40px; }
+  .games-section-header { margin-bottom: 40px; text-align: center; }
   .games-section-eyebrow {
     display: inline-flex; align-items: center; gap: 12px;
-    margin-bottom: 12px;
+    margin: 0 auto 12px;
     font-size: 12px; letter-spacing: 3px;
     font-weight: 800; color: #a78bfa;
+    justify-content: center;
   }
   .games-section-num {
     font-family: 'SF Mono', Monaco, monospace;
