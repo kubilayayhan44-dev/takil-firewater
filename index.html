@@ -5711,145 +5711,236 @@
 
     <!-- OYUNLAR (HUB) -->
     <div class="page" id="page-games">
-      <!-- Modern Hero Header -->
+      <!-- CINEMATIC HERO -->
       <div class="games-hero">
+        <!-- Animated background layers -->
+        <div class="games-hero-grid"></div>
+        <div class="games-hero-noise"></div>
         <div class="games-hero-orbs">
           <div class="games-hero-orb games-hero-orb-1"></div>
           <div class="games-hero-orb games-hero-orb-2"></div>
+          <div class="games-hero-orb games-hero-orb-3"></div>
         </div>
+        <!-- Floating particles -->
+        <div class="games-hero-particles" id="games-hero-particles"></div>
+        <!-- Light beams -->
+        <div class="games-light-beam games-light-beam-1"></div>
+        <div class="games-light-beam games-light-beam-2"></div>
+
         <div class="games-hero-content">
-          <div class="games-hero-badge">
-            <span class="games-hero-badge-dot"></span>
-            <span data-i18n="games.badge">MULTIPLAYER ARENA</span>
+          <!-- Live indicator -->
+          <div class="games-live-row">
+            <div class="games-live-pill">
+              <span class="games-live-dot"></span>
+              <span data-i18n="games.live">CANLI</span>
+            </div>
+            <div class="games-online-count">
+              <span class="games-online-num" id="games-online-num">847</span>
+              <span data-i18n="games.online.text">oyuncu çevrimiçi</span>
+            </div>
           </div>
+
           <h1 class="games-hero-title">
-            <span data-i18n="games.title1">Arkadaşlarınla</span>
-            <span class="games-hero-title-accent" data-i18n="games.title2">birlikte oyna</span>
+            <span class="games-hero-title-line" data-i18n="games.title1">Arenaya</span>
+            <span class="games-hero-title-line games-hero-title-accent" data-i18n="games.title2">hoş geldin.</span>
           </h1>
           <p class="games-hero-subtitle" data-i18n="games.subtitle">
-            Gecikmesiz online co-op deneyim. Hangi maceraya çıkalım?
+            Arkadaşlarını topla, karşılarına geç. Gecikmesiz online, sinematik grafik, kazanan sensin.
           </p>
-          <div class="games-hero-stats">
-            <div class="games-hero-stat">
-              <div class="games-hero-stat-num">2</div>
-              <div class="games-hero-stat-label" data-i18n="games.stat.games">OYUN</div>
+
+          <!-- Floating stat chips -->
+          <div class="games-stat-chips">
+            <div class="games-stat-chip">
+              <svg class="games-stat-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+              <span data-i18n="games.stat.gpu">60 FPS</span>
             </div>
-            <div class="games-hero-stat-divider"></div>
-            <div class="games-hero-stat">
-              <div class="games-hero-stat-num">100+</div>
-              <div class="games-hero-stat-label" data-i18n="games.stat.levels">BÖLÜM</div>
+            <div class="games-stat-chip">
+              <svg class="games-stat-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+              <span data-i18n="games.stat.latency">&lt;50ms ping</span>
             </div>
-            <div class="games-hero-stat-divider"></div>
-            <div class="games-hero-stat">
-              <div class="games-hero-stat-num">2-4</div>
-              <div class="games-hero-stat-label" data-i18n="games.stat.players">OYUNCU</div>
+            <div class="games-stat-chip">
+              <svg class="games-stat-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+              <span data-i18n="games.stat.regions">5 Kıta</span>
+            </div>
+            <div class="games-stat-chip">
+              <svg class="games-stat-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+              <span data-i18n="games.stat.tournaments">Haftalık Turnuva</span>
+            </div>
+          </div>
+
+          <!-- Featured game tabs -->
+          <div class="games-marquee">
+            <div class="games-marquee-track">
+              <span>4 ELEMENT</span>
+              <span class="games-marquee-dot">◆</span>
+              <span>STICK FIGHT</span>
+              <span class="games-marquee-dot">◆</span>
+              <span>ONLINE CO-OP</span>
+              <span class="games-marquee-dot">◆</span>
+              <span>100+ BÖLÜM</span>
+              <span class="games-marquee-dot">◆</span>
+              <span>REALISTIC PHYSICS</span>
+              <span class="games-marquee-dot">◆</span>
+              <span>4 ELEMENT</span>
+              <span class="games-marquee-dot">◆</span>
+              <span>STICK FIGHT</span>
+              <span class="games-marquee-dot">◆</span>
+              <span>ONLINE CO-OP</span>
+              <span class="games-marquee-dot">◆</span>
             </div>
           </div>
         </div>
       </div>
 
-      <!-- Premium Game Cards -->
-      <div class="games-grid">
-        <!-- Macera -->
-        <div class="game-card game-card-adventure" onclick="goPage('game', null)">
-          <div class="game-card-bg"></div>
-          <div class="game-card-glow"></div>
-          <div class="game-card-content">
-            <div class="game-card-top">
-              <div class="game-card-label" data-i18n="games.adventure.label">CO-OP MACERA</div>
-              <div class="game-card-players">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-                <span>2-4</span>
-              </div>
-            </div>
-            <div class="game-card-visual">
-              <!-- 4 karakter ikon, modern minimalist -->
-              <div class="game-char game-char-fire" style="--delay:0s"></div>
-              <div class="game-char game-char-water" style="--delay:0.1s"></div>
-              <div class="game-char game-char-thunder" style="--delay:0.2s"></div>
-              <div class="game-char game-char-ice" style="--delay:0.3s"></div>
-            </div>
-            <div class="game-card-info">
-              <h2 class="game-card-title" data-i18n="games.adventure.title">4'lü Macera</h2>
-              <p class="game-card-desc" data-i18n="games.adventure.desc">
-                Elementçiler birlikte. Lav, su, elektrik ve buz — bölümlerden kaçıp tüm dunyayı fethedin.
-              </p>
-              <div class="game-card-features">
-                <div class="game-card-feature"><span class="game-card-feature-dot" style="background:#f59e0b"></span><span data-i18n="games.adventure.f1">100+ Bölüm</span></div>
-                <div class="game-card-feature"><span class="game-card-feature-dot" style="background:#06b6d4"></span><span data-i18n="games.adventure.f2">5 Tema</span></div>
-                <div class="game-card-feature"><span class="game-card-feature-dot" style="background:#a78bfa"></span><span data-i18n="games.adventure.f3">Co-op Online</span></div>
-              </div>
-            </div>
-            <button class="game-card-cta">
-              <span data-i18n="games.adventure.cta">OYNA</span>
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
-            </button>
+      <!-- GAMES GRID — BIG IMMERSIVE CARDS -->
+      <div class="games-section">
+        <div class="games-section-header">
+          <div class="games-section-eyebrow">
+            <span class="games-section-num">01</span>
+            <span data-i18n="games.section.choose">OYUNUNU SEÇ</span>
           </div>
+          <h2 class="games-section-title" data-i18n="games.section.title">Hangi tarafa geçiyorsun?</h2>
         </div>
 
-        <!-- Karma -->
-        <div class="game-card game-card-fight" onclick="goPage('karma', null)">
-          <div class="game-card-bg"></div>
-          <div class="game-card-glow"></div>
-          <div class="game-card-content">
-            <div class="game-card-top">
-              <div class="game-card-label" data-i18n="games.fight.label">PvP ARENA</div>
-              <div class="game-card-players">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-                <span>2-4</span>
+        <div class="games-grid">
+          <!-- ADVENTURE CARD -->
+          <div class="game-card game-card-adventure" onclick="goPage('game', null)">
+            <!-- Layered visual scene -->
+            <div class="gc-scene">
+              <div class="gc-scene-bg gc-scene-bg-adventure"></div>
+              <div class="gc-scene-grid"></div>
+              <!-- Floating elements (parallax) -->
+              <div class="gc-orb gc-orb-fire"></div>
+              <div class="gc-orb gc-orb-water"></div>
+              <div class="gc-orb gc-orb-thunder"></div>
+              <div class="gc-orb gc-orb-ice"></div>
+              <!-- Particles -->
+              <div class="gc-particles">
+                <span></span><span></span><span></span><span></span><span></span><span></span>
               </div>
+              <!-- Vignette -->
+              <div class="gc-scene-vignette"></div>
+              <!-- Numara -->
+              <div class="gc-bignum">01</div>
             </div>
-            <div class="game-card-visual game-card-visual-fight">
-              <!-- Dövüş sahnesi: 2 silhouette -->
-              <div class="fight-stick fight-stick-left"></div>
-              <div class="fight-spark"></div>
-              <div class="fight-stick fight-stick-right"></div>
-            </div>
-            <div class="game-card-info">
-              <h2 class="game-card-title" data-i18n="games.fight.title">Karma</h2>
-              <p class="game-card-desc" data-i18n="games.fight.desc">
-                Ringiği ele geçirin. Yumruk, tekme, silahlar — son ayakta kalan kazanır.
+
+            <!-- Content -->
+            <div class="gc-body">
+              <div class="gc-top">
+                <span class="gc-tag gc-tag-coop" data-i18n="games.adventure.label">CO-OP MACERA</span>
+                <div class="gc-meta">
+                  <span class="gc-meta-item"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg> 2-4</span>
+                  <span class="gc-meta-item"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#fcd34d" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg> 4.9</span>
+                </div>
+              </div>
+              <h2 class="gc-title" data-i18n="games.adventure.title">4'lü Macera</h2>
+              <p class="gc-desc" data-i18n="games.adventure.desc">
+                Lav, su, elektrik ve buz — her biri farklı güç. Sadece birlikte kaçabilirsiniz.
               </p>
-              <div class="game-card-features">
-                <div class="game-card-feature"><span class="game-card-feature-dot" style="background:#ef4444"></span><span data-i18n="games.fight.f1">Best of 3</span></div>
-                <div class="game-card-feature"><span class="game-card-feature-dot" style="background:#f59e0b"></span><span data-i18n="games.fight.f2">6 Silah</span></div>
-                <div class="game-card-feature"><span class="game-card-feature-dot" style="background:#ec4899"></span><span data-i18n="games.fight.f3">Realistic Physics</span></div>
+              <div class="gc-feats">
+                <div class="gc-feat"><span class="gc-feat-num">100+</span><span class="gc-feat-lbl" data-i18n="games.adventure.f1">BÖLÜM</span></div>
+                <div class="gc-feat"><span class="gc-feat-num">5</span><span class="gc-feat-lbl" data-i18n="games.adventure.f2">TEMA</span></div>
+                <div class="gc-feat"><span class="gc-feat-num">∞</span><span class="gc-feat-lbl" data-i18n="games.adventure.f3">CO-OP</span></div>
               </div>
+              <button class="gc-cta">
+                <span data-i18n="games.adventure.cta">MACERAYA BAŞLA</span>
+                <span class="gc-cta-arrow">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+                </span>
+              </button>
             </div>
-            <button class="game-card-cta">
-              <span data-i18n="games.fight.cta">DöVÜŞ</span>
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
-            </button>
+          </div>
+
+          <!-- FIGHT CARD -->
+          <div class="game-card game-card-fight" onclick="goPage('karma', null)">
+            <div class="gc-scene">
+              <div class="gc-scene-bg gc-scene-bg-fight"></div>
+              <div class="gc-scene-grid"></div>
+              <!-- Fighters silhouettes -->
+              <div class="gc-fighter gc-fighter-left">
+                <div class="gc-fighter-body"></div>
+              </div>
+              <div class="gc-fighter gc-fighter-right">
+                <div class="gc-fighter-body"></div>
+              </div>
+              <!-- Impact flash -->
+              <div class="gc-impact"></div>
+              <div class="gc-impact-ring"></div>
+              <!-- Lightning strikes -->
+              <div class="gc-lightning gc-lightning-1"></div>
+              <div class="gc-lightning gc-lightning-2"></div>
+              <div class="gc-scene-vignette"></div>
+              <div class="gc-bignum">02</div>
+            </div>
+            <div class="gc-body">
+              <div class="gc-top">
+                <span class="gc-tag gc-tag-pvp" data-i18n="games.fight.label">PvP ARENA</span>
+                <div class="gc-meta">
+                  <span class="gc-meta-item"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg> 2-4</span>
+                  <span class="gc-meta-item"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#fcd34d" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg> 4.7</span>
+                </div>
+              </div>
+              <h2 class="gc-title" data-i18n="games.fight.title">Karma</h2>
+              <p class="gc-desc" data-i18n="games.fight.desc">
+                Yumruk, tekme, silah. Hiçbirinin sonu yok. Sadece son ayakta kalan kazanır.
+              </p>
+              <div class="gc-feats">
+                <div class="gc-feat"><span class="gc-feat-num">6</span><span class="gc-feat-lbl" data-i18n="games.fight.f1">SİLAH</span></div>
+                <div class="gc-feat"><span class="gc-feat-num">3D</span><span class="gc-feat-lbl" data-i18n="games.fight.f2">FİZİK</span></div>
+                <div class="gc-feat"><span class="gc-feat-num">BO3</span><span class="gc-feat-lbl" data-i18n="games.fight.f3">ROUND</span></div>
+              </div>
+              <button class="gc-cta">
+                <span data-i18n="games.fight.cta">RINGİ BAS</span>
+                <span class="gc-cta-arrow">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+                </span>
+              </button>
+            </div>
           </div>
         </div>
+      </div>
 
-        <!-- Yakında - 3. kart placeholder -->
-        <div class="game-card game-card-coming-soon">
-          <div class="game-card-bg"></div>
-          <div class="game-card-content">
-            <div class="game-card-top">
-              <div class="game-card-label" style="color:#64748b;" data-i18n="games.soon.label">YAKINDA</div>
+      <!-- COMING SOON -->
+      <div class="games-section games-section-soon">
+        <div class="games-section-header">
+          <div class="games-section-eyebrow">
+            <span class="games-section-num">02</span>
+            <span data-i18n="games.section.soon">YAKINDA</span>
+          </div>
+          <h2 class="games-section-title" data-i18n="games.section.soon.title">Sıradaki maceralar</h2>
+        </div>
+        <div class="games-soon-grid">
+          <div class="soon-card" data-game="racing">
+            <div class="soon-card-icon">
+              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M14 16H9m10 0h3v-3.15a1 1 0 0 0-.84-.99L16 11l-2.7-3.6a1 1 0 0 0-.8-.4H5.24a2 2 0 0 0-1.8 1.1l-.8 1.63A6 6 0 0 0 2 12.42V16h2"/><circle cx="6.5" cy="16.5" r="2.5"/><circle cx="16.5" cy="16.5" r="2.5"/></svg>
             </div>
-            <div class="game-card-visual">
-              <div class="coming-soon-icon">
-                <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                  <circle cx="12" cy="12" r="10"/>
-                  <polyline points="12 6 12 12 16 14"/>
-                </svg>
-              </div>
+            <h3 class="soon-card-title" data-i18n="games.soon.racing">Yarış</h3>
+            <p class="soon-card-desc" data-i18n="games.soon.racing.desc">Sokak yarışı 4 kişi</p>
+            <span class="soon-card-eta" data-i18n="games.soon.eta1">Q1 2026</span>
+          </div>
+          <div class="soon-card" data-game="puzzle">
+            <div class="soon-card-icon">
+              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M19.439 7.85c-.049.322.059.648.289.878l1.568 1.568c.47.47.706 1.087.706 1.704s-.235 1.233-.706 1.704l-1.611 1.611a.98.98 0 0 1-.837.276c-.47-.07-.802-.48-.968-.925a2.501 2.501 0 1 0-3.214 3.214c.446.166.855.497.925.968a.979.979 0 0 1-.276.837l-1.61 1.61a2.404 2.404 0 0 1-1.705.707 2.402 2.402 0 0 1-1.704-.706l-1.568-1.568a1.026 1.026 0 0 0-.877-.29c-.493.074-.84.504-1.02.968a2.5 2.5 0 1 1-3.237-3.237c.464-.18.894-.527.967-1.02a1.026 1.026 0 0 0-.289-.877l-1.568-1.568A2.402 2.402 0 0 1 1.998 12c0-.617.236-1.234.706-1.704L4.23 8.77c.24-.24.581-.353.917-.303.515.077.877.528 1.073 1.01a2.5 2.5 0 1 0 3.259-3.259c-.482-.196-.933-.558-1.01-1.073-.05-.336.062-.676.303-.917l1.525-1.525A2.402 2.402 0 0 1 12 1.998c.617 0 1.234.236 1.704.706l1.568 1.568c.23.23.556.338.877.29.493-.074.84-.504 1.02-.968a2.5 2.5 0 1 1 3.237 3.237c-.464.18-.894.527-.967 1.02Z"/></svg>
             </div>
-            <div class="game-card-info">
-              <h2 class="game-card-title" style="color:#cbd5e1;" data-i18n="games.soon.title">Yeni Oyunlar</h2>
-              <p class="game-card-desc" data-i18n="games.soon.desc">
-                Daha fazla oyun yolda. Yarış, bulmaca, parti oyunları ve daha fazlası...
-              </p>
-              <div class="game-card-features">
-                <div class="game-card-feature"><span class="game-card-feature-dot" style="background:#475569"></span><span data-i18n="games.soon.f1">Çok yakında</span></div>
-              </div>
+            <h3 class="soon-card-title" data-i18n="games.soon.puzzle">Bulmaca</h3>
+            <p class="soon-card-desc" data-i18n="games.soon.puzzle.desc">Co-op kafa karıştırıcı</p>
+            <span class="soon-card-eta" data-i18n="games.soon.eta2">Q2 2026</span>
+          </div>
+          <div class="soon-card" data-game="party">
+            <div class="soon-card-icon">
+              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5.8 11.3 2 22l10.7-3.79"/><path d="M4 3h.01"/><path d="M22 8h.01"/><path d="M15 2h.01"/><path d="M22 20h.01"/><path d="m22 2-2.24.75a2.9 2.9 0 0 0-1.96 3.12c.1.86-.57 1.63-1.45 1.63h-.38c-.86 0-1.6.6-1.76 1.44L14 10"/><path d="m22 13-.82-.33c-.86-.34-1.82.2-1.98 1.11c-.11.7-.72 1.22-1.43 1.22H17"/><path d="m11 2 .33.82c.34.86-.2 1.82-1.11 1.98C9.52 4.9 9 5.52 9 6.23V7"/><path d="M11 13c1.93 1.93 2.83 4.17 2 5-.83.83-3.07-.07-5-2-1.93-1.93-2.83-4.17-2-5 .83-.83 3.07.07 5 2Z"/></svg>
             </div>
-            <button class="game-card-cta game-card-cta-disabled" disabled>
-              <span data-i18n="games.soon.cta">ÇOK YAKINDA</span>
-            </button>
+            <h3 class="soon-card-title" data-i18n="games.soon.party">Parti</h3>
+            <p class="soon-card-desc" data-i18n="games.soon.party.desc">Mini oyun koleksiyonu</p>
+            <span class="soon-card-eta" data-i18n="games.soon.eta3">Q3 2026</span>
+          </div>
+          <div class="soon-card" data-game="trivia">
+            <div class="soon-card-icon">
+              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+            </div>
+            <h3 class="soon-card-title" data-i18n="games.soon.trivia">Trivia</h3>
+            <p class="soon-card-desc" data-i18n="games.soon.trivia.desc">Bilgi yarışması</p>
+            <span class="soon-card-eta" data-i18n="games.soon.eta4">Q4 2026</span>
           </div>
         </div>
       </div>
@@ -7684,11 +7775,678 @@
     .invite-landing-feature { flex-direction: row; padding: 12px 14px; }
   }
 
-  /* =========== OYUNLAR — Modern Premium Tasarım ============== */
+  /* =========== OYUNLAR — CINEMATIC ARENA Tasarımı ============== */
   #page-games {
     padding: 0 !important;
-    background: radial-gradient(ellipse at top, #1a1138 0%, #05070d 70%);
+    background: #050308;
     min-height: 100vh;
+    color: #fff;
+    overflow-x: hidden;
+  }
+
+  /* ===== HERO ===== */
+  .games-hero {
+    position: relative;
+    min-height: 88vh;
+    padding: 80px 32px 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    background:
+      radial-gradient(ellipse at 20% 30%, rgba(167,139,250,0.18) 0%, transparent 50%),
+      radial-gradient(ellipse at 80% 70%, rgba(239,68,68,0.15) 0%, transparent 50%),
+      radial-gradient(ellipse at center, #0d0820 0%, #050308 80%);
+  }
+
+  /* Animated grid floor */
+  .games-hero-grid {
+    position: absolute; inset: 0;
+    background-image:
+      linear-gradient(rgba(167,139,250,0.08) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(167,139,250,0.08) 1px, transparent 1px);
+    background-size: 60px 60px;
+    mask-image: radial-gradient(ellipse at center, black 30%, transparent 70%);
+    -webkit-mask-image: radial-gradient(ellipse at center, black 30%, transparent 70%);
+    animation: gridShift 30s linear infinite;
+  }
+  @keyframes gridShift {
+    from { background-position: 0 0; }
+    to { background-position: 60px 60px; }
+  }
+
+  .games-hero-noise {
+    position: absolute; inset: 0;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2'/></filter><rect width='100%' height='100%' filter='url(%23n)' opacity='0.4'/></svg>");
+    opacity: 0.04;
+    pointer-events: none;
+    mix-blend-mode: overlay;
+  }
+
+  .games-hero-orbs { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
+  .games-hero-orb {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(100px);
+    animation: orbFloat 18s ease-in-out infinite;
+  }
+  .games-hero-orb-1 { width: 500px; height: 500px; background: rgba(167,139,250,0.4); top: -10%; left: -10%; }
+  .games-hero-orb-2 { width: 450px; height: 450px; background: rgba(239,68,68,0.3); bottom: -15%; right: -10%; animation-delay: -6s; }
+  .games-hero-orb-3 { width: 380px; height: 380px; background: rgba(6,182,212,0.25); top: 40%; left: 50%; animation-delay: -12s; }
+  @keyframes orbFloat {
+    0%, 100% { transform: translate(0,0) scale(1); }
+    33% { transform: translate(60px, -40px) scale(1.15); }
+    66% { transform: translate(-50px, 30px) scale(0.9); }
+  }
+
+  /* Floating particles */
+  .games-hero-particles { position: absolute; inset: 0; pointer-events: none; }
+  .games-hero-particles span {
+    position: absolute;
+    width: 3px; height: 3px;
+    background: #fff;
+    border-radius: 50%;
+    box-shadow: 0 0 8px rgba(255,255,255,0.8);
+    animation: particleRise linear infinite;
+  }
+  @keyframes particleRise {
+    0% { transform: translateY(100vh) translateX(0); opacity: 0; }
+    10% { opacity: 0.8; }
+    90% { opacity: 0.5; }
+    100% { transform: translateY(-10vh) translateX(50px); opacity: 0; }
+  }
+
+  /* Light beams */
+  .games-light-beam {
+    position: absolute;
+    width: 2px;
+    height: 100%;
+    background: linear-gradient(180deg, transparent, rgba(167,139,250,0.5), transparent);
+    filter: blur(2px);
+    animation: beamMove 8s ease-in-out infinite;
+  }
+  .games-light-beam-1 { left: 25%; animation-delay: 0s; }
+  .games-light-beam-2 { right: 25%; animation-delay: -4s; background: linear-gradient(180deg, transparent, rgba(239,68,68,0.5), transparent); }
+  @keyframes beamMove {
+    0%, 100% { transform: translateY(-100%) scaleY(0.5); opacity: 0; }
+    50% { transform: translateY(0) scaleY(1); opacity: 1; }
+  }
+
+  .games-hero-content {
+    position: relative; z-index: 5;
+    max-width: 1200px; width: 100%;
+    text-align: center;
+  }
+
+  /* Live row */
+  .games-live-row {
+    display: inline-flex; align-items: center; gap: 16px;
+    margin-bottom: 32px;
+    padding: 8px 8px 8px 16px;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 40px;
+    backdrop-filter: blur(20px);
+  }
+  .games-live-pill {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 5px 10px;
+    background: rgba(239,68,68,0.15);
+    border: 1px solid rgba(239,68,68,0.4);
+    border-radius: 24px;
+    font-size: 10px; font-weight: 800;
+    letter-spacing: 2px;
+    color: #fca5a5;
+  }
+  .games-live-dot {
+    width: 6px; height: 6px;
+    background: #ef4444; border-radius: 50%;
+    box-shadow: 0 0 10px #ef4444;
+    animation: livePulse 1.2s ease-in-out infinite;
+  }
+  @keyframes livePulse {
+    0%, 100% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.5); opacity: 0.6; }
+  }
+  .games-online-count { font-size: 12px; color: #cbd5e1; font-weight: 600; }
+  .games-online-num { color: #fff; font-weight: 800; font-size: 14px; }
+
+  /* Hero title */
+  .games-hero-title {
+    font-size: clamp(48px, 9vw, 110px);
+    font-weight: 900;
+    line-height: 0.95;
+    letter-spacing: -3px;
+    margin: 0 0 24px;
+    color: #fff;
+  }
+  .games-hero-title-line {
+    display: block;
+    animation: titleFadeIn 1s cubic-bezier(0.22, 1, 0.36, 1) backwards;
+  }
+  .games-hero-title-line:nth-child(2) { animation-delay: 0.15s; }
+  @keyframes titleFadeIn {
+    from { opacity: 0; transform: translateY(40px); filter: blur(10px); }
+    to { opacity: 1; transform: translateY(0); filter: blur(0); }
+  }
+  .games-hero-title-accent {
+    background: linear-gradient(135deg, #ff6b9d 0%, #c471f5 50%, #5b8def 100%);
+    -webkit-background-clip: text; background-clip: text;
+    -webkit-text-fill-color: transparent;
+    filter: drop-shadow(0 0 40px rgba(196,113,245,0.4));
+    animation: accentShine 4s ease-in-out infinite;
+  }
+  @keyframes accentShine {
+    0%, 100% { filter: drop-shadow(0 0 40px rgba(196,113,245,0.4)); }
+    50% { filter: drop-shadow(0 0 60px rgba(91,141,239,0.6)); }
+  }
+
+  .games-hero-subtitle {
+    font-size: clamp(15px, 1.5vw, 18px);
+    color: #94a3b8;
+    line-height: 1.6;
+    max-width: 620px;
+    margin: 0 auto 40px;
+    font-weight: 400;
+  }
+
+  /* Stat chips */
+  .games-stat-chips {
+    display: flex; flex-wrap: wrap; justify-content: center;
+    gap: 10px;
+    margin-bottom: 40px;
+  }
+  .games-stat-chip {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 10px 18px;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 40px;
+    font-size: 13px;
+    font-weight: 600;
+    color: #cbd5e1;
+    backdrop-filter: blur(20px);
+    transition: all 0.3s;
+  }
+  .games-stat-chip:hover {
+    background: rgba(255,255,255,0.08);
+    transform: translateY(-2px);
+    border-color: rgba(167,139,250,0.4);
+  }
+  .games-stat-icon { color: #a78bfa; }
+
+  /* Marquee */
+  .games-marquee {
+    overflow: hidden;
+    mask-image: linear-gradient(90deg, transparent, black 15%, black 85%, transparent);
+    -webkit-mask-image: linear-gradient(90deg, transparent, black 15%, black 85%, transparent);
+    padding: 16px 0;
+    border-top: 1px solid rgba(255,255,255,0.06);
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+  }
+  .games-marquee-track {
+    display: inline-flex; align-items: center; gap: 24px;
+    white-space: nowrap;
+    animation: marqueeScroll 25s linear infinite;
+    font-size: 14px;
+    font-weight: 800;
+    letter-spacing: 3px;
+    color: rgba(255,255,255,0.5);
+  }
+  .games-marquee-dot { color: rgba(167,139,250,0.6); font-size: 10px; }
+  @keyframes marqueeScroll {
+    from { transform: translateX(0); }
+    to { transform: translateX(-50%); }
+  }
+
+  /* ===== SECTIONS ===== */
+  .games-section {
+    position: relative;
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 80px 32px;
+  }
+  .games-section-header { margin-bottom: 40px; }
+  .games-section-eyebrow {
+    display: inline-flex; align-items: center; gap: 12px;
+    margin-bottom: 12px;
+    font-size: 12px; letter-spacing: 3px;
+    font-weight: 800; color: #a78bfa;
+  }
+  .games-section-num {
+    font-family: 'SF Mono', Monaco, monospace;
+    color: rgba(167,139,250,0.5);
+    font-weight: 700;
+  }
+  .games-section-title {
+    font-size: clamp(28px, 4vw, 44px);
+    font-weight: 900;
+    color: #fff;
+    margin: 0;
+    letter-spacing: -1.5px;
+    line-height: 1.1;
+  }
+
+  /* ===== BIG GAME CARDS ===== */
+  .games-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(440px, 1fr));
+    gap: 24px;
+  }
+  .game-card {
+    position: relative;
+    border-radius: 28px;
+    overflow: hidden;
+    cursor: pointer;
+    background: linear-gradient(180deg, #0d0820, #050308);
+    border: 1px solid rgba(255,255,255,0.08);
+    transition: all 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+    min-height: 640px;
+    display: flex;
+    flex-direction: column;
+  }
+  .game-card:hover {
+    transform: translateY(-12px);
+    border-color: rgba(255,255,255,0.2);
+    box-shadow: 0 60px 120px rgba(0,0,0,0.6);
+  }
+  .game-card-adventure:hover { box-shadow: 0 60px 120px rgba(245,158,11,0.25), 0 0 80px rgba(239,68,68,0.3); }
+  .game-card-fight:hover { box-shadow: 0 60px 120px rgba(239,68,68,0.25), 0 0 80px rgba(236,72,153,0.3); }
+
+  /* Scene (visual area, 320px tall) */
+  .gc-scene {
+    position: relative;
+    height: 320px;
+    overflow: hidden;
+    border-radius: 28px 28px 0 0;
+  }
+  .gc-scene-bg { position: absolute; inset: 0; transition: transform 1s cubic-bezier(0.22, 1, 0.36, 1); }
+  .game-card:hover .gc-scene-bg { transform: scale(1.1); }
+  .gc-scene-bg-adventure {
+    background:
+      radial-gradient(circle at 20% 30%, rgba(245,158,11,0.6), transparent 50%),
+      radial-gradient(circle at 80% 70%, rgba(6,182,212,0.5), transparent 50%),
+      radial-gradient(circle at 50% 50%, rgba(167,139,250,0.3), transparent 70%),
+      linear-gradient(135deg, #1a0f0a 0%, #0a0820 100%);
+  }
+  .gc-scene-bg-fight {
+    background:
+      radial-gradient(circle at 30% 50%, rgba(239,68,68,0.6), transparent 50%),
+      radial-gradient(circle at 70% 50%, rgba(236,72,153,0.5), transparent 50%),
+      radial-gradient(circle at 50% 80%, rgba(252,211,77,0.2), transparent 60%),
+      linear-gradient(135deg, #1a0a0a 0%, #20081a 100%);
+  }
+  .gc-scene-grid {
+    position: absolute; inset: 0;
+    background-image:
+      linear-gradient(rgba(255,255,255,0.06) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,0.06) 1px, transparent 1px);
+    background-size: 32px 32px;
+    mask-image: radial-gradient(ellipse at center, black 40%, transparent 80%);
+    -webkit-mask-image: radial-gradient(ellipse at center, black 40%, transparent 80%);
+  }
+  .gc-scene-vignette {
+    position: absolute; inset: 0;
+    background: linear-gradient(180deg, transparent 40%, #0d0820 100%);
+  }
+  .gc-bignum {
+    position: absolute;
+    bottom: -30px; right: -10px;
+    font-size: 220px;
+    font-weight: 900;
+    color: rgba(255,255,255,0.04);
+    line-height: 1;
+    letter-spacing: -10px;
+    pointer-events: none;
+  }
+
+  /* Adventure orbs (4 element) */
+  .gc-orb {
+    position: absolute;
+    border-radius: 50%;
+    transition: all 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  .gc-orb::after {
+    content: '';
+    position: absolute; inset: -20px;
+    border-radius: 50%;
+    background: inherit;
+    filter: blur(20px);
+    opacity: 0.6;
+    z-index: -1;
+  }
+  .gc-orb-fire {
+    width: 80px; height: 80px;
+    background: radial-gradient(circle at 35% 35%, #ffae5c, #ef4444 50%, #991b1b 100%);
+    top: 35%; left: 18%;
+    animation: orbFire 4s ease-in-out infinite;
+  }
+  .gc-orb-water {
+    width: 90px; height: 90px;
+    background: radial-gradient(circle at 35% 35%, #7dd3fc, #0ea5e9 50%, #0c4a6e 100%);
+    top: 50%; left: 40%;
+    animation: orbWater 4.5s ease-in-out infinite;
+  }
+  .gc-orb-thunder {
+    width: 70px; height: 70px;
+    background: radial-gradient(circle at 35% 35%, #fde68a, #f59e0b 50%, #78350f 100%);
+    top: 28%; left: 58%;
+    animation: orbThunder 3.5s ease-in-out infinite;
+  }
+  .gc-orb-ice {
+    width: 85px; height: 85px;
+    background: radial-gradient(circle at 35% 35%, #cffafe, #06b6d4 50%, #164e63 100%);
+    top: 45%; left: 72%;
+    animation: orbIce 5s ease-in-out infinite;
+  }
+  @keyframes orbFire { 0%,100%{transform:translateY(0) rotate(0)} 50%{transform:translateY(-15px) rotate(180deg)} }
+  @keyframes orbWater { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-20px)} }
+  @keyframes orbThunder { 0%,100%{transform:translateY(0) rotate(0)} 50%{transform:translateY(-18px) rotate(-180deg)} }
+  @keyframes orbIce { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-12px)} }
+  .game-card-adventure:hover .gc-orb-fire { transform: translateY(-30px) rotate(360deg) scale(1.2); }
+  .game-card-adventure:hover .gc-orb-water { transform: translateY(-40px) scale(1.15); }
+  .game-card-adventure:hover .gc-orb-thunder { transform: translateY(-35px) rotate(-360deg) scale(1.2); }
+  .game-card-adventure:hover .gc-orb-ice { transform: translateY(-25px) scale(1.15); }
+
+  /* Particles in scene */
+  .gc-particles { position: absolute; inset: 0; pointer-events: none; }
+  .gc-particles span {
+    position: absolute;
+    width: 4px; height: 4px;
+    background: #fff;
+    border-radius: 50%;
+    box-shadow: 0 0 10px rgba(255,255,255,0.8);
+    animation: scenePart 6s linear infinite;
+  }
+  .gc-particles span:nth-child(1){left:10%;animation-delay:0s}
+  .gc-particles span:nth-child(2){left:25%;animation-delay:1s}
+  .gc-particles span:nth-child(3){left:45%;animation-delay:2s;background:#fcd34d}
+  .gc-particles span:nth-child(4){left:65%;animation-delay:3s;background:#67e8f9}
+  .gc-particles span:nth-child(5){left:80%;animation-delay:4s;background:#a78bfa}
+  .gc-particles span:nth-child(6){left:90%;animation-delay:5s}
+  @keyframes scenePart {
+    0% { transform: translateY(320px); opacity: 0; }
+    20% { opacity: 1; }
+    100% { transform: translateY(-20px); opacity: 0; }
+  }
+
+  /* Fight scene */
+  .gc-fighter {
+    position: absolute;
+    bottom: 30px;
+    width: 100px; height: 200px;
+    transition: transform 0.5s;
+  }
+  .gc-fighter-left { left: 18%; transform-origin: bottom center; animation: fighterL 1s ease-in-out infinite; }
+  .gc-fighter-right { right: 18%; transform-origin: bottom center; animation: fighterR 1s ease-in-out infinite; }
+  @keyframes fighterL {
+    0%,100% { transform: translateX(0) rotate(0); }
+    50% { transform: translateX(20px) rotate(8deg); }
+  }
+  @keyframes fighterR {
+    0%,100% { transform: translateX(0) rotate(0); }
+    50% { transform: translateX(-20px) rotate(-8deg); }
+  }
+  .gc-fighter-body {
+    width: 100%; height: 100%;
+    position: relative;
+  }
+  .gc-fighter-left .gc-fighter-body {
+    background:
+      linear-gradient(180deg, transparent 0%, transparent 14%, #fff 14%, #fff 18%, transparent 18%),
+      radial-gradient(circle at 50% 12%, #fff 0%, #fff 12%, transparent 13%);
+  }
+  .gc-fighter-right .gc-fighter-body {
+    background:
+      linear-gradient(180deg, transparent 0%, transparent 14%, #fca5a5 14%, #fca5a5 18%, transparent 18%),
+      radial-gradient(circle at 50% 12%, #ef4444 0%, #ef4444 12%, transparent 13%);
+  }
+  .gc-fighter-body::before {
+    content: '';
+    position: absolute;
+    left: 50%; top: 22%;
+    width: 8px; height: 60%;
+    background: inherit;
+    transform: translateX(-50%);
+  }
+  .gc-impact {
+    position: absolute;
+    top: 45%; left: 50%;
+    transform: translate(-50%, -50%);
+    width: 80px; height: 80px;
+    background: radial-gradient(circle, #fde68a 0%, #f59e0b 40%, transparent 70%);
+    border-radius: 50%;
+    animation: impactFlash 1s ease-in-out infinite;
+    filter: blur(2px);
+  }
+  .gc-impact-ring {
+    position: absolute;
+    top: 45%; left: 50%;
+    transform: translate(-50%, -50%);
+    width: 20px; height: 20px;
+    border: 3px solid #fcd34d;
+    border-radius: 50%;
+    animation: impactRing 1s ease-in-out infinite;
+  }
+  @keyframes impactFlash {
+    0%, 100% { opacity: 0; transform: translate(-50%, -50%) scale(0.3); }
+    50% { opacity: 1; transform: translate(-50%, -50%) scale(1.2); }
+  }
+  @keyframes impactRing {
+    0% { opacity: 1; transform: translate(-50%, -50%) scale(0.5); border-width: 4px; }
+    100% { opacity: 0; transform: translate(-50%, -50%) scale(4); border-width: 1px; }
+  }
+  .gc-lightning {
+    position: absolute;
+    width: 2px; height: 60px;
+    background: linear-gradient(180deg, transparent, #fff, transparent);
+    filter: blur(1px) drop-shadow(0 0 8px #fcd34d);
+    animation: lightStrike 2s ease-in-out infinite;
+  }
+  .gc-lightning-1 { top: 10%; left: 30%; animation-delay: 0.3s; }
+  .gc-lightning-2 { top: 15%; right: 30%; animation-delay: 1.2s; }
+  @keyframes lightStrike {
+    0%, 90%, 100% { opacity: 0; }
+    92%, 96% { opacity: 1; }
+  }
+
+  /* Card body */
+  .gc-body {
+    flex: 1;
+    padding: 32px 32px 28px;
+    display: flex; flex-direction: column;
+    background: linear-gradient(180deg, transparent, rgba(13,8,32,0.6));
+  }
+  .gc-top {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 18px;
+  }
+  .gc-tag {
+    display: inline-flex; align-items: center;
+    padding: 6px 14px;
+    border-radius: 30px;
+    font-size: 10px;
+    font-weight: 900;
+    letter-spacing: 2.5px;
+  }
+  .gc-tag-coop {
+    background: linear-gradient(135deg, rgba(245,158,11,0.2), rgba(6,182,212,0.2));
+    border: 1px solid rgba(245,158,11,0.4);
+    color: #fcd34d;
+  }
+  .gc-tag-pvp {
+    background: linear-gradient(135deg, rgba(239,68,68,0.2), rgba(236,72,153,0.2));
+    border: 1px solid rgba(239,68,68,0.4);
+    color: #fca5a5;
+  }
+  .gc-meta {
+    display: inline-flex; align-items: center; gap: 14px;
+    color: rgba(255,255,255,0.6);
+    font-size: 12px;
+    font-weight: 600;
+  }
+  .gc-meta-item { display: inline-flex; align-items: center; gap: 5px; }
+
+  .gc-title {
+    font-size: 44px;
+    font-weight: 900;
+    color: #fff;
+    line-height: 1;
+    letter-spacing: -2px;
+    margin: 0 0 14px;
+  }
+  .gc-desc {
+    color: #94a3b8;
+    font-size: 15px;
+    line-height: 1.6;
+    margin: 0 0 28px;
+    max-width: 90%;
+  }
+
+  /* Feature numbers row */
+  .gc-feats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    padding: 18px 16px;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 16px;
+    margin-bottom: 28px;
+  }
+  .gc-feat { text-align: center; }
+  .gc-feat-num {
+    display: block;
+    font-size: 28px;
+    font-weight: 900;
+    color: #fff;
+    line-height: 1;
+    letter-spacing: -1px;
+    margin-bottom: 4px;
+  }
+  .game-card-adventure .gc-feat-num { background: linear-gradient(135deg, #fcd34d, #f59e0b); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+  .game-card-fight .gc-feat-num { background: linear-gradient(135deg, #ef4444, #ec4899); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+  .gc-feat-lbl {
+    font-size: 10px;
+    color: rgba(255,255,255,0.5);
+    letter-spacing: 1.5px;
+    font-weight: 700;
+    text-transform: uppercase;
+  }
+
+  /* CTA */
+  .gc-cta {
+    display: flex; align-items: center; justify-content: space-between;
+    width: 100%;
+    padding: 18px 22px;
+    border: none;
+    border-radius: 16px;
+    color: #fff;
+    cursor: pointer;
+    font-weight: 900;
+    font-size: 14px;
+    letter-spacing: 2px;
+    font-family: inherit;
+    transition: all 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+    margin-top: auto;
+    position: relative;
+    overflow: hidden;
+  }
+  .gc-cta::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.25), transparent);
+    transform: translateX(-100%);
+    transition: transform 0.6s;
+  }
+  .game-card:hover .gc-cta::before { transform: translateX(100%); }
+  .game-card-adventure .gc-cta {
+    background: linear-gradient(135deg, #f59e0b 0%, #ef4444 100%);
+    box-shadow: 0 10px 30px rgba(245,158,11,0.4), inset 0 1px 0 rgba(255,255,255,0.2);
+  }
+  .game-card-adventure:hover .gc-cta {
+    box-shadow: 0 16px 40px rgba(245,158,11,0.6), inset 0 1px 0 rgba(255,255,255,0.3);
+    transform: scale(1.02);
+  }
+  .game-card-fight .gc-cta {
+    background: linear-gradient(135deg, #ef4444 0%, #ec4899 100%);
+    box-shadow: 0 10px 30px rgba(239,68,68,0.4), inset 0 1px 0 rgba(255,255,255,0.2);
+  }
+  .game-card-fight:hover .gc-cta {
+    box-shadow: 0 16px 40px rgba(239,68,68,0.6), inset 0 1px 0 rgba(255,255,255,0.3);
+    transform: scale(1.02);
+  }
+  .gc-cta-arrow {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 36px; height: 36px;
+    background: rgba(255,255,255,0.18);
+    border-radius: 50%;
+    transition: transform 0.4s;
+  }
+  .game-card:hover .gc-cta-arrow { transform: translateX(6px); }
+
+  /* ===== SOON SECTION ===== */
+  .games-section-soon { padding-top: 0; }
+  .games-soon-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 16px;
+  }
+  .soon-card {
+    position: relative;
+    padding: 24px 22px 22px;
+    background: linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01));
+    border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 20px;
+    transition: all 0.3s;
+  }
+  .soon-card:hover {
+    border-color: rgba(167,139,250,0.3);
+    background: rgba(167,139,250,0.05);
+    transform: translateY(-4px);
+  }
+  .soon-card-icon {
+    width: 52px; height: 52px;
+    display: flex; align-items: center; justify-content: center;
+    background: rgba(167,139,250,0.1);
+    border: 1px solid rgba(167,139,250,0.2);
+    border-radius: 14px;
+    color: #a78bfa;
+    margin-bottom: 16px;
+  }
+  .soon-card-title {
+    font-size: 18px;
+    font-weight: 800;
+    color: #fff;
+    margin: 0 0 6px;
+    letter-spacing: -0.5px;
+  }
+  .soon-card-desc {
+    color: #94a3b8;
+    font-size: 13px;
+    margin: 0 0 16px;
+    line-height: 1.5;
+  }
+  .soon-card-eta {
+    display: inline-block;
+    padding: 4px 10px;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 30px;
+    font-size: 10px;
+    font-weight: 800;
+    color: #cbd5e1;
+    letter-spacing: 1.5px;
+  }
+
+  @media (max-width: 768px) {
+    .games-hero { min-height: auto; padding: 60px 20px 40px; }
+    .games-section { padding: 50px 20px; }
+    .games-grid { grid-template-columns: 1fr; }
+    .game-card { min-height: 580px; }
+    .gc-scene { height: 240px; }
+    .gc-title { font-size: 32px; }
+    .gc-bignum { font-size: 140px; }
   }
   .games-hero {
     position: relative;
@@ -19441,19 +20199,39 @@ const I18N = {
     'games.adventure.f1': '100+ Bölüm',
     'games.adventure.f2': '5 Tema',
     'games.adventure.f3': 'Co-op Online',
-    'games.adventure.cta': 'OYNA',
+    'games.adventure.cta': 'MACERAYA BAŞLA',
     'games.fight.label': 'PvP ARENA',
     'games.fight.title': 'Karma',
-    'games.fight.desc': 'Ringi ele geçirin. Yumruk, tekme, silahlar — son ayakta kalan kazanır.',
-    'games.fight.f1': 'Best of 3',
-    'games.fight.f2': '6 Silah',
-    'games.fight.f3': 'Realistic Physics',
-    'games.fight.cta': 'DÖVÜŞ',
-    'games.soon.label': 'YAKINDA',
-    'games.soon.title': 'Yeni Oyunlar',
-    'games.soon.desc': 'Daha fazla oyun yolda. Yarış, bulmaca, parti oyunları ve daha fazlası...',
-    'games.soon.f1': 'Çok yakında',
-    'games.soon.cta': 'ÇOK YAKINDA',
+    'games.fight.desc': 'Yumruk, tekme, silah. Hiçbirinin sonu yok. Sadece son ayakta kalan kazanır.',
+    'games.fight.f1': 'SİLAH',
+    'games.fight.f2': 'FİZİK',
+    'games.fight.f3': 'ROUND',
+    'games.fight.cta': 'RİNGİ BAS',
+    'games.live': 'CANLI',
+    'games.online.text': 'oyuncu çevrimiçi',
+    'games.stat.gpu': '60 FPS',
+    'games.stat.latency': '<50ms ping',
+    'games.stat.regions': '5 Kıta',
+    'games.stat.tournaments': 'Haftalık Turnuva',
+    'games.section.choose': 'OYUNUNU SEÇ',
+    'games.section.title': 'Hangi tarafa geçiyorsun?',
+    'games.section.soon': 'YAKINDA',
+    'games.section.soon.title': 'Sıradaki maceralar',
+    'games.soon.racing': 'Yarış',
+    'games.soon.racing.desc': 'Sokak yarışı 4 kişi',
+    'games.soon.puzzle': 'Bulmaca',
+    'games.soon.puzzle.desc': 'Co-op kafa karıştırıcı',
+    'games.soon.party': 'Parti',
+    'games.soon.party.desc': 'Mini oyun koleksiyonu',
+    'games.soon.trivia': 'Trivia',
+    'games.soon.trivia.desc': 'Bilgi yarışması',
+    'games.soon.eta1': 'Q1 2026',
+    'games.soon.eta2': 'Q2 2026',
+    'games.soon.eta3': 'Q3 2026',
+    'games.soon.eta4': 'Q4 2026',
+    'games.title1': 'Arenaya',
+    'games.title2': 'hoş geldin.',
+    'games.subtitle': 'Arkadaşlarını topla, karşılarına geç. Gecikmesiz online, sinematik grafik, kazanan sensin.',
     // Menu
     'menu.home': 'Ana Sayfa',
     'menu.video': 'Görüntülü Görüşme',
@@ -19521,19 +20299,39 @@ const I18N = {
     'games.adventure.f1': '100+ Levels',
     'games.adventure.f2': '5 Themes',
     'games.adventure.f3': 'Online Co-op',
-    'games.adventure.cta': 'PLAY',
+    'games.adventure.cta': 'START ADVENTURE',
     'games.fight.label': 'PvP ARENA',
     'games.fight.title': 'Karma',
-    'games.fight.desc': 'Take the ring. Punch, kick, weapons — last one standing wins.',
-    'games.fight.f1': 'Best of 3',
-    'games.fight.f2': '6 Weapons',
-    'games.fight.f3': 'Realistic Physics',
-    'games.fight.cta': 'FIGHT',
-    'games.soon.label': 'COMING SOON',
-    'games.soon.title': 'New Games',
-    'games.soon.desc': 'More games on the way. Racing, puzzles, party games and more...',
-    'games.soon.f1': 'Coming soon',
-    'games.soon.cta': 'COMING SOON',
+    'games.fight.desc': 'Punch, kick, weapons. Endless action. Only the last one standing wins.',
+    'games.fight.f1': 'WEAPONS',
+    'games.fight.f2': 'PHYSICS',
+    'games.fight.f3': 'ROUND',
+    'games.fight.cta': 'ENTER RING',
+    'games.live': 'LIVE',
+    'games.online.text': 'players online',
+    'games.stat.gpu': '60 FPS',
+    'games.stat.latency': '<50ms ping',
+    'games.stat.regions': '5 Continents',
+    'games.stat.tournaments': 'Weekly Tournaments',
+    'games.section.choose': 'CHOOSE YOUR GAME',
+    'games.section.title': 'Which side are you on?',
+    'games.section.soon': 'COMING SOON',
+    'games.section.soon.title': 'Next adventures',
+    'games.soon.racing': 'Racing',
+    'games.soon.racing.desc': 'Street race for 4',
+    'games.soon.puzzle': 'Puzzle',
+    'games.soon.puzzle.desc': 'Co-op brain teaser',
+    'games.soon.party': 'Party',
+    'games.soon.party.desc': 'Mini game collection',
+    'games.soon.trivia': 'Trivia',
+    'games.soon.trivia.desc': 'Knowledge quiz',
+    'games.soon.eta1': 'Q1 2026',
+    'games.soon.eta2': 'Q2 2026',
+    'games.soon.eta3': 'Q3 2026',
+    'games.soon.eta4': 'Q4 2026',
+    'games.title1': 'Welcome to',
+    'games.title2': 'the arena.',
+    'games.subtitle': 'Gather your friends, take on the world. Zero lag, cinematic graphics, you are the winner.',
     'menu.home': 'Home',
     'menu.video': 'Video Call',
     'menu.games': 'Games',
@@ -19935,6 +20733,49 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 // Yedek: setTimeout (çünkü bazı elemanlar dinamik render olur)
 setTimeout(() => { applyTranslations(); const sel = document.getElementById('lang-select'); if (sel) sel.value = _currentLang; }, 1500);
+
+// Games sayfası için particle init + online sayı simulation
+function initGamesParticles() {
+  const container = document.getElementById('games-hero-particles');
+  if (!container || container.dataset.init) return;
+  container.dataset.init = '1';
+  for (let i = 0; i < 30; i++) {
+    const s = document.createElement('span');
+    s.style.left = (Math.random() * 100) + '%';
+    s.style.animationDuration = (8 + Math.random() * 10) + 's';
+    s.style.animationDelay = (Math.random() * 10) + 's';
+    s.style.opacity = (0.3 + Math.random() * 0.5);
+    s.style.width = (2 + Math.random() * 3) + 'px';
+    s.style.height = s.style.width;
+    container.appendChild(s);
+  }
+}
+
+let _gamesOnlineInterval = null;
+function startGamesOnlineCounter() {
+  const el = document.getElementById('games-online-num');
+  if (!el) return;
+  if (_gamesOnlineInterval) clearInterval(_gamesOnlineInterval);
+  let n = 800 + Math.floor(Math.random() * 200);
+  el.textContent = n.toLocaleString();
+  _gamesOnlineInterval = setInterval(() => {
+    n += Math.floor(Math.random() * 11) - 4; // -4 to +6
+    if (n < 700) n = 750;
+    if (n > 1200) n = 1100;
+    el.textContent = n.toLocaleString();
+  }, 2200);
+}
+
+// Games sayfası active olduğunda init
+setInterval(() => {
+  const page = document.getElementById('page-games');
+  if (!page || !page.classList.contains('active')) {
+    if (_gamesOnlineInterval) { clearInterval(_gamesOnlineInterval); _gamesOnlineInterval = null; }
+    return;
+  }
+  initGamesParticles();
+  if (!_gamesOnlineInterval) startGamesOnlineCounter();
+}, 800);
 
 // Sayfa worldly'ye geçtiğinde yıldızları init et + placeholder rotate
 let _worldlyPlaceholderInterval = null;
