@@ -11523,14 +11523,22 @@ const LEVEL_TEMPLATES = (function() {
   // ============ BÖLÜM 4: PLATFORM ÜSTÜNDEN ============
   {
     const g = baseLayout();
-    box(g, 12, 14, 17, 15, '^');     // lav
-    hLine(g, 11, 11, 18, '=');       // üstten köprü
-    vLine(g, 12, 12, 13, '|');       // sütun
-    vLine(g, 17, 12, 13, '|');
+    // Lav: 13-17 (Magma yüzer, Aqua ölür)
+    box(g, 13, 14, 16, 15, '^');
+    // Su: 21-25 (Aqua yüzer, Magma ölür)
+    box(g, 21, 14, 25, 15, '~');
+    // Yüksek platform/köprü (zıplanabilir mesafede)
+    hLine(g, 12, 12, 17, '=');
+    // Küçük ara basamaklar (zıplayıp çıkmak için)
+    g[13][11] = '='; // sol basamak
+    g[13][18] = '='; // sağ basamak
+    // Su üstünde Aqua için basamak
+    g[13][20] = '=';
+    g[13][26] = '=';
     g[13][2] = 'A'; g[13][4] = 'W';
-    g[10][14] = 'S';
-    g[13][26] = '1'; g[13][27] = '2';
-    levels.push({ name: 'Köprülü Geçiş', grid: g, hint: 'Üstteki köprüden geçin' });
+    g[11][14] = 'S';
+    g[13][27] = '1'; g[13][28] = '2';
+    levels.push({ name: 'Köprülü Geçiş', grid: g, hint: 'Basamaklardan zıplayıp köprüye çıkın' });
   }
   
   // ============ BÖLÜM 5: BASINÇ PLAKASI ============
