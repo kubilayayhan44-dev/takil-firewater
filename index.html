@@ -11404,8 +11404,16 @@ const SCENE_TO_THEME = {
   steampunk_ruins: 'space',
 };
 function getThemeForLevel(lvl) {
-  const sceneTypes = ['crystal_cave', 'volcano_forge', 'frozen_ruins', 'jungle_temple', 'steampunk_ruins'];
-  const scene = sceneTypes[(lvl - 1) % 5];
+  // 8 DÜNYA = 8 farklı tema
+  let scene;
+  if (lvl <= 12) scene = 'crystal_cave';        // Antik
+  else if (lvl <= 24) scene = 'frozen_ruins';   // Donmuş
+  else if (lvl <= 36) scene = 'volcano_forge';  // Yanardağ
+  else if (lvl <= 48) scene = 'steampunk_ruins'; // Lab
+  else if (lvl <= 60) scene = 'crystal_cave';   // Gökyüzü
+  else if (lvl <= 72) scene = 'jungle_temple';  // Maden
+  else if (lvl <= 84) scene = 'steampunk_ruins'; // Siber
+  else scene = 'jungle_temple';                  // Cangıl
   return SCENE_TO_THEME[scene] || 'dungeon';
 }
 
@@ -13444,6 +13452,12 @@ function buildLevelFromGrid(template) {
         case '2':
           game.doors.push({ type: 'water', x: x + 2, y: y - 30, w: 28, h: 60, reached: false });
           break;
+        case '3':
+          game.doors.push({ type: 'thunder', x: x + 2, y: y - 30, w: 28, h: 60, reached: false });
+          break;
+        case '4':
+          game.doors.push({ type: 'snow', x: x + 2, y: y - 30, w: 28, h: 60, reached: false });
+          break;
         case 'k':
           game.keys2.push({ x: x + w/2, y: y + h/2, r: 10, taken: false });
           break;
@@ -13509,20 +13523,62 @@ function buildLevelFromGrid(template) {
     }
   }
   
-  // Karakter başlangıçları
+  // === DİNAMİK KARAKTER + KAPI POST-PROCESSING ===
+  // Aktif karakterler
   const activeChars = Object.keys(game.chars);
+  const charDoorTypes = { fire: 'fire', water: 'water', thunder: 'thunder', snow: 'snow' };
+
+  // Karakter başlangıçları - her karakter farklı spawn pozisyonu
   activeChars.forEach((c, i) => {
     if (game.chars[c]) {
-      if (c === 'fire' || c === 'thunder') {
-        game.chars[c].x = magmaStart.x;
-        game.chars[c].y = magmaStart.y;
+      // İlk karakter magmaStart'a, ikinci aquaStart'a, diğerleri arada
+      let sx, sy;
+      if (i === 0) {
+        sx = magmaStart.x; sy = magmaStart.y;
+      } else if (i === 1) {
+        sx = aquaStart.x; sy = aquaStart.y;
       } else {
-        game.chars[c].x = aquaStart.x + (i > 1 ? i * 20 : 0);
-        game.chars[c].y = aquaStart.y;
+        // 3+ karakter için: ortalama + offset
+        const baseX = (magmaStart.x + aquaStart.x) / 2;
+        sx = baseX + (i - 1) * 30;
+        sy = magmaStart.y;
       }
-      game.chars[c].vx = 0; game.chars[c].vy = 0;
+      game.chars[c].x = sx;
+      game.chars[c].y = sy;
+      game.chars[c].vx = 0;
+      game.chars[c].vy = 0;
     }
   });
+
+  // Eksik kapıları ekle (her aktif karakter için bir kapı olmalı)
+  const existingDoorTypes = new Set(game.doors.map(d => d.type));
+  const missingChars = activeChars.filter(c => !existingDoorTypes.has(charDoorTypes[c]));
+
+  if (missingChars.length > 0 && game.doors.length > 0) {
+    const lastDoor = game.doors[game.doors.length - 1];
+    const baseY = lastDoor.y;
+    const doorWidth = 30;
+    // Tüm yeni kapılar için toplam genişlik
+    const totalWidth = (missingChars.length) * doorWidth;
+    let nextX = lastDoor.x + doorWidth;
+    // Eğer taşma riski varsa, tüm kapıları sola kaydır
+    const endX = nextX + totalWidth;
+    if (endX > game.width - 10) {
+      const shift = endX - (game.width - 10);
+      for (const d of game.doors) d.x -= shift;
+      nextX -= shift;
+    }
+    missingChars.forEach((c, idx) => {
+      const dtype = charDoorTypes[c];
+      game.doors.push({
+        type: dtype,
+        x: nextX, y: baseY,
+        w: lastDoor.w, h: lastDoor.h,
+        reached: false,
+      });
+      nextX += doorWidth;
+    });
+  }
 }
 
 // ============================================================
@@ -15287,6 +15343,149 @@ function drawBrickWall(ctx, x, y, w, h, theme) {
   }
 }
 
+// ============ ATMOSFER PARTİKÜLLERİ (her dünya kendi parçacık stilini alır) ============
+function drawAtmosphereParticles(ctx, W, H, level, sceneType) {
+  const t = Date.now();
+  if (!game._atmoParticles) {
+    game._atmoParticles = [];
+    for (let i = 0; i < 40; i++) {
+      game._atmoParticles.push({
+        x: Math.random() * W,
+        y: Math.random() * H,
+        vx: (Math.random() - 0.5) * 0.3,
+        vy: Math.random() * 0.4 + 0.1,
+        r: Math.random() * 2 + 0.5,
+        phase: Math.random() * Math.PI * 2,
+        twinkle: Math.random() * 2,
+      });
+    }
+  }
+
+  // World theme’a göre renk/davranış
+  let pColor, pType;
+  if (level <= 12) { pColor = 'rgba(255, 220, 150,'; pType = 'dust'; }       // Antik toz
+  else if (level <= 24) { pColor = 'rgba(220, 240, 255,'; pType = 'snow'; }  // Donmuş kar
+  else if (level <= 36) { pColor = 'rgba(255, 150, 60,'; pType = 'ember'; }  // Yanardağ kıvılcım
+  else if (level <= 48) { pColor = 'rgba(180, 130, 255,'; pType = 'spark'; } // Lab neon
+  else if (level <= 60) { pColor = 'rgba(255, 255, 255,'; pType = 'cloud'; } // Gökyüzü bulut
+  else if (level <= 72) { pColor = 'rgba(120, 80, 40,'; pType = 'rock'; }    // Maden toz
+  else if (level <= 84) { pColor = 'rgba(100, 240, 200,'; pType = 'circuit'; }// Siber devre
+  else { pColor = 'rgba(180, 230, 130,'; pType = 'leaf'; }                   // Cangıl yaprak
+
+  // IşIK HUZMELERİ (top corners)
+  if (pType === 'cloud' || pType === 'snow' || pType === 'circuit') {
+    // Sağ üst köşeden gelen ışık huzmesi
+    const beamGrad1 = ctx.createLinearGradient(W * 0.8, 0, W * 0.55, H * 0.7);
+    beamGrad1.addColorStop(0, pColor + '0.18)');
+    beamGrad1.addColorStop(1, pColor + '0)');
+    ctx.fillStyle = beamGrad1;
+    ctx.beginPath();
+    ctx.moveTo(W * 0.7, 0);
+    ctx.lineTo(W * 0.95, 0);
+    ctx.lineTo(W * 0.7, H * 0.7);
+    ctx.lineTo(W * 0.55, H * 0.7);
+    ctx.closePath();
+    ctx.fill();
+    // Sol üst köşeden
+    const beamGrad2 = ctx.createLinearGradient(W * 0.2, 0, W * 0.4, H * 0.6);
+    beamGrad2.addColorStop(0, pColor + '0.12)');
+    beamGrad2.addColorStop(1, pColor + '0)');
+    ctx.fillStyle = beamGrad2;
+    ctx.beginPath();
+    ctx.moveTo(W * 0.05, 0);
+    ctx.lineTo(W * 0.28, 0);
+    ctx.lineTo(W * 0.4, H * 0.6);
+    ctx.lineTo(W * 0.22, H * 0.6);
+    ctx.closePath();
+    ctx.fill();
+  } else if (pType === 'ember' || pType === 'spark') {
+    // Alttan yükselen sıcaklık
+    const hGrad = ctx.createLinearGradient(0, H, 0, H * 0.4);
+    hGrad.addColorStop(0, pColor + '0.15)');
+    hGrad.addColorStop(1, pColor + '0)');
+    ctx.fillStyle = hGrad;
+    ctx.fillRect(0, H * 0.4, W, H * 0.6);
+  }
+
+  // PARTİKÜLLER (animated)
+  for (const p of game._atmoParticles) {
+    // Hareketi
+    if (pType === 'snow') {
+      p.x += p.vx + Math.sin(t / 1000 + p.phase) * 0.4;
+      p.y += p.vy;
+    } else if (pType === 'ember' || pType === 'spark') {
+      p.x += p.vx;
+      p.y -= p.vy * 1.5; // YUKARI çıkar
+      if (p.y < 0) { p.y = H + 10; p.x = Math.random() * W; }
+    } else if (pType === 'cloud') {
+      p.x += p.vx * 0.3;
+      p.y += p.vy * 0.2;
+    } else if (pType === 'leaf') {
+      p.x += Math.sin(t / 600 + p.phase) * 0.6;
+      p.y += p.vy * 0.7;
+      p.r = (Math.sin(t / 400 + p.phase) + 1) * 1.5 + 1;
+    } else if (pType === 'circuit') {
+      p.x += p.vx * 0.5;
+      p.y += p.vy * 0.5;
+    } else {
+      p.x += p.vx;
+      p.y += p.vy * 0.6;
+    }
+    // Sınır kontrolü
+    if (p.x < -5) p.x = W + 5;
+    if (p.x > W + 5) p.x = -5;
+    if (p.y > H + 5 && pType !== 'ember' && pType !== 'spark') {
+      p.y = -5;
+      p.x = Math.random() * W;
+    }
+
+    // Çiz
+    const twinkle = (Math.sin(t / 300 + p.twinkle) + 1) * 0.5;
+    const alpha = (0.3 + twinkle * 0.5);
+    if (pType === 'circuit' || pType === 'spark') {
+      // Square pixel
+      ctx.fillStyle = pColor + alpha + ')';
+      ctx.fillRect(p.x - p.r, p.y - p.r, p.r * 2, p.r * 2);
+      // Glow halka
+      ctx.fillStyle = pColor + (alpha * 0.3) + ')';
+      ctx.fillRect(p.x - p.r * 2, p.y - p.r * 2, p.r * 4, p.r * 4);
+    } else if (pType === 'leaf') {
+      // Yaprak (ellipse)
+      ctx.save();
+      ctx.translate(p.x, p.y);
+      ctx.rotate(t / 800 + p.phase);
+      ctx.fillStyle = pColor + alpha + ')';
+      ctx.beginPath();
+      ctx.ellipse(0, 0, p.r * 2, p.r, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+    } else if (pType === 'snow') {
+      ctx.fillStyle = pColor + alpha + ')';
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+      ctx.fill();
+      // Yum'la halka
+      ctx.fillStyle = pColor + (alpha * 0.3) + ')';
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.r * 2, 0, Math.PI * 2);
+      ctx.fill();
+    } else {
+      // Yuvarlak partiş
+      ctx.fillStyle = pColor + alpha + ')';
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+      ctx.fill();
+      // Halo
+      if (pType === 'ember') {
+        ctx.fillStyle = pColor + (alpha * 0.4) + ')';
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.r * 2.5, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+  }
+}
+
 function draw() {
   const ctx = game.ctx;
   const W = game.width;
@@ -15302,6 +15501,9 @@ function draw() {
   vGrad.addColorStop(1, 'rgba(0,0,0,0.5)');
   ctx.fillStyle = vGrad;
   ctx.fillRect(0, 0, W, H);
+
+  // ============ ATMOSFER İK PARTİKÜLLER (dünyaya özel) ============
+  drawAtmosphereParticles(ctx, W, H, game.level, game.sceneType);
 
   // Taş tuğla dokusu (rastgele şekiller, sabit seed)
   if (!game._stonePattern) {
@@ -17223,70 +17425,158 @@ function drawPuzzleElements(ctx) {
 }
 
 function drawDungeonDoor(ctx, d, def) {
-  // Kemerli zindan kapısı
+  // PREMIUM kemerli kapı
   const cx = d.x + d.w/2;
-  // Taş çerçeve (kemer)
-  ctx.fillStyle = '#3a2530';
-  ctx.fillRect(d.x - 4, d.y, d.w + 8, 4);
+  const t = Date.now() / 500;
+  const pulse = (Math.sin(t) + 1) * 0.5;
+
+  // === DIŞ GLOW HALO (her zaman) ===
+  const haloR = 38 + pulse * 6;
+  const haloGrad = ctx.createRadialGradient(cx, d.y + d.h/2, 0, cx, d.y + d.h/2, haloR);
+  haloGrad.addColorStop(0, def.color + 'aa');
+  haloGrad.addColorStop(0.5, def.color + '44');
+  haloGrad.addColorStop(1, def.color + '00');
+  ctx.fillStyle = haloGrad;
+  ctx.fillRect(cx - haloR, d.y - haloR/2, haloR * 2, d.h + haloR);
+
+  // === TAŞ ÇERÇEVE (gradient) ===
+  const frameGrad = ctx.createLinearGradient(d.x - 5, 0, d.x + d.w + 5, 0);
+  frameGrad.addColorStop(0, '#1a0a15');
+  frameGrad.addColorStop(0.3, '#3a2530');
+  frameGrad.addColorStop(0.5, '#5a3a4a');
+  frameGrad.addColorStop(0.7, '#3a2530');
+  frameGrad.addColorStop(1, '#1a0a15');
+  ctx.fillStyle = frameGrad;
   ctx.beginPath();
-  ctx.moveTo(d.x - 4, d.y + 4);
-  ctx.lineTo(d.x - 4, d.y + d.h);
-  ctx.lineTo(d.x + d.w + 4, d.y + d.h);
-  ctx.lineTo(d.x + d.w + 4, d.y + 4);
-  ctx.arc(cx, d.y + 4, d.w/2 + 4, 0, Math.PI, true);
+  ctx.moveTo(d.x - 5, d.y + d.h);
+  ctx.lineTo(d.x - 5, d.y + 6);
+  ctx.arc(cx, d.y + 6, d.w/2 + 5, Math.PI, 0, false);
+  ctx.lineTo(d.x + d.w + 5, d.y + d.h);
   ctx.closePath();
   ctx.fill();
 
-  // Kapı içi (karakterin rengine göre)
-  ctx.fillStyle = def.color + '30';
-  ctx.beginPath();
-  ctx.moveTo(d.x, d.y + 8);
-  ctx.lineTo(d.x, d.y + d.h);
-  ctx.lineTo(d.x + d.w, d.y + d.h);
-  ctx.lineTo(d.x + d.w, d.y + 8);
-  ctx.arc(cx, d.y + 8, d.w/2, 0, Math.PI, true);
-  ctx.closePath();
-  ctx.fill();
-
-  // Kapı çizgileri (aşağı doğru ahap)
-  ctx.strokeStyle = def.color;
-  ctx.lineWidth = 2;
-  ctx.beginPath();
-  ctx.moveTo(d.x, d.y + 8);
-  ctx.lineTo(d.x, d.y + d.h);
-  ctx.lineTo(d.x + d.w, d.y + d.h);
-  ctx.lineTo(d.x + d.w, d.y + 8);
-  ctx.arc(cx, d.y + 8, d.w/2, 0, Math.PI, true);
-  ctx.stroke();
-
-  // Ortada büyük karakter sembolü
-  ctx.font = 'bold 26px sans-serif';
-  ctx.textAlign = 'center';
-  ctx.fillStyle = def.color;
-  ctx.shadowColor = def.color;
-  ctx.shadowBlur = 10;
-  ctx.fillText(def.emoji, cx, d.y + d.h - 18);
-  ctx.shadowBlur = 0;
-
-  // Kapı tokmakı
-  ctx.fillStyle = '#ffd43b';
-  ctx.beginPath();
-  ctx.arc(d.x + d.w - 6, d.y + d.h - 22, 2, 0, Math.PI * 2);
-  ctx.fill();
-
-  // Eğer ulaşıldıysa - parlayan check
-  if (d.reached) {
-    ctx.fillStyle = 'rgba(78,205,196,0.4)';
-    ctx.fillRect(d.x, d.y, d.w, d.h);
-    ctx.strokeStyle = '#4ecdc4';
-    ctx.lineWidth = 3;
+  // === TAŞ BLOK ÇİZGİLERİ ===
+  ctx.strokeStyle = 'rgba(0,0,0,0.5)';
+  ctx.lineWidth = 1;
+  for (let i = 0; i < 4; i++) {
+    const yy = d.y + 14 + i * (d.h - 18) / 4;
     ctx.beginPath();
-    ctx.moveTo(cx - 8, d.y + d.h - 30);
-    ctx.lineTo(cx - 2, d.y + d.h - 22);
-    ctx.lineTo(cx + 10, d.y + d.h - 38);
+    ctx.moveTo(d.x - 5, yy);
+    ctx.lineTo(d.x, yy);
+    ctx.moveTo(d.x + d.w, yy);
+    ctx.lineTo(d.x + d.w + 5, yy);
     ctx.stroke();
   }
+  // Kemer taş ayrımları
+  for (let i = 1; i < 6; i++) {
+    const a = Math.PI + (i / 6) * Math.PI;
+    const x1 = cx + Math.cos(a) * (d.w/2 + 5);
+    const y1 = d.y + 6 + Math.sin(a) * (d.w/2 + 5);
+    const x2 = cx + Math.cos(a) * (d.w/2);
+    const y2 = d.y + 6 + Math.sin(a) * (d.w/2);
+    ctx.beginPath();
+    ctx.moveTo(x1, y1);
+    ctx.lineTo(x2, y2);
+    ctx.stroke();
+  }
+
+  // === KAPI İÇİ (karakter rengi gradient + ahşap doku) ===
+  const innerGrad = ctx.createLinearGradient(0, d.y + 6, 0, d.y + d.h);
+  innerGrad.addColorStop(0, def.color + 'aa');
+  innerGrad.addColorStop(0.4, def.color + '88');
+  innerGrad.addColorStop(0.8, def.dark + '99');
+  innerGrad.addColorStop(1, def.dark + 'aa');
+  ctx.fillStyle = innerGrad;
+  ctx.beginPath();
+  ctx.moveTo(d.x, d.y + d.h);
+  ctx.lineTo(d.x, d.y + 6);
+  ctx.arc(cx, d.y + 6, d.w/2, Math.PI, 0, false);
+  ctx.lineTo(d.x + d.w, d.y + d.h);
+  ctx.closePath();
+  ctx.fill();
+
+  // Ahşap dikey çizgiler
+  ctx.strokeStyle = 'rgba(0, 0, 0, 0.35)';
+  ctx.lineWidth = 1;
+  for (let xx = d.x + 5; xx < d.x + d.w; xx += 6) {
+    ctx.beginPath();
+    ctx.moveTo(xx, d.y + 12);
+    ctx.lineTo(xx, d.y + d.h - 2);
+    ctx.stroke();
+  }
+
+  // === İÇ KENAR (parlak) ===
+  ctx.strokeStyle = def.glow || def.color;
+  ctx.lineWidth = 2.5;
+  ctx.beginPath();
+  ctx.moveTo(d.x, d.y + d.h);
+  ctx.lineTo(d.x, d.y + 6);
+  ctx.arc(cx, d.y + 6, d.w/2, Math.PI, 0, false);
+  ctx.lineTo(d.x + d.w, d.y + d.h);
+  ctx.stroke();
+
+  // === ORTADA EMOJİ (büyük + glow) ===
+  ctx.save();
+  ctx.font = 'bold 22px sans-serif';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.shadowColor = def.glow || def.color;
+  ctx.shadowBlur = 14;
+  ctx.fillStyle = '#fff';
+  ctx.fillText(def.emoji, cx, d.y + d.h/2 + 3);
+  ctx.shadowBlur = 0;
+  ctx.restore();
+
+  // === ZİRVE PARLAK TAŞ ===
+  ctx.fillStyle = def.glow || def.color;
+  ctx.shadowColor = def.color;
+  ctx.shadowBlur = 8;
+  ctx.beginPath();
+  ctx.arc(cx, d.y + 4, 3, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.shadowBlur = 0;
+
+  // === KAPI TOKMAĞI (altın) ===
+  const knobX = d.x + d.w - 7;
+  const knobY = d.y + d.h - 16;
+  const knobGrad = ctx.createRadialGradient(knobX - 1, knobY - 1, 0, knobX, knobY, 4);
+  knobGrad.addColorStop(0, '#fffbeb');
+  knobGrad.addColorStop(0.4, '#fcd34d');
+  knobGrad.addColorStop(1, '#92400e');
+  ctx.fillStyle = knobGrad;
+  ctx.beginPath();
+  ctx.arc(knobX, knobY, 3, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.strokeStyle = '#451a03';
+  ctx.lineWidth = 1;
+  ctx.stroke();
+
+  // === ULAŞILMIŞ DURUM ===
+  if (d.reached) {
+    ctx.fillStyle = `rgba(78, 205, 196, ${0.35 + pulse * 0.15})`;
+    ctx.beginPath();
+    ctx.moveTo(d.x, d.y + d.h);
+    ctx.lineTo(d.x, d.y + 6);
+    ctx.arc(cx, d.y + 6, d.w/2, Math.PI, 0, false);
+    ctx.lineTo(d.x + d.w, d.y + d.h);
+    ctx.closePath();
+    ctx.fill();
+    // Tik
+    ctx.strokeStyle = '#10b981';
+    ctx.lineWidth = 4;
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+    ctx.shadowColor = '#fff';
+    ctx.shadowBlur = 10;
+    ctx.beginPath();
+    ctx.moveTo(cx - 10, d.y + d.h/2 - 2);
+    ctx.lineTo(cx - 2, d.y + d.h/2 + 6);
+    ctx.lineTo(cx + 12, d.y + d.h/2 - 10);
+    ctx.stroke();
+    ctx.shadowBlur = 0;
+  }
   ctx.textAlign = 'start';
+  ctx.textBaseline = 'alphabetic';
 }
 
 // ============================================================
