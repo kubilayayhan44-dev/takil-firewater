@@ -11442,6 +11442,12 @@ function getThemeForLevel(lvl) {
 //   '1' = Magma kapısı
 //   '2' = Aqua kapısı
 //   'D' = ikisi birden kapı (iki karakter gerek)
+//   'E' = ASANSÖR (yukarı-aşağı plaka ile)
+//   'e' = KOL (E tuşu ile aç/kapa)
+//   'o' = İTİLEN KUTU
+//   'r' = DÜĞME (basıp toggle)
+//   '@' = PORTAL
+//   'F' = YEL FAN (yukarı üfler)
 //
 // Grid boyutu: 30x16 tile (900x500 px @ TILE=30)
 // ============================================================
@@ -11454,425 +11460,365 @@ function getThemeForLevel(lvl) {
 // Levels = LEVELS[index] burada index 0..99 → bölüm 1..100
 
 const LEVEL_TEMPLATES = (function() {
-  // Yardımcı: bölme oluştur (16 satır × 30 sütun)
   function empty() {
     return Array.from({length: 16}, () => '.'.repeat(30).split(''));
   }
-  
-  // Çizgi çek (yatay/dikey)
-  function hLine(g, y, x1, x2, c) {
-    for (let x = x1; x <= x2; x++) g[y][x] = c;
-  }
-  function vLine(g, x, y1, y2, c) {
-    for (let y = y1; y <= y2; y++) g[y][x] = c;
-  }
+  function hLine(g, y, x1, x2, c) { for (let x = x1; x <= x2; x++) g[y][x] = c; }
+  function vLine(g, x, y1, y2, c) { for (let y = y1; y <= y2; y++) g[y][x] = c; }
   function box(g, x1, y1, x2, y2, c) {
     for (let y = y1; y <= y2; y++)
       for (let x = x1; x <= x2; x++) g[y][x] = c;
   }
-  
-  // Standart zemin + duvarlar
   function baseLayout() {
     const g = empty();
-    // Tabanda ana zemin (satır 14-15)
     hLine(g, 15, 0, 29, '#');
     hLine(g, 14, 0, 29, '#');
     return g;
   }
-  
-  // Bölme şablonları oluştur (1..100)
+
   const levels = [];
-  
-  // ============ BÖLÜM 1: TUTORIAL — DÜZ ZEMİN ============
+
+  // ============ BÖLÜM 1: KARSILASMA - Hareket öğrenme ============
   {
     const g = baseLayout();
-    g[13][2] = 'A';
-    g[13][4] = 'W';
-    g[13][6] = 'C';   // checkpoint
-    g[13][10] = 'S';  // ortada yıldız
-    g[13][20] = 'S';
-    g[13][26] = '1';  // Magma kapısı
-    g[13][27] = '2';  // Aqua kapısı
-    levels.push({ name: 'Karşılaşma', grid: g, hint: 'WAD ile hareket, beraber kapıya gidin' });
+    g[13][2] = 'A'; g[13][4] = 'W';
+    g[13][10] = 'S'; g[13][20] = 'S';
+    g[13][26] = '1'; g[13][27] = '2';
+    levels.push({ name: 'Karşılaşma', grid: g, hint: 'WAD/Ok tuşları ile hareket et, kapıya git' });
   }
-  
-  // ============ BÖLÜM 2: KÜÇÜK BOŞLUK ============
+
+  // ============ BÖLÜM 2: İLK ATLAYIŞ - Boşluk atlama ============
   {
     const g = baseLayout();
-    // 12-13 arası boşluk
-    g[14][12] = '.'; g[15][12] = '.';
-    g[14][13] = '.'; g[15][13] = '.';
+    box(g, 12, 14, 13, 15, '.'); // küçük boşluk
     g[13][2] = 'A'; g[13][4] = 'W';
     g[13][16] = 'S';
     g[13][26] = '1'; g[13][27] = '2';
-    levels.push({ name: 'İlk Atlayış', grid: g, hint: 'W tuşuyla atlayın' });
+    levels.push({ name: 'İlk Atlayış', grid: g, hint: 'W tuşuyla zıpla, boşluktan geç' });
   }
-  
-  // ============ BÖLÜM 3: LAV + SU BAŞLANGIÇ ============
+
+  // ============ BÖLÜM 3: LAV VE SU - Element bilgisi ============
   {
     const g = baseLayout();
-    // 9-11: lav (Magma yüzer), 18-20: su (Aqua yüzer)
-    box(g, 9, 14, 11, 15, '^');
-    box(g, 18, 14, 20, 15, '~');
+    box(g, 9, 14, 11, 15, '^');   // lav: Magma yüzer
+    box(g, 18, 14, 20, 15, '~');  // su: Aqua yüzer
     g[13][2] = 'A'; g[13][4] = 'W';
     g[13][14] = 'S';
     g[13][26] = '1'; g[13][27] = '2';
-    levels.push({ name: 'İlk Sınav', grid: g, hint: 'Magma lavda yüzer, Aqua suda yüzer' });
+    levels.push({ name: 'Element Sınavı', grid: g, hint: 'Magma lavda yüzer, Aqua suda. Ters olmak ÖLÜM!' });
   }
-  
-  // ============ BÖLÜM 4: PLATFORM ÜSTÜNDEN ============
+
+  // ============ BÖLÜM 4: KÖPRÜLÜ GEÇİŞ ============
   {
     const g = baseLayout();
-    // Lav: 13-17 (Magma yüzer, Aqua ölür)
     box(g, 13, 14, 16, 15, '^');
-    // Su: 21-25 (Aqua yüzer, Magma ölür)
     box(g, 21, 14, 25, 15, '~');
-    // Yüksek platform/köprü (zıplanabilir mesafede)
-    hLine(g, 12, 12, 17, '=');
-    // Küçük ara basamaklar (zıplayıp çıkmak için)
-    g[13][11] = '='; // sol basamak
-    g[13][18] = '='; // sağ basamak
-    // Su üstünde Aqua için basamak
-    g[13][20] = '=';
-    g[13][26] = '=';
+    hLine(g, 12, 12, 17, '=');     // üst köprü
+    g[13][11] = '='; g[13][18] = '=';
+    g[13][20] = '='; g[13][26] = '=';
     g[13][2] = 'A'; g[13][4] = 'W';
     g[11][14] = 'S';
     g[13][27] = '1'; g[13][28] = '2';
-    levels.push({ name: 'Köprülü Geçiş', grid: g, hint: 'Basamaklardan zıplayıp köprüye çıkın' });
+    levels.push({ name: 'Köprülü Geçiş', grid: g, hint: 'Basamaklardan zıplayıp köprüyü kullan' });
   }
-  
-  // ============ BÖLÜM 5: BASINÇ PLAKASI ============
+
+  // ============ BÖLÜM 5: PLAKA + KÖPRÜ ============
   {
     const g = baseLayout();
-    box(g, 13, 14, 18, 15, '*');     // diken bölgesi
-    hLine(g, 11, 7, 11, '=');         // üst platform
-    vLine(g, 7, 12, 13, '|');
-    vLine(g, 11, 12, 13, '|');
-    g[13][9] = 'p';                   // plaka
-    g[13][20] = 'b';                  // köprü (kapalı)
+    box(g, 12, 14, 18, 15, '^');     // büyük lav
+    g[13][8] = 'p';                  // basınç plakası
+    box(g, 12, 12, 18, 12, 'b');     // köprü (plaka açar)
     g[13][2] = 'A'; g[13][4] = 'W';
-    g[10][9] = 'S';
+    g[11][15] = 'S';
     g[13][26] = '1'; g[13][27] = '2';
-    levels.push({ name: 'Plaka Mantığı', grid: g, hint: 'Plakaya basanın, diğerinin köprüsü açılır' });
+    levels.push({ name: 'Plaka Mantığı', grid: g, hint: 'Plakaya bas → köprü açılır' });
   }
-  
-  // ============ BÖLÜM 6: İKİ AYRI YOL ============
+
+  // ============ BÖLÜM 6: ANAHTAR VE KİLİT ============
   {
     const g = baseLayout();
-    box(g, 8, 14, 14, 15, '~');      // su
-    box(g, 16, 14, 22, 15, '^');     // lav
+    box(g, 10, 14, 14, 15, '^');
+    g[13][8] = '=';
+    g[13][16] = '=';
+    g[13][20] = 'k';                 // anahtar
+    box(g, 24, 13, 24, 13, 'l');     // kilit
     g[13][2] = 'A'; g[13][4] = 'W';
-    g[13][15] = 'S';
-    g[13][26] = '1'; g[13][27] = '2';
-    levels.push({ name: 'Ayrı Yollar', grid: g, hint: 'Magma sudan geçemez, Aqua lavdan!' });
-  }
-  
-  // ============ BÖLÜM 7: ÇİFTLİ PLAKA (TAKIM) ============
-  {
-    const g = baseLayout();
-    box(g, 14, 14, 19, 15, '*');     // diken
-    g[13][8] = 'q';                   // çift plaka (Magma için)
-    g[13][10] = 'q';                  // çift plaka (Aqua için)
-    g[13][20] = 'b';                  // köprü
-    g[13][2] = 'A'; g[13][4] = 'W';
-    g[13][26] = '1'; g[13][27] = '2';
-    levels.push({ name: 'Çift Anahtar', grid: g, hint: 'İkinizin de aynı anda plakaya basması gerek' });
-  }
-  
-  // ============ BÖLÜM 8: ZIPLAMA PADİ ============
-  {
-    const g = baseLayout();
-    box(g, 12, 14, 18, 15, '~');
-    g[13][13] = 'B';                  // sıçrama padi
-    hLine(g, 9, 11, 19, '=');         // üst platform
-    vLine(g, 11, 10, 13, '|');
-    vLine(g, 19, 10, 13, '|');
-    g[13][2] = 'A'; g[13][4] = 'W';
-    g[8][15] = 'S';
-    g[13][26] = '1'; g[13][27] = '2';
-    levels.push({ name: 'Sıçrama', grid: g, hint: 'B padine bas, yüksek zıpla' });
-  }
-  
-  // ============ BÖLÜM 9: DİKEY TIRMAN ============
-  {
-    const g = baseLayout();
-    hLine(g, 11, 0, 8, '=');          // alt platform
-    hLine(g, 8, 12, 22, '=');         // orta
-    hLine(g, 5, 18, 29, '=');         // üst
-    vLine(g, 8, 12, 13, '|');
-    vLine(g, 12, 9, 13, '|');
-    vLine(g, 22, 9, 13, '|');
-    vLine(g, 18, 6, 13, '|');
-    g[13][2] = 'A'; g[13][4] = 'W';
-    g[10][5] = 'S'; g[7][15] = 'S'; g[4][24] = 'S';
-    g[4][26] = '1'; g[4][27] = '2';
-    levels.push({ name: 'Tırmanış', grid: g, hint: 'Yukarı çıkın, sağdaki kapılara' });
-  }
-  
-  // ============ BÖLÜM 10: TUTORIAL BİTİŞ — KARMA ============
-  {
-    const g = baseLayout();
-    box(g, 6, 14, 9, 15, '^');         // lav
-    box(g, 14, 14, 17, 15, '~');       // su
-    box(g, 22, 14, 25, 15, '*');       // diken
-    g[13][12] = 'p';                   // plaka
-    g[13][23] = 'b';                   // köprü
-    hLine(g, 11, 5, 10, '=');
-    vLine(g, 5, 12, 13, '|');
-    vLine(g, 10, 12, 13, '|');
-    hLine(g, 11, 13, 18, '=');
-    vLine(g, 13, 12, 13, '|');
-    vLine(g, 18, 12, 13, '|');
-    g[13][2] = 'A'; g[13][4] = 'W';
-    g[10][7] = 'S'; g[10][16] = 'G';   // elmas
+    g[11][12] = 'S';
     g[13][27] = '1'; g[13][28] = '2';
-    levels.push({ name: 'Mezuniyet', grid: g, hint: 'Tüm öğrendiklerini kullan!' });
+    levels.push({ name: 'Anahtar Yolu', grid: g, hint: 'Anahtarı (k) al → Kilidi (l) aç' });
   }
-  
-  // ============================================================
-  // BÖLÜM 11-30: ARA SEVİYE (timing + moving platform)
-  // ============================================================
-  for (let n = 11; n <= 30; n++) {
+
+  // ============ BÖLÜM 7: İKİLİ PLAKA - Co-op ============
+  {
     const g = baseLayout();
-    const variant = (n - 11) % 5;
+    box(g, 13, 14, 17, 15, '*');     // dikenler
+    g[13][8] = 'q'; g[13][22] = 'q'; // ikili plaka - aynı anda
+    hLine(g, 12, 12, 18, 'b');       // köprü
     g[13][2] = 'A'; g[13][4] = 'W';
-    
-    if (variant === 0) {
-      // Hareketli platform yatay
-      box(g, 8, 14, 12, 15, '^');
-      box(g, 16, 14, 22, 15, '~');
-      g[11][9] = 'M';      // yatay moving (8→12)
-      g[11][18] = 'M';     // yatay moving (16→22)
-      hLine(g, 8, 6, 14, '=');
-      vLine(g, 6, 9, 13, '|'); vLine(g, 14, 9, 13, '|');
-      hLine(g, 8, 15, 23, '=');
-      vLine(g, 15, 9, 13, '|'); vLine(g, 23, 9, 13, '|');
-      g[7][10] = 'S'; g[7][19] = 'S';
-    } else if (variant === 1) {
-      // Çift kapı + plaka
-      box(g, 10, 14, 19, 15, '*');
-      g[13][7] = 'q'; g[13][22] = 'q';
-      g[13][14] = 'b';
-      hLine(g, 9, 5, 25, '=');
-      vLine(g, 5, 10, 13, '|'); vLine(g, 25, 10, 13, '|');
-      g[8][15] = 'S';
-    } else if (variant === 2) {
-      // Dikey platform
-      box(g, 8, 14, 20, 15, '~');
-      g[12][14] = 'V';
-      hLine(g, 5, 12, 18, '=');
-      vLine(g, 12, 6, 13, '|'); vLine(g, 18, 6, 13, '|');
-      g[4][15] = 'S';
-    } else if (variant === 3) {
-      // Lazer + plaka kapatma
-      box(g, 12, 14, 17, 15, '*');
-      vLine(g, 9, 8, 13, 'L');           // dikey lazer
-      g[13][6] = 'p'; g[13][20] = 'b';
-      hLine(g, 6, 8, 11, '=');
-      vLine(g, 8, 7, 13, '|'); vLine(g, 11, 7, 13, '|');
-      g[5][9] = 'S';
-    } else {
-      // Karma — herkes için zorluk
-      box(g, 6, 14, 9, 15, '^');
-      box(g, 14, 14, 17, 15, '~');
-      box(g, 22, 14, 25, 15, 'a');     // asit
-      hLine(g, 11, 5, 26, '=');
-      vLine(g, 5, 12, 13, '|'); vLine(g, 26, 12, 13, '|');
-      g[10][8] = 'S'; g[10][16] = 'G'; g[10][24] = 'S';
-    }
-    
-    // Kapılar
+    g[11][15] = 'S';
     g[13][26] = '1'; g[13][27] = '2';
-    
-    // İlk seviyede checkpoint
-    if (n === 11) g[13][6] = 'C';
-    
-    levels.push({
-      name: `Ara Bölüm ${n - 10}`,
-      grid: g,
-      hint: 'Takım çalışması ile geç!'
-    });
+    levels.push({ name: 'Birlikte Çalışma', grid: g, hint: 'İKİ plakaya AYNI ANDA basın!' });
   }
-  
-  // ============================================================
-  // BÖLÜM 31-60: ZORLU (çoklu yol + zincirli mekanik)
-  // ============================================================
-  for (let n = 31; n <= 60; n++) {
+
+  // ============ BÖLÜM 8: SIÇRAMA PADİ ============
+  {
     const g = baseLayout();
-    const variant = (n - 31) % 6;
+    box(g, 8, 14, 18, 15, '^');
+    g[13][6] = 'B';                  // sıçrama padi
+    box(g, 6, 7, 23, 7, '=');        // yüksek platform
     g[13][2] = 'A'; g[13][4] = 'W';
-    
-    if (variant === 0) {
-      // İki katlı + çift hazard
-      box(g, 6, 14, 11, 15, '^');
-      box(g, 18, 14, 23, 15, '~');
-      hLine(g, 11, 4, 13, '=');
-      vLine(g, 4, 12, 13, '|'); vLine(g, 13, 12, 13, '|');
-      hLine(g, 11, 16, 25, '=');
-      vLine(g, 16, 12, 13, '|'); vLine(g, 25, 12, 13, '|');
-      // Üst kat
-      hLine(g, 7, 10, 19, '=');
-      vLine(g, 10, 8, 11, '|'); vLine(g, 19, 8, 11, '|');
-      g[10][8] = 'S'; g[10][20] = 'S'; g[6][14] = 'G';
-    } else if (variant === 1) {
-      // Lazer dizisi
-      box(g, 10, 14, 19, 15, '*');
-      vLine(g, 8, 8, 13, 'L');
-      vLine(g, 14, 6, 13, 'L');
-      vLine(g, 20, 8, 13, 'L');
-      g[13][6] = 'q'; g[13][22] = 'q'; // ikisi de basmalı
-      hLine(g, 5, 7, 21, '=');
-      vLine(g, 7, 6, 13, '|'); vLine(g, 21, 6, 13, '|');
-      g[4][14] = 'S';
-    } else if (variant === 2) {
-      // Crusher (piston)
-      box(g, 8, 14, 12, 15, '^');
-      g[10][10] = 'P';   // tavandan iner
-      box(g, 16, 14, 22, 15, '~');
-      g[8][19] = 'P';
-      hLine(g, 11, 6, 14, '=');
-      vLine(g, 6, 12, 13, '|'); vLine(g, 14, 12, 13, '|');
-      hLine(g, 8, 15, 24, '=');
-      vLine(g, 15, 9, 13, '|'); vLine(g, 24, 9, 13, '|');
-      g[10][10] = 'S';
-    } else if (variant === 3) {
-      // Düşen platformlar
-      box(g, 10, 14, 19, 15, '*');
-      g[12][12] = 'X'; g[12][15] = 'X'; g[12][18] = 'X';
-      g[10][13] = 'S'; g[10][16] = 'G';
-    } else if (variant === 4) {
-      // Dikey yükselen
-      box(g, 6, 14, 23, 15, '~');
-      box(g, 6, 14, 23, 14, '~');
-      g[13][6] = 'V'; g[13][12] = 'V'; g[13][18] = 'V';
-      hLine(g, 5, 4, 25, '=');
-      vLine(g, 4, 6, 13, '|'); vLine(g, 25, 6, 13, '|');
-      g[4][14] = 'S';
-    } else {
-      // Karma çok katlı
-      box(g, 6, 14, 9, 15, '^');
-      box(g, 14, 14, 17, 15, '~');
-      box(g, 22, 14, 25, 15, 'a');
-      hLine(g, 11, 5, 26, '=');
-      vLine(g, 5, 12, 13, '|'); vLine(g, 26, 12, 13, '|');
-      hLine(g, 8, 9, 22, '=');
-      vLine(g, 9, 9, 11, '|'); vLine(g, 22, 9, 11, '|');
-      hLine(g, 5, 13, 18, '=');
-      vLine(g, 13, 6, 8, '|'); vLine(g, 18, 6, 8, '|');
-      g[10][7] = 'S'; g[7][15] = 'G'; g[4][15] = 'S';
-    }
-    
-    g[13][26] = '1'; g[13][27] = '2';
-    if (n === 31) g[13][6] = 'C';
-    
-    levels.push({
-      name: `Zorlu ${n - 30}`,
-      grid: g,
-      hint: 'Daha fazla takım planlaması gerek'
-    });
+    g[6][14] = 'S';
+    g[6][26] = '1'; g[6][27] = '2';
+    levels.push({ name: 'Yüksek Atlayış', grid: g, hint: 'B padine bas → yükseğe zıpla' });
   }
-  
-  // ============================================================
-  // BÖLÜM 61-100: PROFESYONEL (uzun, çok aşamalı)
-  // ============================================================
-  for (let n = 61; n <= 100; n++) {
+
+  // ============ BÖLÜM 9: ASANSÖR İLK ============
+  {
     const g = baseLayout();
-    const variant = (n - 61) % 8;
+    box(g, 14, 14, 18, 15, '~');     // su
+    g[13][10] = 'E';                 // ASANSÖR
+    g[7][12] = '=';                  // üst kat
+    g[7][13] = '='; g[7][14] = '=';
+    g[6][13] = 'S';
     g[13][2] = 'A'; g[13][4] = 'W';
-    
-    if (variant === 0) {
-      // Mega lab
-      box(g, 5, 14, 8, 15, '^');
-      box(g, 11, 14, 14, 15, '~');
-      box(g, 17, 14, 20, 15, '^');
-      box(g, 23, 14, 26, 15, '~');
-      // İnce platformlar üstte
-      hLine(g, 11, 4, 9, '='); vLine(g, 4, 12, 13, '|'); vLine(g, 9, 12, 13, '|');
-      hLine(g, 11, 10, 15, '='); vLine(g, 10, 12, 13, '|'); vLine(g, 15, 12, 13, '|');
-      hLine(g, 11, 16, 21, '='); vLine(g, 16, 12, 13, '|'); vLine(g, 21, 12, 13, '|');
-      hLine(g, 11, 22, 27, '='); vLine(g, 22, 12, 13, '|'); vLine(g, 27, 12, 13, '|');
-      g[10][6] = 'S'; g[10][12] = 'G'; g[10][18] = 'S'; g[10][24] = 'S';
-    } else if (variant === 1) {
-      // Lazer + crusher karma
-      box(g, 8, 14, 22, 15, '*');
-      vLine(g, 10, 8, 13, 'L');
-      vLine(g, 16, 8, 13, 'L');
-      vLine(g, 20, 8, 13, 'L');
-      g[10][13] = 'P';
-      hLine(g, 5, 7, 23, '=');
-      vLine(g, 7, 6, 13, '|'); vLine(g, 23, 6, 13, '|');
-      g[4][15] = 'G';
-    } else if (variant === 2) {
-      // Tam timing (moving + crusher)
-      box(g, 6, 14, 24, 15, '~');
-      g[12][8] = 'M'; g[12][14] = 'M'; g[12][20] = 'M';
-      g[8][11] = 'P'; g[8][17] = 'P';
-      hLine(g, 5, 4, 26, '=');
-      vLine(g, 4, 6, 13, '|'); vLine(g, 26, 6, 13, '|');
-      g[4][15] = 'S';
-    } else if (variant === 3) {
-      // Plaka zinciri (3 plaka)
-      box(g, 8, 14, 23, 15, '*');
-      g[13][6] = 'p'; g[13][12] = 'p'; g[13][24] = 'b';
-      hLine(g, 9, 7, 25, '=');
-      vLine(g, 7, 10, 13, '|'); vLine(g, 25, 10, 13, '|');
-      g[8][15] = 'S';
-    } else if (variant === 4) {
-      // Asit + lav + su 3'lü
-      box(g, 4, 14, 8, 15, 'a');
-      box(g, 12, 14, 16, 15, '^');
-      box(g, 20, 14, 24, 15, '~');
-      hLine(g, 11, 3, 9, '='); vLine(g, 3, 12, 13, '|'); vLine(g, 9, 12, 13, '|');
-      hLine(g, 11, 11, 17, '='); vLine(g, 11, 12, 13, '|'); vLine(g, 17, 12, 13, '|');
-      hLine(g, 11, 19, 25, '='); vLine(g, 19, 12, 13, '|'); vLine(g, 25, 12, 13, '|');
-      g[10][6] = 'S'; g[10][14] = 'G'; g[10][22] = 'S';
-    } else if (variant === 5) {
-      // Dikey kale
-      hLine(g, 11, 0, 9, '=');
-      hLine(g, 8, 12, 21, '=');
-      hLine(g, 5, 16, 29, '=');
-      hLine(g, 2, 20, 29, '=');
-      vLine(g, 12, 9, 13, '|'); vLine(g, 21, 9, 13, '|');
-      vLine(g, 16, 6, 8, '|'); vLine(g, 29, 6, 8, '|');
-      vLine(g, 20, 3, 5, '|'); vLine(g, 29, 3, 5, '|');
-      box(g, 10, 14, 11, 15, '^');
-      g[10][5] = 'S'; g[7][17] = 'G'; g[4][24] = 'S'; g[1][25] = 'G';
-    } else if (variant === 6) {
-      // Double switch + key/lock
-      box(g, 10, 14, 19, 15, '~');
-      g[13][6] = 'q'; g[13][22] = 'q'; g[13][14] = 'b';
-      hLine(g, 7, 9, 20, '='); vLine(g, 9, 8, 13, '|'); vLine(g, 20, 8, 13, '|');
-      g[6][14] = 'k';
-      g[13][25] = 'l';
-      g[6][15] = 'S';
-    } else {
-      // FINAL TARZI — uzun, çoklu mekanik
-      box(g, 5, 14, 7, 15, '^');
-      box(g, 11, 14, 13, 15, '~');
-      box(g, 17, 14, 19, 15, '^');
-      box(g, 23, 14, 25, 15, '~');
-      // İnce platformlar
-      hLine(g, 11, 4, 8, '='); vLine(g, 4, 12, 13, '|'); vLine(g, 8, 12, 13, '|');
-      hLine(g, 11, 10, 14, '='); vLine(g, 10, 12, 13, '|'); vLine(g, 14, 12, 13, '|');
-      hLine(g, 11, 16, 20, '='); vLine(g, 16, 12, 13, '|'); vLine(g, 20, 12, 13, '|');
-      hLine(g, 11, 22, 26, '='); vLine(g, 22, 12, 13, '|'); vLine(g, 26, 12, 13, '|');
-      // Üst kat lazer
-      hLine(g, 7, 6, 24, '=');
-      vLine(g, 12, 8, 11, 'L'); vLine(g, 18, 8, 11, 'L');
-      g[6][15] = 'G';
-      g[10][6] = 'S'; g[10][12] = 'S'; g[10][18] = 'S'; g[10][24] = 'S';
-    }
-    
     g[13][26] = '1'; g[13][27] = '2';
-    if (n === 61) g[13][6] = 'C';
-    
-    levels.push({
-      name: `Pro ${n - 60}`,
-      grid: g,
-      hint: 'Mücadele başlasın!'
-    });
+    levels.push({ name: 'İlk Asansör', grid: g, hint: 'Asansör (E) üstüne bas, otomatik yukarı çıkar' });
   }
-  
+
+  // ============ BÖLÜM 10: ASANSÖR + PLAKA ============
+  {
+    const g = baseLayout();
+    box(g, 12, 14, 20, 15, '^');     // lav
+    g[13][8] = 'p';                  // plaka (asansörü kontrol eder)
+    g[13][16] = 'E';                 // ASANSÖR (plaka açar)
+    g[7][14] = '='; g[7][15] = '='; g[7][16] = '=';
+    g[7][17] = '='; g[7][18] = '=';
+    g[6][16] = 'S';
+    g[13][2] = 'A'; g[13][4] = 'W';
+    g[7][26] = '1'; g[7][27] = '2';
+    hLine(g, 7, 19, 28, '=');        // üst köprü kapılara
+    levels.push({ name: 'Plaka + Asansör', grid: g, hint: 'Plakaya bas → asansör çıksın → diğeri tırmansın' });
+  }
+
+  // ============ BÖLÜM 11: KOL (LEVER) ============
+  {
+    const g = baseLayout();
+    box(g, 10, 14, 20, 15, '^');
+    g[13][6] = 'e';                  // kol (E tuşu ile toggle)
+    box(g, 10, 11, 20, 11, 'b');     // köprü
+    g[13][2] = 'A'; g[13][4] = 'W';
+    g[10][15] = 'S';
+    g[13][26] = '1'; g[13][27] = '2';
+    levels.push({ name: 'Kol Sistemi', grid: g, hint: 'Kolun yanına git ve "E" tuşuna bas' });
+  }
+
+  // ============ BÖLÜM 12: KUTU İTME ============
+  {
+    const g = baseLayout();
+    box(g, 14, 14, 18, 15, '^');
+    g[13][6] = 'o';                  // kutu
+    g[13][8] = '=';                  // basamak
+    g[13][10] = '=';
+    hLine(g, 11, 12, 19, '=');       // üst köprü
+    g[13][2] = 'A'; g[13][4] = 'W';
+    g[10][16] = 'S';
+    g[13][26] = '1'; g[13][27] = '2';
+    levels.push({ name: 'Kutu Bul', grid: g, hint: 'Kutu (o) yan yan it, üstüne çık' });
+  }
+
+  // ============ BÖLÜM 13: DÜĞME (TEK SEFER) ============
+  {
+    const g = baseLayout();
+    box(g, 10, 14, 16, 15, '~');
+    g[13][7] = 'r';                  // düğme
+    hLine(g, 11, 10, 17, 'b');       // köprü (düğme açar)
+    g[13][2] = 'A'; g[13][4] = 'W';
+    g[10][13] = 'S';
+    g[13][26] = '1'; g[13][27] = '2';
+    levels.push({ name: 'Düğme Mantığı', grid: g, hint: 'Düğmeye bas → köprü kalıcı açılır' });
+  }
+
+  // ============ BÖLÜM 14: HAREKETLİ PLATFORM ============
+  {
+    const g = baseLayout();
+    box(g, 10, 14, 22, 15, '^');
+    g[11][12] = 'M';                 // yatay moving (12→18)
+    g[13][2] = 'A'; g[13][4] = 'W';
+    g[10][16] = 'S';
+    g[13][26] = '1'; g[13][27] = '2';
+    levels.push({ name: 'Hareketli Köprü', grid: g, hint: 'Hareketli platforma zıplayıp üstünden geç' });
+  }
+
+  // ============ BÖLÜM 15: PORTAL ============
+  {
+    const g = baseLayout();
+    box(g, 8, 14, 22, 15, '^');
+    g[13][5] = '@';                  // portal A
+    g[13][25] = '@';                 // portal B
+    g[13][2] = 'A'; g[13][4] = 'W';
+    g[11][14] = 'S';
+    g[13][27] = '1'; g[13][28] = '2';
+    levels.push({ name: 'Portal Sıçraması', grid: g, hint: 'Portala (mavi daire) gir, diğerinde çıkarsın' });
+  }
+
+  // ============ BÖLÜM 16: FAN (RÜZGAR) ============
+  {
+    const g = baseLayout();
+    box(g, 10, 14, 20, 15, '^');
+    g[13][8] = 'F';                  // fan
+    box(g, 6, 6, 23, 7, '=');        // çok yüksek platform
+    g[5][14] = 'S';
+    g[13][2] = 'A'; g[13][4] = 'W';
+    g[6][26] = '1'; g[6][27] = '2';
+    levels.push({ name: 'Rüzgar Yükselişi', grid: g, hint: 'Fan üstünde dur, rüzgar seni yukarı taşır' });
+  }
+
+  // ============ BÖLÜM 17: DÜŞEN PLATFORM ============
+  {
+    const g = baseLayout();
+    box(g, 8, 14, 22, 15, '~');
+    hLine(g, 12, 9, 21, 'X');         // düşen platform
+    g[13][2] = 'A'; g[13][4] = 'W';
+    g[11][15] = 'S';
+    g[13][26] = '1'; g[13][27] = '2';
+    levels.push({ name: 'Aceleci Geçiş', grid: g, hint: 'Üstüne basınca düşer - HIZLI geç!' });
+  }
+
+  // ============ BÖLÜM 18: LAZER ENGELLERİ ============
+  {
+    const g = baseLayout();
+    box(g, 5, 14, 25, 15, '^');
+    vLine(g, 10, 8, 13, 'L');         // dikey lazer
+    vLine(g, 16, 8, 13, 'L');
+    vLine(g, 22, 8, 13, 'L');
+    hLine(g, 11, 6, 28, '=');         // üst platform
+    g[13][2] = 'A'; g[13][4] = 'W';
+    g[10][15] = 'S';
+    g[10][26] = '1'; g[10][27] = '2';
+    levels.push({ name: 'Lazer Tarlası', grid: g, hint: 'Lazerlere değme! Aralarından zıpla' });
+  }
+
+  // ============ BÖLÜM 19: ÇİFT ASANSÖR ============
+  {
+    const g = baseLayout();
+    box(g, 5, 14, 25, 15, '~');
+    g[13][7] = 'p';                   // plaka 1
+    g[13][22] = 'p';                  // plaka 2
+    g[13][10] = 'E';                  // asansör 1
+    g[13][18] = 'E';                  // asansör 2
+    g[7][11] = '='; g[7][12] = '=';
+    g[7][17] = '='; g[7][18] = '=';
+    hLine(g, 5, 11, 20, '=');         // tavan köprü
+    g[4][15] = 'S';
+    g[13][2] = 'A'; g[13][4] = 'W';
+    g[5][26] = '1'; g[5][27] = '2';
+    hLine(g, 5, 21, 28, '=');
+    levels.push({ name: 'Çift Asansör', grid: g, hint: 'Her biriniz bir plakaya basıp asansörlerle çıkın' });
+  }
+
+  // ============ BÖLÜM 20: KARMAŞIK YAPBOZ ============
+  {
+    const g = baseLayout();
+    // Çok katmanlı
+    box(g, 5, 14, 26, 15, '^');
+    // Alt kat
+    g[13][3] = 'k';                   // anahtar
+    g[13][8] = 'o';                   // kutu
+    g[13][12] = 'p';                  // plaka
+    box(g, 14, 11, 19, 11, 'b');      // köprü
+    // Orta kat
+    box(g, 6, 11, 13, 11, '=');       // platform
+    box(g, 20, 11, 26, 11, '=');
+    g[10][22] = 'l';                  // kilit
+    g[10][24] = 'k';                  // 2. anahtar
+    // Üst kat
+    hLine(g, 7, 5, 26, '=');
+    g[6][8] = 'E';                    // asansör
+    g[6][15] = 'S'; g[6][20] = 'S';
+    g[13][2] = 'A'; g[13][4] = 'W';
+    g[6][26] = '1'; g[6][27] = '2';
+    levels.push({ name: 'Yapboz Kalesi', grid: g, hint: 'Anahtar al → kutu it → plakaya bastır → köprü açılır → asansörle yukarı' });
+  }
+
+  // ============ BÖLÜM 21-25: HEDEF SAATİ ============
+  for (let i = 0; i < 5; i++) {
+    const g = baseLayout();
+    box(g, 5, 14, 26, 15, i % 2 ? '^' : '~');
+    // Random kombinasyon
+    const config = [
+      { feature: 'plaka_kopru', desc: 'Plakaya bas + köprüden geç + asansör' },
+      { feature: 'lazer_lever', desc: 'Lazerleri kol ile kapat' },
+      { feature: 'portal_kutu', desc: 'Kutu it + portala koy' },
+      { feature: 'fan_buton', desc: 'Düğmeye bas + fanı çalıştır' },
+      { feature: 'mega', desc: 'Her şey birlikte' },
+    ][i];
+    if (i === 0) {
+      g[13][7] = 'p'; g[13][14] = 'E'; box(g, 7, 7, 26, 7, '=');
+      g[6][15] = 'S'; g[7][26] = '1'; g[7][27] = '2';
+    } else if (i === 1) {
+      vLine(g, 10, 8, 13, 'L'); vLine(g, 16, 8, 13, 'L');
+      g[13][6] = 'e'; box(g, 5, 11, 27, 11, 'b');
+      g[10][15] = 'S'; g[13][27] = '1'; g[13][28] = '2';
+    } else if (i === 2) {
+      g[13][8] = 'o'; g[13][10] = '@'; g[13][22] = '@';
+      g[11][15] = 'S'; g[13][27] = '1'; g[13][28] = '2';
+    } else if (i === 3) {
+      g[13][7] = 'r'; box(g, 5, 11, 27, 11, 'b');
+      g[13][12] = 'F'; g[7][15] = 'S';
+      g[13][27] = '1'; g[13][28] = '2';
+    } else {
+      g[13][6] = 'k'; g[10][20] = 'l';
+      g[13][10] = 'o'; g[13][14] = 'p';
+      box(g, 16, 11, 24, 11, 'b');
+      g[13][18] = 'E';
+      g[8][15] = 'S'; g[13][27] = '1'; g[13][28] = '2';
+    }
+    g[13][2] = 'A'; g[13][4] = 'W';
+    levels.push({ name: `Mücadele ${i+1}`, grid: g, hint: config.desc });
+  }
+
+  // ============ BÖLÜM 26-30: USTA SEVİYE ============
+  for (let i = 0; i < 5; i++) {
+    const g = baseLayout();
+    // Çok engel + her şey karışık
+    box(g, 4, 14, 27, 15, i % 2 ? '^' : '~');
+    box(g, 8, 12, 9, 13, '*');
+    box(g, 18, 12, 19, 13, '*');
+    vLine(g, 14, 8, 13, 'L');
+    g[13][6] = 'p'; g[13][22] = 'q'; g[13][24] = 'q';
+    g[13][10] = 'E';
+    box(g, 11, 8, 17, 8, 'b');
+    g[7][14] = 'S';
+    g[13][2] = 'A'; g[13][4] = 'W';
+    g[13][27] = '1'; g[13][28] = '2';
+    levels.push({ name: `Usta ${i+1}`, grid: g, hint: 'Plakalar, lazer, asansör, dikenler - hepsi!' });
+  }
+
+  // ============ BÖLÜM 31-100: PROCEDURAL (otomatik) ============
+  for (let n = 31; n <= 100; n++) {
+    const g = baseLayout();
+    const themeIdx = Math.floor((n - 1) / 4) % 5;
+    const hazardChar = themeIdx === 0 ? '^' : themeIdx === 1 ? '~' : themeIdx === 2 ? '*' : '^';
+    // Tehlike alanı
+    box(g, 4 + (n % 5), 14, 26 - (n % 5), 15, hazardChar);
+    // 2-3 platform
+    for (let i = 0; i < 2 + (n % 3); i++) {
+      const px = 5 + i * 6;
+      g[11 - (i % 2) * 2][px] = '=';
+      g[11 - (i % 2) * 2][px + 1] = '=';
+      g[11 - (i % 2) * 2][px + 2] = '=';
+    }
+    // Plaka/Asansör/Kol mix
+    if (n % 4 === 0) { g[13][6] = 'p'; g[13][10] = 'E'; }
+    if (n % 5 === 0) { vLine(g, 12, 8, 13, 'L'); vLine(g, 18, 8, 13, 'L'); }
+    if (n % 3 === 0) { g[13][8] = 'B'; }
+    if (n % 7 === 0) { g[13][7] = '@'; g[13][23] = '@'; }
+    g[13][2] = 'A'; g[13][4] = 'W';
+    g[10][15] = 'S';
+    g[13][26] = '1'; g[13][27] = '2';
+    levels.push({ name: `Pro ${n - 30}`, grid: g, hint: 'Tüm becerileri kullan!' });
+  }
+
   return levels;
 })();
 
@@ -11911,6 +11857,10 @@ function buildLevelFromGrid(template) {
   game.fallingPlatforms = [];
   game.keys2 = []; // anahtar
   game.locks = []; // kilit
+  game.elevators = []; // YENİ: asansör
+  game.buttons = []; // YENİ: düğme
+  game.portals = []; // YENİ: portal
+  game.fans = []; // YENİ: yel fan
   
   // Tile → world coord
   function tx(c) { return c * TILE_W; }
@@ -12035,6 +11985,61 @@ function buildLevelFromGrid(template) {
         case 'l':
           game.locks.push({ x, y, w, h, unlocked: false });
           break;
+        case 'E': {
+          // ASANSÖR - plaka veya kol ile aşağı-yukarı hareket eder
+          const id = 'elev_' + game.elevators.length;
+          game.elevators.push({
+            id, x, y, w: w*2, h: 14,
+            baseY: y,                // başlangıç (en alt)
+            topY: y - h * 5,         // 5 tile yukarı çıkar
+            currentY: y,
+            active: false,
+            speed: 1.5,
+          });
+          break;
+        }
+        case 'e': {
+          // KOL - E tuşu ile toggle
+          const id = 'lever_' + game.levers.length;
+          game.levers.push({
+            id, x: x + 4, y: y + h - 30, w: 20, h: 30,
+            on: false,
+          });
+          break;
+        }
+        case 'o': {
+          // İTİLEN KUTU
+          game.movableCrates.push({
+            x: x + 2, y: y + 2, w: w - 4, h: h - 4,
+            vx: 0, vy: 0,
+          });
+          break;
+        }
+        case 'r': {
+          // DÜĞME - tek defa basıp kalıcı açar (köprüye link)
+          const id = 'btn_' + game.buttons.length;
+          game.buttons.push({
+            id, x: x + 4, y: y + h - 14, w: w - 8, h: 14,
+            pressed: false,
+          });
+          break;
+        }
+        case '@': {
+          // PORTAL - çiftler halinde (ilk= giriş, ikinci= çıkış)
+          game.portals.push({
+            x: x + 2, y: y + 2, w: w - 4, h: h - 4,
+            cooldown: 0,
+          });
+          break;
+        }
+        case 'F': {
+          // YEL FAN - yukarı itme
+          game.fans.push({
+            x, y, w, h: h * 6,    // yukarıya doğru 6 tile rüzgar alanı
+            baseY: y - h * 6,
+          });
+          break;
+        }
       }
     }
   }
@@ -12261,6 +12266,59 @@ function updateChar(ch, leftKey, rightKey, jumpKey) {
     }
   }
 
+  // ASANSÖR - solid platform gibi
+  if (game.elevators) {
+    for (const elev of game.elevators) {
+      // Üstten yakala
+      if (ch.vy >= 0 &&
+          ch.x + ch.w > elev.x + 2 && ch.x < elev.x + elev.w - 2 &&
+          ch.prevY + ch.h <= elev.currentY + 4 &&
+          ch.y + ch.h >= elev.currentY && ch.y + ch.h < elev.currentY + elev.h + 10) {
+        ch.y = elev.currentY - ch.h;
+        ch.vy = 0;
+        ch.onGround = true;
+      }
+    }
+  }
+
+  // KUTU - solid (üstten basabilir, yan iter)
+  if (game.movableCrates) {
+    for (const crate of game.movableCrates) {
+      // Üstten yakala
+      if (ch.vy >= 0 &&
+          ch.x + ch.w > crate.x + 2 && ch.x < crate.x + crate.w - 2 &&
+          ch.prevY + ch.h <= crate.y + 4 &&
+          ch.y + ch.h >= crate.y && ch.y + ch.h < crate.y + crate.h) {
+        ch.y = crate.y - ch.h;
+        ch.vy = 0;
+        ch.onGround = true;
+      }
+      // Yandan it
+      else if (ch.x + ch.w > crate.x && ch.x < crate.x + crate.w &&
+               ch.y + ch.h > crate.y + 4 && ch.y < crate.y + crate.h - 4) {
+        // sağdan it
+        if (ch.prevX + ch.w <= crate.x + 2) {
+          ch.x = crate.x - ch.w;
+          if (Math.abs(ch.vx) > 0.5) { crate.vx = ch.vx * 0.5; }
+        }
+        // soldan it
+        else if (ch.prevX >= crate.x + crate.w - 2) {
+          ch.x = crate.x + crate.w;
+          if (Math.abs(ch.vx) > 0.5) { crate.vx = ch.vx * 0.5; }
+        }
+      }
+    }
+  }
+
+  // KİLİTLİ KAPI / Düğme aktivasyon kontrolü - düğme basılmadıysa solid
+  if (game.buttons) {
+    for (const btn of game.buttons) {
+      if (btn.pressed && btn.linkedDoor) {
+        // düğme basıldı, kapı açık - geçiş serbest
+      }
+    }
+  }
+
   // Kilit (anahtar alınmadıysa solid)
   if (game.locks) {
     for (const l of game.locks) {
@@ -12348,6 +12406,143 @@ function updateChar(ch, leftKey, rightKey, jumpKey) {
 
 // PUZZLE UPDATES
 function updatePuzzles() {
+  // HAREKETLİ PLATFORM (yatay M, dikey V)
+  if (game.platforms) {
+    if (typeof game._mvTime === 'undefined') game._mvTime = 0;
+    game._mvTime += 0.016;
+    for (const p of game.platforms) {
+      if (p.type === 'moving' && typeof p.baseX === 'number') {
+        const phase = p.phase || 0;
+        const t = game._mvTime + phase;
+        if (p.dx) {
+          const newX = p.baseX + Math.sin(t * 0.8) * (p.range || 120);
+          p.deltaX = newX - p.x;
+          p.x = newX;
+        }
+        if (p.dy) {
+          const newY = p.baseY + Math.sin(t * 0.8) * (p.range || 100);
+          p.deltaY = newY - p.y;
+          p.y = newY;
+        }
+        // Platform üzerindeki karakterleri taşı
+        for (const c in game.chars) {
+          const ch = game.chars[c];
+          if (!ch) continue;
+          if (ch.onMovingPlatform === p) {
+            if (p.deltaX) ch.x += p.deltaX;
+            if (p.deltaY) ch.y += p.deltaY;
+          }
+        }
+      }
+    }
+  }
+
+  // ASANSÖR - plaka veya kol ile aşağı-yukarı
+  if (game.elevators) {
+    for (const elev of game.elevators) {
+      // Aktivasyon kontrolü: yakınındaki plaka/kol veya karşısındaki düğme
+      let active = false;
+      // Plate ile linkli
+      if (game.pressurePlates) {
+        for (const plate of game.pressurePlates) {
+          if (plate.target === elev.id && plate.pressed) { active = true; break; }
+        }
+      }
+      // Lever ile linkli
+      if (game.levers) {
+        for (const lever of game.levers) {
+          if (lever.targetElev === elev.id && lever.on) { active = true; break; }
+        }
+      }
+      // Eğer hiç link yoksa, karakter üzerindeyse otomatik aktif
+      if (!game.pressurePlates?.some(p => p.target === elev.id) && 
+          !game.levers?.some(l => l.targetElev === elev.id)) {
+        for (const c in game.chars) {
+          const ch = game.chars[c];
+          if (!ch) continue;
+          if (ch.x + ch.w > elev.x && ch.x < elev.x + elev.w &&
+              Math.abs(ch.y + ch.h - elev.currentY) < 8) {
+            active = true; break;
+          }
+        }
+      }
+      elev.active = active;
+      // Hareket
+      const prevY = elev.currentY;
+      const target = active ? elev.topY : elev.baseY;
+      if (Math.abs(target - elev.currentY) > 1) {
+        elev.currentY += (target - elev.currentY) * 0.05;
+      } else {
+        elev.currentY = target;
+      }
+      const dy = elev.currentY - prevY;
+      // Üzerindeki karakterleri taşı
+      for (const c in game.chars) {
+        const ch = game.chars[c];
+        if (!ch) continue;
+        if (ch.x + ch.w > elev.x && ch.x < elev.x + elev.w &&
+            Math.abs(ch.y + ch.h - prevY) < 10) {
+          ch.y += dy;
+        }
+      }
+    }
+  }
+
+  // DÜĞME - karakter üzerine basınca kalıcı açar
+  if (game.buttons) {
+    for (const btn of game.buttons) {
+      if (!btn.pressed) {
+        for (const c in game.chars) {
+          const ch = game.chars[c];
+          if (!ch) continue;
+          if (ch.x + ch.w > btn.x && ch.x < btn.x + btn.w &&
+              ch.y + ch.h >= btn.y && ch.y + ch.h <= btn.y + btn.h + 10) {
+            btn.pressed = true;
+            if (typeof toast === 'function') toast('🔴 Düğme çalıştı!', 'success');
+            break;
+          }
+        }
+      }
+    }
+  }
+
+  // PORTAL - karakter girince diğerine ışınlan
+  if (game.portals && game.portals.length >= 2) {
+    for (let i = 0; i < game.portals.length; i++) {
+      const p = game.portals[i];
+      if (p.cooldown > 0) { p.cooldown--; continue; }
+      for (const c in game.chars) {
+        const ch = game.chars[c];
+        if (!ch) continue;
+        if (ch._portalCooldown && ch._portalCooldown > Date.now()) continue;
+        if (ch.x + ch.w/2 > p.x && ch.x + ch.w/2 < p.x + p.w &&
+            ch.y + ch.h/2 > p.y && ch.y + ch.h/2 < p.y + p.h) {
+          // Çiftine ışınla
+          const other = game.portals[(i + 1) % game.portals.length];
+          ch.x = other.x + other.w/2 - ch.w/2;
+          ch.y = other.y + other.h/2 - ch.h/2;
+          ch._portalCooldown = Date.now() + 800;
+          if (typeof toast === 'function') toast('🌀 Portal!', 'info');
+        }
+      }
+    }
+  }
+
+  // FAN - karakter alana girince yukarı itilir
+  if (game.fans) {
+    for (const f of game.fans) {
+      for (const c in game.chars) {
+        const ch = game.chars[c];
+        if (!ch) continue;
+        if (ch.x + ch.w > f.x && ch.x < f.x + f.w &&
+            ch.y + ch.h > f.baseY && ch.y < f.y + f.h) {
+          ch.vy -= 0.8;        // sürekli yukarı itme
+          if (ch.vy < -8) ch.vy = -8;  // max hız
+        }
+      }
+    }
+  }
+
   // Basınç plakası
   if (game.pressurePlates) {
     for (const plate of game.pressurePlates) {
@@ -14577,6 +14772,163 @@ function drawPuzzleElements(ctx) {
       ctx.moveTo(b.x, b.y);
       ctx.lineTo(b.x + w, b.y);
       ctx.stroke();
+    }
+  }
+
+  // ASANSÖR
+  if (game.elevators) {
+    for (const elev of game.elevators) {
+      // Yıkayfa duvar (asansör kovası görüntüsü)
+      ctx.fillStyle = 'rgba(100, 100, 150, 0.15)';
+      ctx.fillRect(elev.x - 4, elev.topY - 10, elev.w + 8, (elev.baseY - elev.topY) + 30);
+      ctx.strokeStyle = 'rgba(150, 150, 200, 0.4)';
+      ctx.lineWidth = 2;
+      ctx.setLineDash([4, 4]);
+      ctx.strokeRect(elev.x - 4, elev.topY - 10, elev.w + 8, (elev.baseY - elev.topY) + 30);
+      ctx.setLineDash([]);
+
+      // Asansör platformu
+      const grad = ctx.createLinearGradient(0, elev.currentY, 0, elev.currentY + elev.h);
+      grad.addColorStop(0, elev.active ? '#a78bfa' : '#5a4a6a');
+      grad.addColorStop(0.5, elev.active ? '#7c3aed' : '#3a2a4a');
+      grad.addColorStop(1, elev.active ? '#5a2aaa' : '#2a1a3a');
+      ctx.fillStyle = grad;
+      ctx.fillRect(elev.x, elev.currentY, elev.w, elev.h);
+
+      // İşıklı şerit
+      ctx.fillStyle = elev.active ? '#fcd34d' : '#666';
+      ctx.fillRect(elev.x + 4, elev.currentY + 2, elev.w - 8, 2);
+      ctx.fillRect(elev.x + 4, elev.currentY + elev.h - 4, elev.w - 8, 2);
+
+      // Aktif glow
+      if (elev.active) {
+        ctx.fillStyle = 'rgba(167,139,250,0.3)';
+        ctx.fillRect(elev.x - 6, elev.currentY - 4, elev.w + 12, elev.h + 8);
+      }
+
+      // Yukarı ok işareti
+      ctx.fillStyle = elev.active ? '#fff' : '#888';
+      ctx.font = 'bold 12px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText('▲', elev.x + elev.w/2, elev.currentY + elev.h/2 + 4);
+    }
+  }
+
+  // KUTULAR (movable crates)
+  if (game.movableCrates) {
+    for (const crate of game.movableCrates) {
+      // Tahta kutu görünümü
+      const grad = ctx.createLinearGradient(0, crate.y, 0, crate.y + crate.h);
+      grad.addColorStop(0, '#b08050');
+      grad.addColorStop(0.5, '#8a5a30');
+      grad.addColorStop(1, '#5a3010');
+      ctx.fillStyle = grad;
+      ctx.fillRect(crate.x, crate.y, crate.w, crate.h);
+      // Kenarlar
+      ctx.strokeStyle = '#3a2010';
+      ctx.lineWidth = 2;
+      ctx.strokeRect(crate.x, crate.y, crate.w, crate.h);
+      // Çarpı dekorasyon
+      ctx.strokeStyle = '#6a3a10';
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.moveTo(crate.x + 4, crate.y + 4);
+      ctx.lineTo(crate.x + crate.w - 4, crate.y + crate.h - 4);
+      ctx.moveTo(crate.x + crate.w - 4, crate.y + 4);
+      ctx.lineTo(crate.x + 4, crate.y + crate.h - 4);
+      ctx.stroke();
+    }
+  }
+
+  // DÜĞME
+  if (game.buttons) {
+    for (const btn of game.buttons) {
+      // Taban
+      ctx.fillStyle = '#444';
+      ctx.fillRect(btn.x - 2, btn.y + 8, btn.w + 4, 6);
+      // Buton
+      ctx.fillStyle = btn.pressed ? '#10b981' : '#ef4444';
+      ctx.fillRect(btn.x, btn.y + (btn.pressed ? 6 : 0), btn.w, btn.pressed ? 8 : 14);
+      // Parlak üst
+      ctx.fillStyle = 'rgba(255,255,255,0.3)';
+      ctx.fillRect(btn.x + 2, btn.y + (btn.pressed ? 7 : 1), btn.w - 4, 2);
+      // Glow (eğer basılmışsa)
+      if (btn.pressed) {
+        ctx.fillStyle = 'rgba(16,185,129,0.3)';
+        ctx.fillRect(btn.x - 4, btn.y + 4, btn.w + 8, 12);
+      }
+    }
+  }
+
+  // PORTALLAR
+  if (game.portals) {
+    const t = Date.now() / 300;
+    for (let i = 0; i < game.portals.length; i++) {
+      const p = game.portals[i];
+      const cx = p.x + p.w/2;
+      const cy = p.y + p.h/2;
+      const r = Math.min(p.w, p.h) / 2;
+      // Çift renk - için indexine göre
+      const color = i % 2 === 0 ? '#a78bfa' : '#38bdf8';
+      // Glow halka
+      const glow = ctx.createRadialGradient(cx, cy, 0, cx, cy, r * 1.4);
+      glow.addColorStop(0, color + 'ee');
+      glow.addColorStop(0.6, color + '44');
+      glow.addColorStop(1, color + '00');
+      ctx.fillStyle = glow;
+      ctx.fillRect(p.x - 10, p.y - 10, p.w + 20, p.h + 20);
+      // Dönen halka
+      ctx.strokeStyle = color;
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      for (let a = 0; a < Math.PI * 2; a += 0.3) {
+        const rr = r * (0.7 + Math.sin(t + a * 3) * 0.15);
+        const px = cx + Math.cos(a + t * 0.5) * rr;
+        const py = cy + Math.sin(a + t * 0.5) * rr;
+        if (a === 0) ctx.moveTo(px, py);
+        else ctx.lineTo(px, py);
+      }
+      ctx.closePath();
+      ctx.stroke();
+      // İç parçacık
+      ctx.fillStyle = '#fff';
+      ctx.beginPath();
+      ctx.arc(cx, cy, 3, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  }
+
+  // FAN (yel üfleyici)
+  if (game.fans) {
+    const t = Date.now() / 100;
+    for (const f of game.fans) {
+      // Taban (fan motoru)
+      ctx.fillStyle = '#555';
+      ctx.fillRect(f.x, f.y - 6, f.w, 10);
+      ctx.fillStyle = '#888';
+      ctx.fillRect(f.x + 4, f.y - 4, f.w - 8, 6);
+      // İmpeller (dönen)
+      const cx = f.x + f.w/2;
+      const cy = f.y - 2;
+      ctx.save();
+      ctx.translate(cx, cy);
+      ctx.rotate(t);
+      ctx.strokeStyle = '#ccc';
+      ctx.lineWidth = 3;
+      for (let i = 0; i < 4; i++) {
+        ctx.beginPath();
+        ctx.moveTo(0, 0);
+        ctx.lineTo(0, 8);
+        ctx.rotate(Math.PI / 2);
+      }
+      ctx.stroke();
+      ctx.restore();
+      // Rüzgar akışı gösterimi
+      ctx.fillStyle = 'rgba(167, 222, 240, 0.15)';
+      for (let i = 0; i < 5; i++) {
+        const yy = f.baseY + ((t * 4 + i * 30) % 180);
+        ctx.fillRect(f.x + 4, yy, f.w - 8, 3);
+      }
     }
   }
 
