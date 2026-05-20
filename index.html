@@ -5711,20 +5711,146 @@
 
     <!-- OYUNLAR (HUB) -->
     <div class="page" id="page-games">
-      <div class="page-header">
-        <h1>🎮 Oyunlar</h1>
-        <p>Arkadaşlarınla online oyna — hangi oyun?</p>
-      </div>
-      <div class="cards-grid">
-        <div class="feature-card" onclick="goPage('game', null)" style="border:2px solid #4ecdc4;">
-          <div class="emoji">🔥💧⚡❄️</div>
-          <h3>4'lü Macera</h3>
-          <p>4 karakter (Alev, Damla, Yıldırım, Kar), cinsiyet seçimi, 2-4 kişi online co-op platform oyunu. 300+ bölüm.</p>
+      <!-- Modern Hero Header -->
+      <div class="games-hero">
+        <div class="games-hero-orbs">
+          <div class="games-hero-orb games-hero-orb-1"></div>
+          <div class="games-hero-orb games-hero-orb-2"></div>
         </div>
-        <div class="feature-card" onclick="goPage('karma', null)" style="border:2px solid #ff6b6b;">
-          <div class="emoji">🥊🔪</div>
-          <h3>Karma — Dövüş</h3>
-          <p>2-4 kişi çubuk adam dövüşü. Yumruk, tekme, döner tekme + yerden silah al (bıçak, şişe, sopa, çekiç, tuğla, zincir). Best of 3 round.</p>
+        <div class="games-hero-content">
+          <div class="games-hero-badge">
+            <span class="games-hero-badge-dot"></span>
+            <span data-i18n="games.badge">MULTIPLAYER ARENA</span>
+          </div>
+          <h1 class="games-hero-title">
+            <span data-i18n="games.title1">Arkadaşlarınla</span>
+            <span class="games-hero-title-accent" data-i18n="games.title2">birlikte oyna</span>
+          </h1>
+          <p class="games-hero-subtitle" data-i18n="games.subtitle">
+            Gecikmesiz online co-op deneyim. Hangi maceraya çıkalım?
+          </p>
+          <div class="games-hero-stats">
+            <div class="games-hero-stat">
+              <div class="games-hero-stat-num">2</div>
+              <div class="games-hero-stat-label" data-i18n="games.stat.games">OYUN</div>
+            </div>
+            <div class="games-hero-stat-divider"></div>
+            <div class="games-hero-stat">
+              <div class="games-hero-stat-num">100+</div>
+              <div class="games-hero-stat-label" data-i18n="games.stat.levels">BÖLÜM</div>
+            </div>
+            <div class="games-hero-stat-divider"></div>
+            <div class="games-hero-stat">
+              <div class="games-hero-stat-num">2-4</div>
+              <div class="games-hero-stat-label" data-i18n="games.stat.players">OYUNCU</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Premium Game Cards -->
+      <div class="games-grid">
+        <!-- Macera -->
+        <div class="game-card game-card-adventure" onclick="goPage('game', null)">
+          <div class="game-card-bg"></div>
+          <div class="game-card-glow"></div>
+          <div class="game-card-content">
+            <div class="game-card-top">
+              <div class="game-card-label" data-i18n="games.adventure.label">CO-OP MACERA</div>
+              <div class="game-card-players">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                <span>2-4</span>
+              </div>
+            </div>
+            <div class="game-card-visual">
+              <!-- 4 karakter ikon, modern minimalist -->
+              <div class="game-char game-char-fire" style="--delay:0s"></div>
+              <div class="game-char game-char-water" style="--delay:0.1s"></div>
+              <div class="game-char game-char-thunder" style="--delay:0.2s"></div>
+              <div class="game-char game-char-ice" style="--delay:0.3s"></div>
+            </div>
+            <div class="game-card-info">
+              <h2 class="game-card-title" data-i18n="games.adventure.title">4'lü Macera</h2>
+              <p class="game-card-desc" data-i18n="games.adventure.desc">
+                Elementçiler birlikte. Lav, su, elektrik ve buz — bölümlerden kaçıp tüm dunyayı fethedin.
+              </p>
+              <div class="game-card-features">
+                <div class="game-card-feature"><span class="game-card-feature-dot" style="background:#f59e0b"></span><span data-i18n="games.adventure.f1">100+ Bölüm</span></div>
+                <div class="game-card-feature"><span class="game-card-feature-dot" style="background:#06b6d4"></span><span data-i18n="games.adventure.f2">5 Tema</span></div>
+                <div class="game-card-feature"><span class="game-card-feature-dot" style="background:#a78bfa"></span><span data-i18n="games.adventure.f3">Co-op Online</span></div>
+              </div>
+            </div>
+            <button class="game-card-cta">
+              <span data-i18n="games.adventure.cta">OYNA</span>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+            </button>
+          </div>
+        </div>
+
+        <!-- Karma -->
+        <div class="game-card game-card-fight" onclick="goPage('karma', null)">
+          <div class="game-card-bg"></div>
+          <div class="game-card-glow"></div>
+          <div class="game-card-content">
+            <div class="game-card-top">
+              <div class="game-card-label" data-i18n="games.fight.label">PvP ARENA</div>
+              <div class="game-card-players">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                <span>2-4</span>
+              </div>
+            </div>
+            <div class="game-card-visual game-card-visual-fight">
+              <!-- Dövüş sahnesi: 2 silhouette -->
+              <div class="fight-stick fight-stick-left"></div>
+              <div class="fight-spark"></div>
+              <div class="fight-stick fight-stick-right"></div>
+            </div>
+            <div class="game-card-info">
+              <h2 class="game-card-title" data-i18n="games.fight.title">Karma</h2>
+              <p class="game-card-desc" data-i18n="games.fight.desc">
+                Ringiği ele geçirin. Yumruk, tekme, silahlar — son ayakta kalan kazanır.
+              </p>
+              <div class="game-card-features">
+                <div class="game-card-feature"><span class="game-card-feature-dot" style="background:#ef4444"></span><span data-i18n="games.fight.f1">Best of 3</span></div>
+                <div class="game-card-feature"><span class="game-card-feature-dot" style="background:#f59e0b"></span><span data-i18n="games.fight.f2">6 Silah</span></div>
+                <div class="game-card-feature"><span class="game-card-feature-dot" style="background:#ec4899"></span><span data-i18n="games.fight.f3">Realistic Physics</span></div>
+              </div>
+            </div>
+            <button class="game-card-cta">
+              <span data-i18n="games.fight.cta">DöVÜŞ</span>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+            </button>
+          </div>
+        </div>
+
+        <!-- Yakında - 3. kart placeholder -->
+        <div class="game-card game-card-coming-soon">
+          <div class="game-card-bg"></div>
+          <div class="game-card-content">
+            <div class="game-card-top">
+              <div class="game-card-label" style="color:#64748b;" data-i18n="games.soon.label">YAKINDA</div>
+            </div>
+            <div class="game-card-visual">
+              <div class="coming-soon-icon">
+                <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="12" cy="12" r="10"/>
+                  <polyline points="12 6 12 12 16 14"/>
+                </svg>
+              </div>
+            </div>
+            <div class="game-card-info">
+              <h2 class="game-card-title" style="color:#cbd5e1;" data-i18n="games.soon.title">Yeni Oyunlar</h2>
+              <p class="game-card-desc" data-i18n="games.soon.desc">
+                Daha fazla oyun yolda. Yarış, bulmaca, parti oyunları ve daha fazlası...
+              </p>
+              <div class="game-card-features">
+                <div class="game-card-feature"><span class="game-card-feature-dot" style="background:#475569"></span><span data-i18n="games.soon.f1">Çok yakında</span></div>
+              </div>
+            </div>
+            <button class="game-card-cta game-card-cta-disabled" disabled>
+              <span data-i18n="games.soon.cta">ÇOK YAKINDA</span>
+            </button>
+          </div>
         </div>
       </div>
     </div>
@@ -7556,6 +7682,306 @@
     .invite-landing-title { font-size: 28px; }
     .invite-landing-features { grid-template-columns: 1fr; }
     .invite-landing-feature { flex-direction: row; padding: 12px 14px; }
+  }
+
+  /* =========== OYUNLAR — Modern Premium Tasarım ============== */
+  #page-games {
+    padding: 0 !important;
+    background: radial-gradient(ellipse at top, #1a1138 0%, #05070d 70%);
+    min-height: 100vh;
+  }
+  .games-hero {
+    position: relative;
+    padding: 60px 32px 40px;
+    overflow: hidden;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+  }
+  .games-hero-orbs { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
+  .games-hero-orb {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(80px);
+    animation: worldlyOrbFloat 14s ease-in-out infinite;
+  }
+  .games-hero-orb-1 { width: 350px; height: 350px; background: rgba(167,139,250,0.18); top: -100px; left: 10%; }
+  .games-hero-orb-2 { width: 300px; height: 300px; background: rgba(239,68,68,0.12); bottom: -100px; right: 15%; animation-delay: -7s; }
+  .games-hero-content { position: relative; z-index: 2; max-width: 1200px; margin: 0 auto; }
+  .games-hero-badge {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 6px 14px;
+    background: rgba(167,139,250,0.1);
+    border: 1px solid rgba(167,139,250,0.3);
+    border-radius: 30px;
+    font-size: 11px; font-weight: 800;
+    letter-spacing: 2.5px; text-transform: uppercase;
+    color: #a78bfa; margin-bottom: 18px;
+  }
+  .games-hero-badge-dot {
+    width: 6px; height: 6px; background: #a78bfa; border-radius: 50%;
+    box-shadow: 0 0 8px #a78bfa;
+    animation: invitePulse 1.5s infinite;
+  }
+  .games-hero-title {
+    font-size: clamp(36px, 6vw, 56px);
+    font-weight: 900; color: #fff;
+    margin: 0 0 14px; line-height: 1.05;
+    letter-spacing: -1.5px;
+  }
+  .games-hero-title-accent {
+    display: inline-block;
+    background: linear-gradient(90deg, #a78bfa 0%, #38bdf8 50%, #ef4444 100%);
+    -webkit-background-clip: text; background-clip: text;
+    -webkit-text-fill-color: transparent;
+    animation: inviteTitleShine 4s ease-in-out infinite;
+  }
+  .games-hero-subtitle {
+    color: #94a3b8; font-size: 16px; line-height: 1.6;
+    margin: 0 0 28px; max-width: 580px;
+  }
+  .games-hero-stats {
+    display: inline-flex; align-items: center; gap: 24px;
+    padding: 16px 24px;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 16px; backdrop-filter: blur(20px);
+  }
+  .games-hero-stat { text-align: center; }
+  .games-hero-stat-num {
+    font-size: 24px; font-weight: 900; line-height: 1;
+    letter-spacing: -0.5px;
+    background: linear-gradient(135deg, #a78bfa, #38bdf8);
+    -webkit-background-clip: text; background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .games-hero-stat-label {
+    font-size: 9px; color: #64748b;
+    letter-spacing: 2px; font-weight: 700;
+    margin-top: 4px; text-transform: uppercase;
+  }
+  .games-hero-stat-divider {
+    width: 1px; height: 28px;
+    background: linear-gradient(180deg, transparent, rgba(255,255,255,0.15), transparent);
+  }
+  .games-grid {
+    max-width: 1400px; margin: 0 auto;
+    padding: 40px 32px 60px;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+    gap: 24px;
+  }
+  .game-card {
+    position: relative;
+    border-radius: 24px; overflow: hidden;
+    cursor: pointer;
+    background: linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.01));
+    border: 1px solid rgba(255,255,255,0.08);
+    transition: all 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+    backdrop-filter: blur(20px);
+    min-height: 480px;
+    display: flex; flex-direction: column;
+  }
+  .game-card:hover {
+    transform: translateY(-8px);
+    border-color: rgba(255,255,255,0.18);
+    box-shadow: 0 40px 80px rgba(0,0,0,0.5);
+  }
+  .game-card-bg {
+    position: absolute; inset: 0; z-index: 0;
+    opacity: 0.6; transition: opacity 0.4s;
+  }
+  .game-card-glow {
+    position: absolute; inset: -1px; z-index: 0;
+    border-radius: 24px; opacity: 0;
+    transition: opacity 0.5s; pointer-events: none;
+  }
+  .game-card:hover .game-card-glow { opacity: 1; }
+  .game-card-content {
+    position: relative; z-index: 1;
+    padding: 28px 28px 24px;
+    display: flex; flex-direction: column; flex: 1;
+  }
+  .game-card-adventure .game-card-bg {
+    background:
+      radial-gradient(circle at 30% 20%, rgba(245,158,11,0.25), transparent 60%),
+      radial-gradient(circle at 70% 80%, rgba(6,182,212,0.20), transparent 60%);
+  }
+  .game-card-adventure .game-card-glow {
+    box-shadow: 0 0 60px rgba(245,158,11,0.4), 0 0 100px rgba(6,182,212,0.3);
+  }
+  .game-card-adventure:hover { border-color: rgba(245,158,11,0.4); }
+  .game-card-fight .game-card-bg {
+    background:
+      radial-gradient(circle at 30% 30%, rgba(239,68,68,0.25), transparent 60%),
+      radial-gradient(circle at 70% 70%, rgba(236,72,153,0.18), transparent 60%);
+  }
+  .game-card-fight .game-card-glow {
+    box-shadow: 0 0 60px rgba(239,68,68,0.4), 0 0 100px rgba(236,72,153,0.3);
+  }
+  .game-card-fight:hover { border-color: rgba(239,68,68,0.4); }
+  .game-card-coming-soon { cursor: default; opacity: 0.6; }
+  .game-card-coming-soon:hover { transform: none; border-color: rgba(255,255,255,0.08); }
+  .game-card-coming-soon .game-card-bg {
+    background: radial-gradient(circle at 50% 50%, rgba(100,116,139,0.1), transparent 60%);
+  }
+  .game-card-top {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 24px;
+  }
+  .game-card-label {
+    font-size: 10px; color: #fff;
+    letter-spacing: 2.5px; font-weight: 800;
+    text-transform: uppercase; opacity: 0.7;
+  }
+  .game-card-players {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 5px 12px;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 20px;
+    color: #cbd5e1; font-size: 12px; font-weight: 700;
+  }
+  .game-card-visual {
+    height: 130px;
+    display: flex; align-items: center; justify-content: center;
+    gap: 14px; margin-bottom: 24px; position: relative;
+  }
+  .game-char {
+    width: 64px; height: 64px; border-radius: 50%;
+    position: relative;
+    animation: gameCharFloat 3s ease-in-out infinite;
+    animation-delay: var(--delay);
+    transition: transform 0.3s;
+  }
+  .game-card:hover .game-char { transform: translateY(-6px) scale(1.08); }
+  .game-char::before {
+    content: ''; position: absolute; inset: 4px;
+    border-radius: 50%; background: inherit;
+    filter: blur(8px); opacity: 0.6;
+  }
+  .game-char::after {
+    content: '';
+    position: absolute; top: 18px; left: 16px;
+    width: 8px; height: 8px;
+    background: rgba(255,255,255,0.9);
+    border-radius: 50%;
+    box-shadow: 16px 0 0 rgba(255,255,255,0.9);
+  }
+  .game-char-fire { background: linear-gradient(135deg, #ff8a4c, #ef4444); box-shadow: 0 8px 24px rgba(239,68,68,0.5); }
+  .game-char-water { background: linear-gradient(135deg, #38bdf8, #0ea5e9); box-shadow: 0 8px 24px rgba(14,165,233,0.5); }
+  .game-char-thunder { background: linear-gradient(135deg, #fcd34d, #f59e0b); box-shadow: 0 8px 24px rgba(245,158,11,0.5); }
+  .game-char-ice { background: linear-gradient(135deg, #a5f3fc, #06b6d4); box-shadow: 0 8px 24px rgba(6,182,212,0.5); }
+  @keyframes gameCharFloat {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-8px); }
+  }
+  .game-card-visual-fight { gap: 8px; }
+  .fight-stick {
+    width: 36px; height: 96px;
+    background: linear-gradient(180deg, #cbd5e1, #94a3b8);
+    border-radius: 18px; position: relative;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+  }
+  .fight-stick::before {
+    content: '';
+    position: absolute; top: -12px; left: 50%; transform: translateX(-50%);
+    width: 28px; height: 28px;
+    background: linear-gradient(135deg, #f1f5f9, #cbd5e1);
+    border-radius: 50%;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+  }
+  .fight-stick-left { animation: fightLeft 1.2s ease-in-out infinite; transform-origin: bottom center; }
+  .fight-stick-right {
+    background: linear-gradient(180deg, #fda4af, #ef4444);
+    animation: fightRight 1.2s ease-in-out infinite;
+    transform-origin: bottom center;
+  }
+  .fight-stick-right::before { background: linear-gradient(135deg, #fecaca, #ef4444); }
+  @keyframes fightLeft {
+    0%, 100% { transform: rotate(-3deg); }
+    50% { transform: rotate(8deg); }
+  }
+  @keyframes fightRight {
+    0%, 100% { transform: rotate(3deg); }
+    50% { transform: rotate(-8deg); }
+  }
+  .fight-spark {
+    width: 24px; height: 24px;
+    background: radial-gradient(circle, #fcd34d 0%, transparent 70%);
+    border-radius: 50%;
+    animation: fightSpark 1.2s ease-in-out infinite;
+  }
+  @keyframes fightSpark {
+    0%, 100% { transform: scale(0.5); opacity: 0; }
+    50% { transform: scale(1.4); opacity: 1; }
+  }
+  .coming-soon-icon { color: rgba(255,255,255,0.2); }
+  .game-card-info { flex: 1; }
+  .game-card-title {
+    font-size: 28px; font-weight: 900;
+    color: #fff; margin: 0 0 10px;
+    letter-spacing: -1px; line-height: 1.1;
+  }
+  .game-card-desc {
+    color: #94a3b8; font-size: 14px;
+    line-height: 1.6; margin: 0 0 18px;
+  }
+  .game-card-features {
+    display: flex; flex-wrap: wrap;
+    gap: 8px 14px; margin-bottom: 24px;
+  }
+  .game-card-feature {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-size: 12px; color: #cbd5e1; font-weight: 600;
+  }
+  .game-card-feature-dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    box-shadow: 0 0 6px currentColor;
+  }
+  .game-card-cta {
+    display: flex; align-items: center; justify-content: center;
+    gap: 8px; width: 100%;
+    padding: 14px;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.12);
+    color: #fff; border-radius: 12px;
+    cursor: pointer; font-weight: 800;
+    font-size: 13px; letter-spacing: 1.5px;
+    font-family: inherit; transition: all 0.3s;
+    margin-top: auto;
+  }
+  .game-card-adventure .game-card-cta {
+    background: linear-gradient(135deg, #f59e0b, #ef4444);
+    border-color: transparent;
+    box-shadow: 0 8px 24px rgba(245,158,11,0.3);
+  }
+  .game-card-adventure:hover .game-card-cta {
+    box-shadow: 0 12px 32px rgba(245,158,11,0.5);
+    transform: translateY(-2px);
+  }
+  .game-card-fight .game-card-cta {
+    background: linear-gradient(135deg, #ef4444, #ec4899);
+    border-color: transparent;
+    box-shadow: 0 8px 24px rgba(239,68,68,0.3);
+  }
+  .game-card-fight:hover .game-card-cta {
+    box-shadow: 0 12px 32px rgba(239,68,68,0.5);
+    transform: translateY(-2px);
+  }
+  .game-card-cta-disabled {
+    background: rgba(255,255,255,0.03) !important;
+    border: 1px solid rgba(255,255,255,0.06) !important;
+    color: #64748b !important;
+    cursor: not-allowed !important;
+    box-shadow: none !important;
+  }
+  @media (max-width: 768px) {
+    .games-hero { padding: 40px 20px 30px; }
+    .games-hero-title { font-size: 32px; }
+    .games-hero-stats { gap: 16px; padding: 12px 16px; }
+    .games-grid { padding: 24px 16px 40px; grid-template-columns: 1fr; gap: 16px; }
+    .game-card { min-height: 440px; }
+    .game-card-title { font-size: 24px; }
   }
 
   /* ============== WORLDLY — AI Discovery Sekmesi ============== */
@@ -19001,6 +19427,33 @@ function worldlyCloseDetail() {
 // =====================================================================
 const I18N = {
   tr: {
+    // Games
+    'games.badge': 'MULTIPLAYER ARENA',
+    'games.title1': 'Arkadaşlarınla',
+    'games.title2': 'birlikte oyna',
+    'games.subtitle': 'Gecikmesiz online co-op deneyim. Hangi maceraya çıkalım?',
+    'games.stat.games': 'OYUN',
+    'games.stat.levels': 'BÖLÜM',
+    'games.stat.players': 'OYUNCU',
+    'games.adventure.label': 'CO-OP MACERA',
+    'games.adventure.title': "4'lü Macera",
+    'games.adventure.desc': 'Elementçiler birlikte. Lav, su, elektrik ve buz — bölümlerden kaçıp tüm dünyayı fethedin.',
+    'games.adventure.f1': '100+ Bölüm',
+    'games.adventure.f2': '5 Tema',
+    'games.adventure.f3': 'Co-op Online',
+    'games.adventure.cta': 'OYNA',
+    'games.fight.label': 'PvP ARENA',
+    'games.fight.title': 'Karma',
+    'games.fight.desc': 'Ringi ele geçirin. Yumruk, tekme, silahlar — son ayakta kalan kazanır.',
+    'games.fight.f1': 'Best of 3',
+    'games.fight.f2': '6 Silah',
+    'games.fight.f3': 'Realistic Physics',
+    'games.fight.cta': 'DÖVÜŞ',
+    'games.soon.label': 'YAKINDA',
+    'games.soon.title': 'Yeni Oyunlar',
+    'games.soon.desc': 'Daha fazla oyun yolda. Yarış, bulmaca, parti oyunları ve daha fazlası...',
+    'games.soon.f1': 'Çok yakında',
+    'games.soon.cta': 'ÇOK YAKINDA',
     // Menu
     'menu.home': 'Ana Sayfa',
     'menu.video': 'Görüntülü Görüşme',
@@ -19055,6 +19508,32 @@ const I18N = {
     'common.ok': 'TAMAM',
   },
   en: {
+    'games.badge': 'MULTIPLAYER ARENA',
+    'games.title1': 'Play with',
+    'games.title2': 'your friends',
+    'games.subtitle': 'Lag-free online co-op experience. Which adventure?',
+    'games.stat.games': 'GAMES',
+    'games.stat.levels': 'LEVELS',
+    'games.stat.players': 'PLAYERS',
+    'games.adventure.label': 'CO-OP ADVENTURE',
+    'games.adventure.title': '4-Player Adventure',
+    'games.adventure.desc': 'Elementals unite. Lava, water, lightning and ice — escape every level, conquer the world.',
+    'games.adventure.f1': '100+ Levels',
+    'games.adventure.f2': '5 Themes',
+    'games.adventure.f3': 'Online Co-op',
+    'games.adventure.cta': 'PLAY',
+    'games.fight.label': 'PvP ARENA',
+    'games.fight.title': 'Karma',
+    'games.fight.desc': 'Take the ring. Punch, kick, weapons — last one standing wins.',
+    'games.fight.f1': 'Best of 3',
+    'games.fight.f2': '6 Weapons',
+    'games.fight.f3': 'Realistic Physics',
+    'games.fight.cta': 'FIGHT',
+    'games.soon.label': 'COMING SOON',
+    'games.soon.title': 'New Games',
+    'games.soon.desc': 'More games on the way. Racing, puzzles, party games and more...',
+    'games.soon.f1': 'Coming soon',
+    'games.soon.cta': 'COMING SOON',
     'menu.home': 'Home',
     'menu.video': 'Video Call',
     'menu.games': 'Games',
