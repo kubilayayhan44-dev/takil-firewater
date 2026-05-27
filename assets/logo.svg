@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg id="katman_2" data-name="katman 2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 177.41 102.06">
+  <defs>
+    <style>
+      .cls-1 {
+        fill: #7b6fe0;
+        font-family: PleasePosterVF-Heavy, 'Please Poster VF';
+        font-size: 84px;
+        font-variation-settings: 'wght' 900;
+        font-weight: 800;
+        isolation: isolate;
+      }
+
+      .cls-2 {
+        letter-spacing: 0em;
+      }
+    </style>
+  </defs>
+  <g id="katman_1" data-name="katman 1">
+    <text class="cls-1" transform="translate(0 71.4)"><tspan x="0" y="0">vi</tspan><tspan class="cls-2" x="75.51" y="0">b</tspan><tspan x="128.94" y="0">e</tspan></text>
+  </g>
+</svg>
