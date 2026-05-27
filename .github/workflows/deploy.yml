@@ -1,0 +1,60 @@
+name: 🚀 Deploy to Hetzner
+
+# main branch'e her push'ta otomatik tetiklenir
+on:
+  push:
+    branches: [main]
+  workflow_dispatch: # Actions tab'ından manuel tetikleme
+
+concurrency:
+  group: production
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: Deploy Takıl to Hetzner
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: 📥 Checkout
+        uses: actions/checkout@v4
+
+      - name: 🔑 Setup SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          ssh-keyscan -H ${{ secrets.SSH_HOST }} >> ~/.ssh/known_hosts
+
+      - name: 🚀 Deploy game files to /opt/takil-app
+        run: |
+          # Sadece game asset'lerini yolla (index.html + vendor + og-image)
+          rsync -avz --delete \
+            -e "ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no" \
+            --include="index.html" \
+            --include="og-image.png" \
+            --include="vendor/" \
+            --include="vendor/**" \
+            --exclude="*" \
+            ./ \
+            ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:/opt/takil-app/
+
+      - name: 🌐 Health check
+        run: |
+          sleep 3
+          for i in 1 2 3; do
+            STATUS=$(curl -sL -k -o /dev/null -w "%{http_code}" https://178-105-90-130.nip.io/ || echo "000")
+            if [ "$STATUS" = "200" ]; then
+              echo "✅ Site canlıda (HTTP $STATUS)"
+              exit 0
+            fi
+            echo "Deneme $i: HTTP $STATUS — 3sn bekleyip tekrar..."
+            sleep 3
+          done
+          echo "❌ Site cevap vermiyor!"
+          exit 1
+
+      - name: 🧹 Cleanup
+        if: always()
+        run: rm -f ~/.ssh/deploy_key
