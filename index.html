@@ -317,7 +317,10 @@
   .main {
     flex: 1;
     overflow-y: auto;
-    background: transparent;
+    background:
+      radial-gradient(ellipse at top left, #1e3a8a 0%, transparent 50%),
+      radial-gradient(ellipse at bottom right, #1e40af 0%, transparent 50%),
+      linear-gradient(135deg, #0a0e1a 0%, #111827 50%, #0a0e1a 100%);
     position: relative;
   }
 
