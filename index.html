@@ -5740,6 +5740,22 @@
             </div>
           </div>
 
+          <div class="home-game-card" onclick="goPage('trivia', null)">
+            <div class="home-game-cover" style="background:linear-gradient(135deg,#312e81 0%,#6366f1 40%,#a78bfa 70%,#fbbf24 100%);">
+              <div class="home-game-emoji" style="animation: triviaPulse 3s ease-in-out infinite;">🧠</div>
+              <div class="home-game-badge" style="background:rgba(34,197,94,0.4);color:#fff;font-weight:700;">ÇEVRİMİÇİ</div>
+            </div>
+            <div class="home-game-info">
+              <h3>Bilgi Yarışması</h3>
+              <p>500 soru • Çok oyunculu • Derece</p>
+              <div class="home-game-meta">
+                <span><svg width="12" height="12" viewBox="0 0 24 24" fill="#22c55e"><circle cx="12" cy="12" r="6"/></svg> Aktif</span>
+                <span>•</span>
+                <span>1-4 Oyuncu</span>
+              </div>
+            </div>
+          </div>
+
           <div class="home-game-card home-game-soon">
             <div class="home-game-cover" style="background:linear-gradient(135deg,#1e293b,#475569);">
               <div class="home-game-emoji">⏳</div>
@@ -6022,13 +6038,13 @@
             <p class="soon-card-desc" data-i18n="games.soon.party.desc">Mini oyun koleksiyonu</p>
             <span class="soon-card-eta" data-i18n="games.soon.eta3">Q3 2026</span>
           </div>
-          <div class="soon-card" data-game="trivia">
-            <div class="soon-card-icon">
-              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+          <div class="soon-card" data-game="trivia" onclick="goPage('trivia', null)" style="cursor:pointer;position:relative;overflow:hidden;">
+            <div class="soon-card-icon" style="background:linear-gradient(135deg,#312e81,#6366f1);border-color:rgba(99,102,241,0.4);">
+              <span style="font-size:28px;animation:triviaPulse 3s ease-in-out infinite;display:block;">🧠</span>
             </div>
-            <h3 class="soon-card-title" data-i18n="games.soon.trivia">Trivia</h3>
-            <p class="soon-card-desc" data-i18n="games.soon.trivia.desc">Bilgi yarışması</p>
-            <span class="soon-card-eta" data-i18n="games.soon.eta4">Q4 2026</span>
+            <h3 class="soon-card-title" data-i18n="games.soon.trivia">Bilgi Yarışması</h3>
+            <p class="soon-card-desc" data-i18n="games.soon.trivia.desc">500 soru • Çok oyunculu</p>
+            <span class="soon-card-eta" style="background:rgba(34,197,94,0.3);color:#fff;font-weight:700;">ÇEVRİMİÇİ</span>
           </div>
         </div>
       </div>
@@ -6878,6 +6894,185 @@
           <strong>🎮 Kontroller:</strong>
           <kbd>W</kbd>↑ <kbd>S</kbd>↓ <kbd>A</kbd>← <kbd>D</kbd>→ hareket &nbsp; <kbd>Boşluk</kbd> zıpla &nbsp; <kbd>R</kbd> blok &nbsp; <kbd>Ş</kbd>/<kbd>;</kbd> eşya al &nbsp; <kbd>L</kbd> yumruk &nbsp; <kbd>K</kbd> tekme
         </div>
+      </div>
+    </div>
+
+    <!-- TRIVIA — Bilgi Yarışması -->
+    <div class="page" id="page-trivia">
+      <!-- LOBBY -->
+      <div id="trivia-lobby" class="trivia-lobby">
+        <div class="trivia-bg">
+          <div class="trivia-particle trivia-p-q">❓</div>
+          <div class="trivia-particle trivia-p-star">⭐</div>
+          <div class="trivia-particle trivia-p-check">✅</div>
+          <div class="trivia-particle trivia-p-bolt">⚡</div>
+        </div>
+
+        <div class="trivia-lobby-content">
+          <div class="trivia-hero">
+            <div class="trivia-status-bar">
+              <div class="trivia-status-badge">
+                <span class="trivia-dot"></span>
+                <span>ONLINE MULTIPLAYER</span>
+              </div>
+              <div class="trivia-status-info">
+                <span>2-4 Oyuncu</span><span>•</span>
+                <span>Zorluk Artan</span><span>•</span>
+                <span>Bilgi Yarışması</span>
+              </div>
+            </div>
+
+            <h1 class="trivia-title">🧠 Bilgi Yarışması</h1>
+            <p class="trivia-subtitle">
+              Arkadaşlarınla yarış, en çok soruyu doğru bilen kazansın!
+              <br><small>İlk 5 bölüm süreli, sonra her bölüm +5 saniye eklenir.</small>
+            </p>
+          </div>
+
+          <!-- ANA AKSİYON KARTLARI -->
+          <div class="trivia-action-grid">
+            <button class="trivia-action-card" onclick="createTriviaRoom()">
+              <div class="trivia-action-icon">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>
+              </div>
+              <div class="trivia-action-title">Yeni Oda Oluştur</div>
+              <div class="trivia-action-desc">Arkadaşlarını davet et</div>
+            </button>
+            <button class="trivia-action-card" onclick="showTriviaJoinForm()">
+              <div class="trivia-action-icon">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+              </div>
+              <div class="trivia-action-title">Odaya Katıl</div>
+              <div class="trivia-action-desc">Kod ile bağlan</div>
+            </button>
+            <button class="trivia-action-card" onclick="startTriviaSolo()">
+              <div class="trivia-action-icon">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+              </div>
+              <div class="trivia-action-title">Tek Kişi Oyna</div>
+              <div class="trivia-action-desc">Hemen başla</div>
+            </button>
+          </div>
+
+          <!-- KATIL FORMU (gizli) -->
+          <div id="trivia-join-form" style="display:none;" class="trivia-join-form">
+            <div class="trivia-join-header">
+              <h3>Oda Koduyla Katıl</h3>
+              <button class="trivia-room-btn" onclick="document.getElementById('trivia-join-form').style.display='none'" style="padding:8px 12px;">✕</button>
+            </div>
+            <div class="trivia-input-wrap">
+              <input type="text" id="trivia-join-code" placeholder="örn: trivia-x9k4m2" autocomplete="off" />
+              <button class="trivia-input-btn" onclick="joinTriviaRoom()">
+                <span>Katıl</span>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+              </button>
+            </div>
+          </div>
+
+          <!-- ODA OLUŞTURULDU -->
+          <div id="trivia-room-display" style="display:none;" class="trivia-room-active">
+            <div class="trivia-room-status">
+              <span class="trivia-room-pulse"></span>
+              <span>Oda Hazır • Arkadaşlarını çağır</span>
+            </div>
+            <div class="trivia-code-display">
+              <div class="trivia-code-label">ODA KODU</div>
+              <div class="trivia-code-value" id="trivia-room-code">...</div>
+            </div>
+            <div class="trivia-room-buttons">
+              <button class="trivia-room-btn" onclick="copyTriviaCode()">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                <span>Kopyala</span>
+              </button>
+              <a class="trivia-room-btn trivia-room-wa" id="trivia-wa-link" href="#" target="_blank">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413"/></svg>
+                <span>WhatsApp</span>
+              </a>
+            </div>
+            <p id="trivia-status" class="trivia-room-waiting">
+              <span class="trivia-spinner"></span>
+              <span>Arkadaş(lar)ın bekleniyor...</span>
+            </p>
+          </div>
+
+          <!-- KURALLAR -->
+          <div style="margin-top:30px; text-align:left; background:rgba(255,255,255,0.03); border-radius:16px; padding:20px; border:1px solid rgba(255,255,255,0.06);">
+            <h4 style="color:#a5b4fc; font-size:14px; margin-bottom:12px;">📜 KURALLAR</h4>
+            <ul style="color:#94a3b8; font-size:14px; line-height:1.8; list-style:none; padding:0;">
+              <li>⏱️ <strong style="color:#fff;">1. soru:</strong> 30 saniye, her soru +5 sn artar</li>
+              <li>⏱️ <strong style="color:#fff;">6. sorudan sonra:</strong> Süre sınırı yok</li>
+              <li>✅ <strong style="color:#fff;">1. soru:</strong> 5 puan, her soru +5 artar (2.=10, 3.=15...)</li>
+              <li>🔥 <strong style="color:#fff;">Seri (streak):</strong> Art arda doğru = bonus puan</li>
+              <li>🏆 <strong style="color:#fff;">Kazanan:</strong> En çok puan toplayan</li>
+              <li>👥 <strong style="color:#fff;">2-4 oyuncu</strong> online oynanır</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <!-- OYUN EKRANI -->
+      <div id="trivia-game-wrapper" style="display:none;" class="trivia-game-wrap">
+        <!-- HUD -->
+        <div class="trivia-hud">
+          <div class="trivia-hud-pill">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="12 2 15 8 22 9 17 14 18 21 12 17 6 21 7 14 2 9 9 8 12 2"/></svg>
+            <span>SORU</span>
+            <span class="trivia-hud-num" id="trivia-q-num">1</span>
+            <span style="color:#64748b;">/</span>
+            <span class="trivia-hud-num" id="trivia-q-total" style="font-size:14px;">20</span>
+          </div>
+          <div class="trivia-hud-pill">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            <span id="trivia-hud-timer">30</span>
+            <span>sn</span>
+          </div>
+          <div class="trivia-hud-pill">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fbbf24" stroke-width="2.5"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+            <span class="trivia-hud-num" id="trivia-hud-score" style="color:#fbbf24;">0</span>
+            <span>puan</span>
+          </div>
+          <div class="trivia-hud-pill" id="trivia-hud-players">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+            <span id="trivia-hud-pcount">Tek Kişi</span>
+          </div>
+        </div>
+
+        <!-- SORU KARTI -->
+        <div class="trivia-question-card">
+          <div class="trivia-q-number" id="trivia-q-label">SORU 1 / 20</div>
+          <div class="trivia-q-text" id="trivia-q-text">Yükleniyor...</div>
+          <div class="trivia-timer-bar" id="trivia-timer-bar">
+            <div class="trivia-timer-fill" id="trivia-timer-fill" style="width:100%;"></div>
+          </div>
+          <div class="trivia-timer-text" id="trivia-timer-text">30</div>
+        </div>
+
+        <!-- ŞIKLAR -->
+        <div class="trivia-options-grid" id="trivia-options">
+          <!-- JS ile doldurulacak -->
+        </div>
+
+        <!-- SKOR TABLOSU -->
+        <div class="trivia-scoreboard" id="trivia-scoreboard">
+          <h4>🏆 Skor Tablosu</h4>
+          <div id="trivia-scoreboard-rows">
+            <!-- JS ile doldurulacak -->
+          </div>
+        </div>
+      </div>
+
+      <!-- SONUÇ EKRANI -->
+      <div id="trivia-results" style="display:none;" class="trivia-results">
+        <div class="trivia-results-crown">👑</div>
+        <h2 class="trivia-results-title" id="trivia-results-title">Tebrikler!</h2>
+        <p class="trivia-results-subtitle" id="trivia-results-subtitle">Oyun bitti!</p>
+        <div class="trivia-podium" id="trivia-podium">
+          <!-- JS ile doldurulacak -->
+        </div>
+        <div class="trivia-final-scores" id="trivia-final-scores">
+          <!-- JS ile doldurulacak -->
+        </div>
+        <button class="trivia-back-btn" onclick="triviaBackToLobby()">🔄 Tekrar Oyna</button>
       </div>
     </div>
 
@@ -8909,6 +9104,309 @@
     .worldly-search-input { font-size: 16px; padding: 14px 6px; }
     .worldly-grid { grid-template-columns: 1fr; }
   }
+
+  /* ========== TRIVIA — Bilgi Yarışması ========== */
+  .trivia-lobby {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 40px 20px;
+    text-align: center;
+    position: relative;
+  }
+  .trivia-bg {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    pointer-events: none; z-index: 0; overflow: hidden;
+  }
+  .trivia-particle {
+    position: absolute; border-radius: 50%; opacity: 0.15;
+    animation: triviaFloat 8s ease-in-out infinite;
+  }
+  .trivia-p-q { width: 80px; height: 80px; background: #6366f1; top: 10%; left: 8%; animation-delay: 0s; }
+  .trivia-p-star { width: 60px; height: 60px; background: #fbbf24; top: 20%; right: 12%; animation-delay: 2s; }
+  .trivia-p-check { width: 70px; height: 70px; background: #22c55e; bottom: 25%; left: 15%; animation-delay: 4s; }
+  .trivia-p-bolt { width: 50px; height: 50px; background: #f43f5e; bottom: 15%; right: 10%; animation-delay: 6s; }
+  @keyframes triviaFloat {
+    0%, 100% { transform: translateY(0) scale(1); }
+    50% { transform: translateY(-30px) scale(1.1); }
+  }
+  .trivia-lobby-content { position: relative; z-index: 1; }
+  .trivia-hero { margin-bottom: 40px; }
+  .trivia-status-bar {
+    display: flex; align-items: center; justify-content: center; gap: 16px;
+    flex-wrap: wrap; margin-bottom: 20px;
+  }
+  .trivia-status-badge {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: rgba(99, 102, 241, 0.15); border: 1px solid rgba(99, 102, 241, 0.3);
+    padding: 6px 14px; border-radius: 20px; color: #a5b4fc; font-size: 12px;
+    font-weight: 600; letter-spacing: 1px;
+  }
+  .trivia-status-badge .trivia-dot {
+    width: 8px; height: 8px; background: #6366f1; border-radius: 50%;
+    animation: triviaPulse 2s ease-in-out infinite;
+  }
+  @keyframes triviaPulse {
+    0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(99,102,241,0.4); }
+    50% { opacity: 0.7; box-shadow: 0 0 0 8px rgba(99,102,241,0); }
+  }
+  .trivia-status-info { color: #94a3b8; font-size: 13px; }
+  .trivia-status-info span { margin: 0 4px; }
+  .trivia-title {
+    font-size: 2.2rem; font-weight: 800; color: #fff;
+    background: linear-gradient(135deg, #6366f1, #a78bfa, #f472b6);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    background-clip: text; margin-bottom: 8px;
+  }
+  .trivia-subtitle { color: #94a3b8; font-size: 15px; line-height: 1.6; }
+  .trivia-subtitle small { color: #64748b; font-size: 13px; }
+  .trivia-action-grid {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px;
+    margin: 30px 0;
+  }
+  .trivia-action-card {
+    background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 16px; padding: 24px 16px; cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.16,1,0.3,1); text-align: center;
+    display: flex; flex-direction: column; align-items: center; gap: 10px;
+  }
+  .trivia-action-card:hover {
+    background: rgba(99,102,241,0.1); border-color: rgba(99,102,241,0.3);
+    transform: translateY(-4px); box-shadow: 0 12px 40px rgba(99,102,241,0.15);
+  }
+  .trivia-action-icon {
+    width: 48px; height: 48px; border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    background: rgba(99,102,241,0.15); color: #a5b4fc;
+  }
+  .trivia-action-title { color: #fff; font-weight: 700; font-size: 15px; }
+  .trivia-action-desc { color: #94a3b8; font-size: 13px; }
+  .trivia-join-form {
+    background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 16px; padding: 24px; margin: 20px 0;
+  }
+  .trivia-join-header {
+    display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;
+  }
+  .trivia-join-header h3 { color: #fff; font-size: 16px; }
+  .trivia-input-wrap { display: flex; gap: 10px; }
+  .trivia-input-wrap input {
+    flex: 1; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 10px; padding: 12px 16px; color: #fff; font-size: 14px; outline: none;
+  }
+  .trivia-input-wrap input:focus { border-color: #6366f1; }
+  .trivia-input-btn {
+    background: #6366f1; border: none; color: #fff; padding: 12px 20px;
+    border-radius: 10px; cursor: pointer; font-weight: 600; display: flex;
+    align-items: center; gap: 6px; transition: all 0.2s;
+  }
+  .trivia-input-btn:hover { background: #4f46e5; }
+  .trivia-room-active {
+    background: rgba(99,102,241,0.08); border: 1px solid rgba(99,102,241,0.2);
+    border-radius: 16px; padding: 28px; margin: 20px 0; text-align: center;
+  }
+  .trivia-room-status {
+    display: flex; align-items: center; justify-content: center; gap: 10px;
+    color: #a5b4fc; font-size: 14px; font-weight: 600; margin-bottom: 20px;
+  }
+  .trivia-room-pulse {
+    width: 10px; height: 10px; background: #22c55e; border-radius: 50%;
+    animation: triviaPulse 1.5s ease-in-out infinite;
+  }
+  .trivia-code-display { margin-bottom: 20px; }
+  .trivia-code-label {
+    color: #64748b; font-size: 11px; font-weight: 700; letter-spacing: 2px; margin-bottom: 8px;
+  }
+  .trivia-code-value {
+    font-size: 1.8rem; font-weight: 800; color: #fff;
+    background: rgba(255,255,255,0.06); display: inline-block;
+    padding: 10px 28px; border-radius: 12px; letter-spacing: 2px;
+    border: 1px solid rgba(99,102,241,0.3);
+  }
+  .trivia-room-buttons {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px;
+  }
+  .trivia-room-btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+    background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1);
+    color: #fff; padding: 12px 20px; border-radius: 10px; cursor: pointer;
+    font-size: 14px; font-weight: 600; transition: all 0.2s; text-decoration: none;
+  }
+  .trivia-room-btn:hover { background: rgba(99,102,241,0.2); border-color: #6366f1; }
+  .trivia-room-wa { background: rgba(37,211,102,0.15); border-color: rgba(37,211,102,0.3); color: #25d366; }
+  .trivia-room-wa:hover { background: rgba(37,211,102,0.3); }
+  .trivia-room-waiting {
+    color: #94a3b8; font-size: 14px; display: flex; align-items: center;
+    justify-content: center; gap: 10px;
+  }
+  .trivia-spinner {
+    width: 18px; height: 18px; border: 2px solid rgba(99,102,241,0.3);
+    border-top-color: #6366f1; border-radius: 50%;
+    animation: triviaSpin 1s linear infinite;
+  }
+  @keyframes triviaSpin { to { transform: rotate(360deg); } }
+
+  /* Trivia Game UI */
+  .trivia-game-wrap {
+    max-width: 800px; margin: 0 auto; padding: 20px;
+    position: relative; z-index: 1;
+  }
+  .trivia-hud {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 16px 24px; background: rgba(0,0,0,0.4); border-radius: 16px;
+    border: 1px solid rgba(255,255,255,0.08); margin-bottom: 24px;
+    flex-wrap: wrap; gap: 12px;
+  }
+  .trivia-hud-pill {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: rgba(255,255,255,0.06); padding: 8px 14px; border-radius: 10px;
+    font-size: 13px; font-weight: 600; color: #94a3b8;
+  }
+  .trivia-hud-num { color: #fff; font-size: 18px; font-weight: 800; }
+  .trivia-question-card {
+    background: linear-gradient(135deg, rgba(99,102,241,0.12), rgba(167,139,250,0.08));
+    border: 1px solid rgba(99,102,241,0.25); border-radius: 20px;
+    padding: 32px; margin-bottom: 24px; position: relative; overflow: hidden;
+  }
+  .trivia-question-card::before {
+    content: ''; position: absolute; top: -50%; right: -50%; width: 100%; height: 100%;
+    background: radial-gradient(circle, rgba(99,102,241,0.1), transparent 70%);
+    pointer-events: none;
+  }
+  .trivia-q-number {
+    color: #6366f1; font-size: 13px; font-weight: 700; letter-spacing: 1px;
+    margin-bottom: 12px;
+  }
+  .trivia-q-text {
+    color: #fff; font-size: 1.3rem; font-weight: 700; line-height: 1.5;
+    position: relative; z-index: 1;
+  }
+  .trivia-timer-bar {
+    width: 100%; height: 6px; background: rgba(255,255,255,0.08); border-radius: 3px;
+    margin-top: 20px; overflow: hidden;
+  }
+  .trivia-timer-fill {
+    height: 100%; background: linear-gradient(90deg, #22c55e, #fbbf24, #ef4444);
+    border-radius: 3px; transition: width 0.3s linear;
+  }
+  .trivia-timer-text {
+    text-align: center; color: #fbbf24; font-size: 1.4rem; font-weight: 800;
+    margin-top: 8px;
+  }
+  .trivia-timer-text.danger { color: #ef4444; animation: triviaBlink 0.5s ease-in-out infinite; }
+  @keyframes triviaBlink { 50% { opacity: 0.5; } }
+  .trivia-options-grid {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 24px;
+  }
+  .trivia-option-btn {
+    background: rgba(99,102,241,0.08); border: 2px solid rgba(99,102,241,0.25);
+    border-radius: 14px; padding: 18px 20px; color: #fff; font-size: 15px;
+    font-weight: 600; cursor: pointer; transition: all 0.25s cubic-bezier(0.16,1,0.3,1);
+    text-align: left; position: relative; overflow: hidden;
+    min-height: 56px; display: flex; align-items: center;
+  }
+  .trivia-option-btn:hover:not(.disabled) {
+    background: rgba(99,102,241,0.15); border-color: rgba(99,102,241,0.4);
+    transform: translateY(-2px);
+  }
+  .trivia-option-btn.selected {
+    background: rgba(99,102,241,0.25); border-color: #6366f1;
+    box-shadow: 0 0 20px rgba(99,102,241,0.3);
+  }
+  .trivia-option-btn.correct {
+    background: rgba(34,197,94,0.2); border-color: #22c55e;
+    box-shadow: 0 0 20px rgba(34,197,94,0.3);
+  }
+  .trivia-option-btn.wrong {
+    background: rgba(239,68,68,0.2); border-color: #ef4444;
+    box-shadow: 0 0 20px rgba(239,68,68,0.3);
+  }
+  .trivia-option-btn.disabled { pointer-events: none; opacity: 0.6; }
+  .trivia-option-letter {
+    display: inline-flex; width: 28px; height: 28px; align-items: center; justify-content: center;
+    background: rgba(255,255,255,0.1); border-radius: 8px; font-weight: 800; font-size: 13px;
+    margin-right: 12px; flex-shrink: 0;
+  }
+  .trivia-scoreboard {
+    background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 16px; padding: 20px; margin-bottom: 20px;
+  }
+  .trivia-scoreboard h4 {
+    color: #94a3b8; font-size: 12px; font-weight: 700; letter-spacing: 1px;
+    margin-bottom: 14px; text-transform: uppercase;
+  }
+  .trivia-player-row {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 10px 14px; border-radius: 10px; margin-bottom: 6px;
+    background: rgba(255,255,255,0.03); transition: all 0.3s;
+  }
+  .trivia-player-row.leader {
+    background: rgba(251,191,36,0.1); border: 1px solid rgba(251,191,36,0.2);
+  }
+  .trivia-player-info { display: flex; align-items: center; gap: 10px; }
+  .trivia-player-avatar {
+    width: 32px; height: 32px; border-radius: 50%; display: flex;
+    align-items: center; justify-content: center; font-size: 14px;
+    background: rgba(99,102,241,0.2); border: 2px solid rgba(99,102,241,0.4);
+  }
+  .trivia-player-name { color: #fff; font-weight: 600; font-size: 14px; }
+  .trivia-player-score { color: #fbbf24; font-weight: 800; font-size: 18px; }
+  .trivia-player-streak {
+    display: inline-flex; align-items: center; gap: 4px;
+    color: #f97316; font-size: 12px; font-weight: 700;
+  }
+
+  /* Trivia Results */
+  .trivia-results {
+    text-align: center; padding: 40px 20px;
+  }
+  .trivia-results-crown { font-size: 4rem; margin-bottom: 16px; animation: triviaBounce 1s ease-in-out infinite; }
+  @keyframes triviaPulse {
+    0%, 100% { transform: scale(1); filter: drop-shadow(0 4px 16px rgba(0,0,0,0.5)); }
+    50% { transform: scale(1.15) rotate(-8deg); filter: drop-shadow(0 8px 24px rgba(99,102,241,0.5)); }
+  }
+  @keyframes triviaBounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
+  }
+  .trivia-results-title {
+    font-size: 2rem; font-weight: 800;
+    background: linear-gradient(135deg, #fbbf24, #f59e0b, #d97706);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    background-clip: text; margin-bottom: 8px;
+  }
+  .trivia-results-subtitle { color: #94a3b8; font-size: 16px; margin-bottom: 30px; }
+  .trivia-final-scores {
+    max-width: 500px; margin: 0 auto 30px;
+  }
+  .trivia-podium {
+    display: flex; align-items: flex-end; justify-content: center; gap: 16px;
+    margin-bottom: 30px;
+  }
+  .trivia-podium-item {
+    text-align: center; border-radius: 16px 16px 0 0; padding: 20px 24px 16px;
+    min-width: 100px;
+  }
+  .trivia-podium-item.p1 { background: linear-gradient(180deg, rgba(251,191,36,0.2), rgba(251,191,36,0.05)); border: 1px solid rgba(251,191,36,0.3); border-bottom: none; }
+  .trivia-podium-item.p2 { background: linear-gradient(180deg, rgba(148,163,184,0.15), rgba(148,163,184,0.05)); border: 1px solid rgba(148,163,184,0.2); border-bottom: none; }
+  .trivia-podium-item.p3 { background: linear-gradient(180deg, rgba(180,83,9,0.15), rgba(180,83,9,0.05)); border: 1px solid rgba(180,83,9,0.2); border-bottom: none; }
+  .trivia-podium-rank { font-size: 2rem; font-weight: 900; }
+  .trivia-podium-name { color: #fff; font-weight: 700; font-size: 14px; margin-top: 4px; }
+  .trivia-podium-score { color: #fbbf24; font-weight: 800; font-size: 20px; margin-top: 4px; }
+  .trivia-back-btn {
+    background: #6366f1; border: none; color: #fff; padding: 14px 32px;
+    border-radius: 12px; font-size: 16px; font-weight: 700; cursor: pointer;
+    transition: all 0.2s;
+  }
+  .trivia-back-btn:hover { background: #4f46e5; transform: translateY(-2px); }
+
+  @media (max-width: 768px) {
+    .trivia-action-grid { grid-template-columns: 1fr; }
+    .trivia-options-grid { grid-template-columns: 1fr; }
+    .trivia-room-buttons { grid-template-columns: 1fr; }
+    .trivia-title { font-size: 1.6rem; }
+    .trivia-q-text { font-size: 1.1rem; }
+    .trivia-hud { flex-direction: column; align-items: stretch; text-align: center; }
+  }
 </style>
 
 <script>
@@ -8935,7 +9433,7 @@ function goPage(name, el) {
   if (el) el.classList.add('active');
   else {
     // games sayfası için "Oyunlar" menü item'ını aktif yap
-    const menuMap = { home: 0, video: 1, games: 2, game: 2, karma: 2, invite: 3 };
+    const menuMap = { home: 0, video: 1, games: 2, game: 2, karma: 2, trivia: 2, invite: 3 };
     const items = document.querySelectorAll('.menu-item');
     if (menuMap[name] !== undefined) items[menuMap[name]].classList.add('active');
   }
@@ -23266,6 +23764,1074 @@ setInterval(() => {
     }, 3000);
   }
 }, 800);
+
+// ============================================================
+// TRIVIA — Bilgi Yarışması
+// ============================================================
+
+// --- SORU BANKASI ---
+// Kolaydan zora sıralı sorular — Oyun başında karıştırıp sırayla oynatılacak
+const TRIVIA_ALL = [
+  {q:"Türkiye'nin başkenti neresidir?", o:["İstanbul","Ankara","İzmir","Bursa"], a:1},
+  {q:"Bir saat kaç dakikadır?", o:["30","45","60","90"], a:2},
+  {q:"Dünyanın en büyük okyanusu hangisidir?", o:["Atlas","Hint","Pasifik","Arktik"], a:2},
+  {q:"Hangisi bir meyvedir?", o:["Domates","Havuç","Patates","Soğan"], a:0},
+  {q:"Güneş sistemimizdeki en büyük gezegen hangisidir?", o:["Mars","Venüs","Jüpiter","Satürn"], a:2},
+  {q:"İnsanın kaç tane dişi vardır?", o:["28","30","32","34"], a:2},
+  {q:"Suyun kimyasal formülü nedir?", o:["CO2","H2O","O2","NaCl"], a:1},
+  {q:"Türkiye'nin en kalabalık şehri hangisidir?", o:["Ankara","İzmir","İstanbul","Bursa"], a:2},
+  {q:"Bir haftada kaç gün vardır?", o:["5","6","7","8"], a:2},
+  {q:"Hangisi bir hayvan değildir?", o:["Kedi","Köpek","Gül","Kuş"], a:2},
+  {q:"Ay dünyanın etrafında kaç günde döner?", o:["15","21","27","30"], a:2},
+  {q:"Türk bayrağında hangi renkler bulunur?", o:["Kırmızı-beyaz","Mavi-beyaz","Yeşil-beyaz","Sarı-beyaz"], a:0},
+  {q:"Dünyanın en uzun nehri hangisidir?", o:["Amazon","Nil","Mississippi","Fırat"], a:1},
+  {q:"1 metre kaç santimetredir?", o:["10","50","100","1000"], a:2},
+  {q:"Hangisi bir gasinaittir?", o:["Piyano","Keman","Gitar","Davul"], a:0},
+  {q:"Türkiye'de kaç il vardır?", o:["78","81","84","87"], a:1},
+  {q:"İnsan vücudunda kaç kemik bulunur?", o:["106","156","206","256"], a:2},
+  {q:"Hangisi bir kıta değildir?", o:["Avrupa","Afrika","Arktika","Asya"], a:2},
+  {q:"Bir yılda kaç ay vardır?", o:["10","11","12","13"], a:2},
+  {q:"Mount Everest hangi kıtadadır?", o:["Avrupa","Afrika","Asya","Güney Amerika"], a:2},
+  {q:"Türk kahvesi hangi ülkeye aittir?", o:["Yunanistan","Türkiye","Mısır","İran"], a:1},
+  {q:"Hangisi bir deniz değildir?", o:["Akdeniz","Karadeniz","Kızıl Deniz","Tuna"], a:3},
+  {q:"Bir futbol takımında kaç oyuncu vardır?", o:["9","10","11","12"], a:2},
+  {q:"Dünyanın en büyük ülkesi hangisidir?", o:["Çin","ABD","Kanada","Rusya"], a:3},
+  {q:"Hangisi bir çiçektir?", o:["Papatya","Elma","Armut","Çilek"], a:0},
+  {q:"Oksijen atomunun sembolü nedir?", o:["Ox","O","Og","Oxg"], a:1},
+  {q:"İstanbul Boğazı hangi iki denizi birleştirir?", o:["Akdeniz-Karadeniz","Marmara-Karadeniz","Ege-Akdeniz","Marmara-Ege"], a:1},
+  {q:"Bir yüzyıl kaç yıldır?", o:["10","50","100","1000"], a:2},
+  {q:"Hangisi bir element değildir?", o:["Altın","Gümüş","Su","Demir"], a:2},
+  {q:"Türkiye'nin en yüksek dağı hangisidir?", o:["Erciyes","Ağrı","Süphan","Kaçkar"], a:1},
+  {q:"Bir dakikada kaç saniye vardır?", o:["30","45","60","90"], a:2},
+  {q:"Hangisi bir sıvıdır?", o:["Taş","Demir","Su","Altın"], a:2},
+  {q:"Dünyanın en küçük ülkesi hangisidir?", o:["Monako","Vatikan","San Marino","Lihtenştayn"], a:1},
+  {q:"Mustafa Kemal Atatürk hangi yılda doğmuştur?", o:["1881","1883","1885","1879"], a:0},
+  {q:"Hangisi bir organ değildir?", o:["Kalp","Akciğer","Böbrek","Kulak"], a:3},
+  {q:"Bir ton kaç kilogramdır?", o:["100","500","1000","10000"], a:2},
+  {q:"Türkiye'nin para birimi nedir?", o:["Euro","Dolar","Lira","Sterlin"], a:2},
+  {q:"Hangisi bir gezegen değildir?", o:["Mars","Venüs","Güneş","Merkür"], a:2},
+  {q:"Van Gölü hangi bölgededir?", o:["Karadeniz","Ege","Doğu Anadolu","Akdeniz"], a:2},
+  {q:"Bir dizede kaç hece vardır: 'Türkçe' kelimesinde?", o:["1","2","3","4"], a:1},
+  {q:"Cumhuriyet hangi yılda ilan edilmiştir?", o:["1920","1922","1923","1924"], a:2},
+  {q:"Hangisi bir spor dalı değildir?", o:["Futbol","Basketbol","Satranç","Yüzme"], a:2},
+  {q:"Dünyanın en sıcak kıtası hangisidir?", o:["Asya","Güney Amerika","Afrika","Avustralya"], a:2},
+  {q:"Bir litre sütten yaklaşık ne kadar yoğurt elde edilir?", o:["250 ml","500 ml","750 ml","1 litre"], a:2},
+  {q:"Türkiye'nin en uzun nehrinin adı nedir?", o:["Fırat","Kızılırmak","Sakarya","Dicle"], a:1},
+  {q:"Pirinç hangi ülkede en çok üretilir?", o:["Hindistan","Çin","Japonya","Tayland"], a:1},
+  {q:"Hangisi bir gazdır?", o:["Demir","Su","Oksijen","Tuz"], a:2},
+  {q:"Atatürk'ün nüfusa kayıtlı olduğu il hangisidir?", o:["Ankara","İstanbul","Thessaloniki","Gaziantep"], a:3},
+  {q:"Bir kutupta kaç ay gece olur?", o:["3","4","6","12"], a:2},
+  {q:"Türkiye'nin komşularından hangisi adalara sahiptir?", o:["Suriye","Irak","Yunanistan","Gürcistan"], a:2},
+  {q:"Hangisi bir atasözü değildir?", o:["Damlaya damlaya göl olur","Ağaç yaşken eğilir","El elin eşeğini türkü çağırarak arar","Lafla peynir gemisi yürümaz"], a:2},
+  {q:"İstanbul kaç yılında fethedilmiştir?", o:["1451","1453","1455","1457"], a:1},
+  {q:"Bir basketbol takımında kaç oyuncu vardır?", o:["4","5","6","7"], a:1},
+  {q:"Hangisi bir vitamin değildir?", o:["A vitamini","B vitamini","X vitamini","C vitamini"], a:2},
+  {q:"Dünyanın en derin gölü hangisidir?", o:["Baykal","Tanganyika","Hazar","Van"], a:0},
+  {q:"Türkiye'de nüfusun çoğu hangi şehirde yaşar?", o:["Ankara","İzmir","İstanbul","Bursa"], a:2},
+  {q:"Hangisi bir çalgıdır?", o:["Kitap","Def","Kalem","Silgi"], a:1},
+  {q:"Bir gemi hangi metalden yapılır?", o:["Alüminyum","Bakır","Çelik","Altın"], a:2},
+  {q:"Saat yönünün tersine hangi yöne denir?", o:["Sağ","Sol","Saat yönü","Yukarı"], a:1},
+  {q:"Türkiye Cumhuriyeti'nin ilk Cumhurbaşkanı kimdir?", o:["İsmet İnönü","Mustafa Kemal Atatürk","Celal Bayar","Turgut Özal"], a:1},
+  {q:"Hangisi bir içecek değildir?", o:["Çay","Kahve","Ekmek","Ayran"], a:2},
+  {q:"Bir oraletin en popüler meyve aroması hangisidir?", o:["Çilek","Portakal","Kayısı","Şeftali"], a:1},
+  {q:"Türk lirasının simgesi nedir?", o:["$","€","₺","£"], a:2},
+  {q:"Hangisi bir renktir?", o:["Mavi","Sarı","Yeşil","Hepsi"], a:3},
+  {q:"Bir octopusun kaç bacağı vardır?", o:["4","6","8","10"], a:2},
+  {q:"İstanbul'da kaç boğaz köprüsü vardır?", o:["2","3","4","5"], a:1},
+  {q:"Hangisi bir hayvandır?", o:["Papatya","Masa","Kartal","Bilgisayar"], a:2},
+  {q:"Bir yılda kaç mevsim vardır?", o:["2","3","4","5"], a:2},
+  {q:"Türkiye'de en çok yetiştirilen tahıl hangisidir?", o:["Pirinç","Mısır","Buğday","Arpa"], a:2},
+  {q:"Hangisi bir kıtadır?", o:["Pasifik","Avrupa","Atlantik","Antartika"], a:1},
+  {q:"Bir kurbağanın yavrusuna ne denir?", o:["Yavru","Irbağa","Kurbağacık","Şirin"], a:0},
+  {q:"Türkiye'nin plaka kodu ülke olarak kaçtır?", o:["79","99","212","212"], a:0},
+  {q:"Hangisi bir mimari yapıdır?", o:["Köprü","Nehir","Dağ","Okyanus"], a:0},
+  {q:"Bir insanın kalbi vücudunun hangi tarafındadır?", o:["Sağ","Sol","Orta","Ön"], a:1},
+  {q:"Türkiye'nin en ünlü tatlılarından biri hangisidir?", o:["Baklava","Tiramisu","Crème brûlée","Cheesecake"], a:0},
+  {q:"Hangisi bir meslek değildir?", o:["Doktor","Mühendis","Öğrenci","Avukat"], a:2},
+  {q:"Bir yılda kaç hafta vardır?", o:["48","50","52","54"], a:2},
+  {q:"Türkiye'nin en büyük adası hangisidir?", o:["Bozcaada","Gökçeada","Büyükada","Heybeliada"], a:1},
+  {q:"Hangisi bir organik madde değildir?", o:["Odun","Plastik","Pamuk","Deri"], a:1},
+  {q:"Bir arının ürettiği madde hangisidir?", o:["Süt","Bal","Peynir","Tereyağı"], a:1},
+  {q:"Türkiye'de en çok kullanılan ulaşım aracı hangisidir?", o:["Uçak","Tren","Otobüs","Gemi"], a:2},
+  {q:"Hangisi bir saatten ölçülemez?", o:["Saniye","Dakika","Saat","Kilometre"], a:3},
+  {q:"Bir filin Hortum'un amacı nedir?", o:["Uyumak","Yemek yemek ve su içmek","Koşmak","Uçmak"], a:1},
+  {q:"Türkiye'nin en çok turist çeken şehri hangisidir?", o:["Antalya","Muğla","İstanbul","İzmir"], a:2},
+  {q:"Hangisi bir sıvı ölçüsüdür?", o:["Kilogram","Litre","Metre","Santimetre"], a:1},
+  {q:"Bir kedi kaç bacaklıdır?", o:["2","3","4","5"], a:2},
+  {q:"Türk Mutfağının vazgeçilmezi hangisidir?", o:["Makarna","Ekmek","Pilav","Çorba"], a:1},
+  {q:"Hangisi bir bitki türü değildir?", o:["Gül","Kaktüs","Kayalık","Papatya"], a:2},
+  {q:"Bir web sitesine girmek için ne kullanılır?", o:["Televizyon","Radyo","Tarayıcı","Telefon"], a:2},
+  {q:"Türkiye'nin en meşhur sporu hangisidir?", o:["Basketbol","Voleybol","Futbol","Tenis"], a:2},
+  {q:"Hangisi bir okyanus değildir?", o:["Pasifik","Atlas","Hint","Akdeniz"], a:3},
+  {q:"Bir buzdolabının amacı nedir?", o:["Isıtmak","Soğutmak","Kurutmak","Yıkamak"], a:1},
+  {q:"Türkiye'de kış aylarında hava nasıl olur?", o:["Sıcak","Soğuk","Ilık","Rüzgarlı"], a:1},
+  {q:"Hangisi bir uydu değildir?", o:["Ay","İnternet uydusu","Güneş","GPS uydusu"], a:2},
+  {q:"Bir resim çizmek için ne gerekir?", o:["Fırça ve boya","Çekiç ve çivi","Testere ve tahta","İğne ve iplik"], a:0},
+  {q:"Türkiye'nin Akdeniz'e kıyısı olan illerinden hangisi?", o:["Antalya","Trabzon","İstanbul","Ankara"], a:0},
+  {q:"Hangisi bir ağaç türüdür?", o:["Çam","Taş","Kum","Toprak"], a:0},
+  {q:"Bir telefonun şarjı bittiğinde ne yapılır?", o:["Atılır","Şarja takılır","Dondurulur","Yıkanır"], a:1},
+  {q:"Türkiye'de yaz aylarında hava nasıl olur?", o:["Soğuk","Sıcak","Donmuş","Karlı"], a:1},
+  {q:"Hangisi bir elektrikli cihazdır?", o:["Buzdolabı","Masa","Sandalye","Yastık"], a:0},
+  {q:"Bir karınca kaç bacaklıdır?", o:["4","6","8","10"], a:1},
+  {q:"Türkiye'nin üç tarafı hangi denizlerle çevrilidir?", o:["Akdeniz, Ege, Karadeniz","Pasifik, Atlas, Hint","Kızıldeniz, Basra, Aral","Baltık, Kuzey, Bering"], a:0},
+  {q:"Hangisi bir kelime türü değildir?", o:["İsim","Fiil","Sıfat","Tuğla"], a:3},
+  {q:"Bir insan kaç duyu organına sahiptir?", o:["3","4","5","6"], a:2},
+  {q:"Türkiye'nin en büyük gölü hangisidir?", o:["Van","Tuz Gölü","Beyşehir","Eğirdir"], a:0},
+  {q:"Hangisi bir takımyıldızdır?", o:["Samanyolu","Orion","Güneş","Ay"], a:1},
+  {q:"Bir ampulü kim icat etmiştir?", o:["Newton","Edison","Einstein","Tesla"], a:1},
+  {q:"Türkiye'de eğitim zorunlu kaç yıldır?", o:["8","10","12","14"], a:2},
+  {q:"Hangisi bir bitki değildir?", o:["Biber","Domates","Patates","Tavuk"], a:3},
+  {q:"Bir metronom ne için kullanılır?", o:["Müzikte tempo","Resimde renk","Yemek pişirme","Spor"], a:0},
+  {q:"Türkiye'nin en ünlü yazarlarından biri kimdir?", o:["Orhan Pamuk","Shakespeare","Tolstoy","Goethe"], a:0},
+  {q:"Hangisi bir diş türü değildir?", o:["Köpek dişi","Kesici diş","Ön diş","Elma dişi"], a:3},
+  {q:"Bir güvercin hangi renklerde olabilir?", o:["Sadece beyaz","Sadece siyah","Beyaz ve gri","Mavi"], a:2},
+  {q:"Türkiye'nin en çok oynanan oyunu hangisidir?", o:["Satranç","Tavla","Basketbol","Voleybol"], a:1},
+  {q:"Hangisi bir büyük şehir değildir?", o:["İstanbul","Ankara","Bayburt","İzmir"], a:2},
+  {q:"Bir orkestra şefi ne yapar?", o:["Şarkı söyler","Müzik yönetir","Dans eder","Resim yapar"], a:1},
+  {q:"Türkiye'nin en popüler kahvaltılığı hangisidir?", o:["Kruvasan","Simit","Pankek","Waffle"], a:1},
+  {q:"Hangisi bir çöl değildir?", o:["Sahara","Gobi","Amazon","Karakum"], a:2},
+  {q:"Bir uçağı kim icat etmiştir?", o:["Edison","Wright Kardeşler","Tesla","Newton"], a:1},
+  {q:"Türkiye'nin kış sporları için ünlü ili hangisidir?", o:["Antalya","Erzurum","İzmir","Mersin"], a:1},
+  {q:"Hangisi bir deniz canlısıdır?", o:["Köpek","Kedi","Balık","Kuş"], a:2},
+  {q:"Bir şiir yazan kişiye ne denir?", o:["Yazar","Şair","Ressam","Müzisyen"], a:1},
+  {q:"Türkiye'de trafik hangi taraftan akar?", o:["Sol","Sağ","Orta","Farketmez"], a:1},
+  {q:"Hangisi bir mevsimdir?", o:["Pazartesi","Ocak","İlkbahar","Mart"], a:2},
+  {q:"Bir bilgisayarın beyni hangi parçadır?", o:["Ekran","Klavye","İşlemci","Fare"], a:2},
+  {q:"Türkiye'nin en ünlü çayı nerede yetişir?", o:["İstanbul","Rize","Ankara","Konya"], a:1},
+  {q:"Hangisi bir renk tonudur?", o:["Turkuaz","Muz","Elma","Araba"], a:0},
+  {q:"Bir roman yazarı kitabı ne zaman bitirir?", o:["Bir günde","Bir ayda","Yıllar alabilir","Hiç bitmez"], a:2},
+  {q:"Türkiye'de kaç tane boğaz vardır?", o:["1","2","3","4"], a:1},
+  {q:"Hangisi bir müzik aletidir?", o:["Televizyon","Gitar","Buzdolabı","Çamaşır Makinesi"], a:1},
+  {q:"Bir kedinin ortalama ömrü kaç yıldır?", o:["5-8","10-15","20-25","30-35"], a:1},
+  {q:"Türkiye'nin en çok tanınan yemeği hangisidir?", o:["Pizza","Kebap","Sushi","Taco"], a:1},
+  {q:"Hangisi bir bilim dalıdır?", o:["Futbol","Kimya","Yemekçilik","Arabacılık"], a:1},
+  {q:"Bir tepsi ne için kullanılır?", o:["Taşımak","Yemek pişirmek","Yatak yapmak","Araba kullanmak"], a:0},
+  {q:"Türkiye'nin en çok ziyaret edilen müzesi hangisidir?", o:["Louvre","British Museum","Topkapı Sarayı","MoMA"], a:2},
+  {q:"Hangisi bir şarkı türü değildir?", o:["Pop","Rock","Sebze","Caz"], a:2},
+  {q:"Bir çocuğun ilk dişi kaç ayda çıkar?", o:["3-4","6-10","12-18","24"], a:1},
+  {q:"Türkiye'nin en eski üniversitesi hangisidir?", o:["Boğaziçi","ODTÜ","İstanbul Üniversitesi","Hacettepe"], a:2},
+  {q:"Hangisi bir soyadı olabilir?", o:["Yılmaz","Merdiven","Çamaşır","Buzdolabı"], a:0},
+  {q:"Bir yıldız film yıldızı ne demektir?", o:["Gökyüzündeki yıldız","Ünlü aktör","Bir çiçek","Bir hayvan"], a:1},
+  {q:"Türkiye'de en çok satılan gazete hangisidir?", o:["Hürriyet","Sözcü","Posta","Sabah"], a:2},
+  {q:"Hangisi bir sayıdır?", o:["Mavi","Yedi","Masa","Araba"], a:1},
+  {q:"Bir bisiklette kaç tekerlek vardır?", o:["1","2","3","4"], a:1},
+  {q:"Türkiye'nin en büyük stadyumu hangisidir?", o:["Ali Sami Yen","Şükrü Saracoğlu","Atatürk Olimpiyat","BJK İnönü"], a:2},
+  {q:"Hangisi bir kırtasiye malzemesidir?", o:["Kalem","Tabak","Yastık","Bardak"], a:0},
+  {q:"Bir köpeğin burnu ne renk olur genelde?", o:["Beyaz","Siyah","Kırmızı","Yeşil"], a:1},
+  {q:"Türkiye'de en popüler sosyal medya hangisidir?", o:["Twitter","Instagram","LinkedIn","Pinterest"], a:1},
+  {q:"Hangisi bir maden değildir?", o:["Altın","Gümüş","Elmas","Tahta"], a:3},
+  {q:"Bir saat kaç tane akrep ibaresi gösterir?", o:["1","2","3","12"], a:0},
+  {q:"Türkiye'nin kuzeyinde hangi deniz bulunur?", o:["Akdeniz","Ege","Karadeniz","Marmara"], a:2},
+  {q:"Hangisi bir giysi değildir?", o:["Gömlek","Pantolon","Televizyon","Mont"], a:2},
+  {q:"Bir insanın iki gözü kaç göz yapar?", o:["1","2","3","4"], a:1},
+  {q:"Türkiye'nin nüfusu yaklaşık kaçtır?", o:["40 milyon","60 milyon","85 milyon","120 milyon"], a:2},
+  {q:"Hangisi bir yiyecek değildir?", o:["Ekmek","Peynir","Zeytin","Televizyon"], a:3},
+  {q:"Bir inek ne üretir?", o:["Yumurta","Süt","Bal","Peynir"], a:1},
+  {q:"Türkiye'nin en büyük havalimanı hangisidir?", o:["Sabiha Gökçen","Esenboğa","İstanbul Havalimanı","Adnan Menderes"], a:2},
+  {q:"Hangisi bir tabiat olayıdır?", o:["Deprem","Televizyon","Bilgisayar","Araba"], a:0},
+  {q:"Bir dikdörtgenin kaç köşesi vardır?", o:["3","4","5","6"], a:1},
+  {q:"Türkiye'nin batısında hangi deniz vardır?", o:["Karadeniz","Akdeniz","Ege","Hazar"], a:2},
+  {q:"Hangisi bir meslek grubudur?", o:["Tıp","Hukuk","Eğitim","Hepsi"], a:3},
+  {q:"Bir ozon tabakası nerededir?", o:["Yeraltında","Deniz dibinde","Atmosferde","Ayda"], a:2},
+  {q:"Türkiye'nin en ünlü tatil beldesi hangisidir?", o:["Antalya","Kars","Ağrı","Batman"], a:0},
+  {q:"Hangisi bir aydınlık kaynağıdır?", o:["Güneş","Taş","Ağaç","Su"], a:0},
+  {q:"Bir dik yokuş aşağı inmek için ne gerekir?", o:["Dikkat","Koşu ayakkabısı","Hiçbir şey","Uçmak"], a:0},
+  {q:"Türkiye'nin en çok yağış alan ili hangisidir?", o:["Rize","Ankara","Konya","Karaman"], a:0},
+  {q:"Hangisi bir aksesuar değildir?", o:["Saat","Kolye","Köpek","Yüzük"], a:2},
+  {q:"Bir çocuğun boyu yetişkin olunca ne olur?", o:["Kısalır","Aynı kalır","Uzar","Kaybolur"], a:2},
+  {q:"Türkiye'de pazar gününden sonraki gün hangisidir?", o:["Cumartesi","Pazartesi","Salı","Çarşamba"], a:1},
+  {q:"Hangisi bir meyve suyu olabilir?", o:["Portakal suyu","Taş suyu","Kum suyu","Hava suyu"], a:0},
+  {q:"Bir kan gruplarından hangisi en yaygındır?", o:["A","B","AB","0"], a:3},
+  {q:"Türkiye'de okullar ne zaman açılır?", o:["Ocak","Nisan","Eylül","Aralık"], a:2},
+  {q:"Hangisi bir gemi türü değildir?", o:["Firkateyn","Kruvaziyer","Uçak gemisi","Otomobil"], a:3},
+  {q:"Bir kalemin içinde ne vardır?", o:["Mürekkep","Su","Süt","Kum"], a:0},
+  {q:"Türkiye'nin en büyük sanayi şehri hangisidir?", o:["Konya","Bursa","İstanbul","Gaziantep"], a:2},
+  {q:"Hangisi bir ekmek türüdür?", o:["Beyaz ekmek","Mavi ekmek","Yeşil ekmek","Kırmızı ekmek"], a:0},
+  {q:"Bir insanın iki ayağı kaç ayak yapar?", o:["1","2","3","4"], a:1},
+  {q:"Türkiye'nin resmi dili nedir?", o:["İngilizce","Türkçe","Arapça","Fransızca"], a:1},
+  {q:"Hangisi bir gök cismidir?", o:["Yıldız","Taş","Ağaç","Nehir"], a:0},
+  {q:"Bir denizaltı ne yapabilir?", o:["Uçmak","Suya batmak","Ağaca tırmanmak","Koşmak"], a:1},
+  {q:"Türkiye'nin güneyinde hangi deniz bulunur?", o:["Karadeniz","Marmara","Akdeniz","Ege"], a:2},
+  {q:"Hangisi bir ağaçtan elde edilir?", o:["Plastik","Cam","Kauçuk","Çelik"], a:2},
+  {q:"Bir top ne şeklindedir?", o:["Kare","Üçgen","Küre","Dikdörtgen"], a:2},
+  {q:"Türkiye'nin en büyük ovası hangisidir?", o:["Çukurova","Konya Ovası","Bursa Ovası","Ergene Ovası"], a:1},
+  {q:"Hangisi bir araba markası değildir?", o:["Toyota","Honda","Masa","BMW"], a:2},
+  {q:"Bir termometre neyi ölçer?", o:["Sıcaklığı","Uzunluğu","Ağırlığı","Hızı"], a:0},
+  {q:"Türkiye'de ramazan ayında ne yapılır?", o:["Parti verilir","Oruç tutulur","Yarış yapılır","Alışveriş"], a:1},
+  {q:"Hangisi bir gurme yiyecek değildir?", o:["İstiridye","Trüf","Hamburger","Havyar"], a:2},
+  {q:"Bir binanın en üst katına ne denir?", o:["Bodrum","Çatı","Giriş","Asansör"], a:1},
+  {q:"Türkiye'de bayrak töreni hangi gündür?", o:["Pazartesi","Cuma","Cumartesi","Pazar"], a:1},
+  {q:"Hangisi bir iklim türüdür?", o:["Akdeniz iklimi","Okyanus iklimi","Kara iklimi","Hepsi"], a:3},
+  {q:"Bir aspirin ne için kullanılır?", o:["Ağrı kesici","Vitamin","Parfüm","Sabun"], a:0},
+  {q:"Türkiye'nin en tanınmış yazar kadınlarından biri?", o:["Ayşe Kulin","J.K. Rowling","Agatha Christie","Jane Austen"], a:0},
+  {q:"Hangisi bir matematik işlemidir?", o:["Toplama","Yükleme","Gübreleme","Sulama"], a:0},
+  {q:"Bir çiçek hangi renk olabilir?", o:["Mavi","Kırmızı","Sarı","Hepsi"], a:3},
+  {q:"Türkiye'nin en çok izlenen TV kanalı hangisidir?", o:["ATV","Show TV","Star TV","TRT 1"], a:0},
+  {q:"Hangisi bir hayvan yavrusudur?", o:["Yavru köpek","Yavru taş","Yavru masa","Yavru kitap"], a:0},
+  {q:"Bir arı soktuğunda ne yapılır?", o:["Kaşınır","Buz konur","Hiçbir şey","Su dökülür"], a:1},
+  {q:"Türkiye'de kaç tane bölge vardır?", o:["5","6","7","8"], a:2},
+  {q:"Hangisi bir dans türüdür?", o:["Vals","Yürüyüş","Koşu","Tırmanma"], a:0},
+  {q:"Bir zamkış ayında Türkiye'de ne olur?", o:["Kar yağar","Güneş açar","Deniz sıcak olur","Meyveler olgunlaşır"], a:0},
+  {q:"Türkiye'nin en yüksek bacası hangi şehirde?", o:["İstanbul","Ankara","İzmir","Bursa"], a:0},
+  {q:"Hangisi bir yiyecek saklama kabıdır?", o:["Kavanoz","Televizyon","Koltuk","Halı"], a:0},
+  {q:"Bir diş fırçası ne için kullanılır?", o:["Saç fırçalamak","Diş temizlemek","Bulaşık yıkamak","Cam silmek"], a:1},
+  {q:"Türkiye'de en popüler kahve türü hangisidir?", o:["Filtre kahve","Türk kahvesi","Espresso","Latte"], a:1},
+  {q:"Hangisi bir hayvandır?", o:["Örümcek","Taş","Masa","Koltuk"], a:0},
+  {q:"Bir yağmur damlası hangi şekildedir?", o:["Kare","Yuvarlak","Üçgen","Düz çizgi"], a:1},
+  {q:"Türkiye'de en çok tanınan sanatçı kimdir?", o:["Tarkan","Madonna","Elvis","Beyonce"], a:0},
+  {q:"Hangisi bir ev eşyasıdır?", o:["Kanepe","Traktör","Uçak","Gemi"], a:0},
+  {q:"Bir buz eridiğinde ne olur?", o:["Su olur","Buhar olur","Kaybolur","Buz kalır"], a:0},
+  {q:"Türkiye'nin güneydoğusunda hangi şehir vardır?", o:["Şanlıurfa","Trabzon","Edirne","Çanakkale"], a:0},
+  {q:"Hangisi bir bitki hastalığı değildir?", o:["Küf","Pas","Çürüklük","Grip"], a:3},
+  {q:"Bir muz hangi renk olur olgunlaşınca?", o:["Yeşil","Sarı","Kırmızı","Mavi"], a:1},
+  {q:"Türkiye'nin en çok ziyaret edilen antik kenti hangisidir?", o:["Efes","Pompei","Colosseum","Stonehenge"], a:0},
+  {q:"Hangisi bir iletişim aracıdır?", o:["Telefon","Fırça","Terazi","Pense"], a:0},
+  {q:"Bir şemsiye ne için kullanılır?", o:["Güneşlenme","Yağmurdan korunma","Yemek pişirme","Uyumak"], a:1},
+  {q:"Türkiye'nin kuzeydoğusunda hangi şehir vardır?", o:["Trabzon","Antalya","İzmir","Bursa"], a:0},
+  {q:"Hangisi bir madde hali değildir?", o:["Katı","Sıvı","Gaz","Renk"], a:3},
+  {q:"Bir tost makinesi ne yapar?", o:["Soğutur","Tost yapar","Yıkar","Ütüler"], a:1},
+  {q:"Türkiye'de en çok satılan araba markası hangisidir?", o:["Mercedes","BMW","Fiat","Toyota"], a:2},
+  {q:"Hangisi bir gezegen ismidir?", o:["Mars","Köpek","Masa","Kitap"], a:0},
+  {q:"Bir yılan hangi hareketi yapar?", o:["Uçma","Sürünme","Yürüme","Zıplama"], a:1},
+  {q:"Türkiye'de en popüler çay markası hangisidir?", o:["Lipton","Çaykur","Twinings","Nestea"], a:1},
+  {q:"Hangisi bir meyvedir?", o:["Çilek","Havuç","Patates","Soğan"], a:0},
+  {q:"Bir tansiyon aleti neyi ölçer?", o:["Kalp atışını","Kan basıncını","Vücut sıcaklığını","Şeker seviyesini"], a:1},
+  {q:"Türkiye'de Çanakkale Savaşı hangi yılda oldu?", o:["1912","1915","1918","1923"], a:1},
+  {q:"Hangisi bir tutku hobisine ait değildir?", o:["Resim","Müzik","Yemek yeme","Dans"], a:2},
+  {q:"Bir çiviyi çakmak için ne gerekir?", o:["Çekiç","Fırça","Terazi","Pense"], a:0},
+  {q:"Türkiye'nin en büyük halı üretici şehri hangisidir?", o:["Kayseri","İstanbul","İzmir","Bursa"], a:0},
+  {q:"Hangisi bir astronomi terimidir?", o:["Galaksi","Okyanus","Nehir","Dağ"], a:0},
+  {q:"Bir dondurma en çok hangi mevsimde yenir?", o:["İlkbahar","Yaz","Sonbahar","Kış"], a:1},
+  {q:"Türkiye'nin en büyük barajı hangisidir?", o:["Atatürk Barajı","Keban","Karakaya","Hirfanlı"], a:0},
+  {q:"Hangisi bir tencere malzemesi değildir?", o:["Bakır","Çelik","Alüminyum","Tahta"], a:3},
+  {q:"Bir kale ne demektir tarihde?", o:["Savunma yapısı","Yemek yapısı","Ulaşım yapısı","Eğitim yapısı"], a:0},
+  {q:"Türkiye'de bayram tatili kaç gün sürer?", o:["1","3","5","7"], a:1},
+  {q:"Hangisi bir doğa olayı değildir?", o:["Gökkuşağı","Yıldırım","Televizyon","Deprem"], a:2},
+  {q:"Bir terazi neyi ölçer?", o:["Sıcaklığı","Ağırlığı","Uzunluğu","Hızı"], a:1},
+  {q:"Türkiye'nin en çok tanınan gülü hangi şehirde yetişir?", o:["Isparta","Antalya","İstanbul","Ankara"], a:0},
+  {q:"Hangisi bir bina türüdür?", o:["Villa","Araba","Gemi","Uçak"], a:0},
+  {q:"Bir balık suda nasıl yaşar?", o:["Solungaçlarıyla","Akciğerleriyle","Derisiyle","Kulaklarıyla"], a:0},
+  {q:"Türkiye'de en çok üretilen meyve hangisidir?", o:["Elma","Muz","Portakal","Çilek"], a:0},
+  {q:"Hangisi bir akıl oyunudur?", o:["Satranç","Futbol","Yüzme","Koşu"], a:0},
+  {q:"Bir insan kaç litreye kadar su içmelidir günde?", o:["1","2","5","10"], a:1},
+  {q:"Türkiye'nin en büyük ada ilçesi hangisidir?", o:["Büyükada","Bozcaada","Gökçeada","Heybeliada"], a:2},
+  {q:"Hangisi bir pasta türüdür?", o:["İsviçre pastası","Çamur pastası","Şeftalili pasta","Taş pastası"], a:2},
+  {q:"Bir araba yakıt olarak ne kullanır?", o:["Su","Benzin","Süt","Meyve suyu"], a:1},
+  {q:"Türkiye'nin en ünlü şelalesi hangisidir?", o:["Düden","Manavgat","Tortum","Kursunlu"], a:2},
+  {q:"Hangisi bir kıyı sporu değildir?", o:["Sörf","Yelken","Kayak","Dalga"], a:2},
+  {q:"Bir saat kaç çeyreğe bölünebilir?", o:["2","3","4","6"], a:2},
+  {q:"Türkiye'nin en genç ili hangisidir?", o:["Batman","Şırnak","Iğdır","Yalova"], a:2},
+  {q:"Hangisi bir sosyal medya uygulamasıdır?", o:["WhatsApp","Excel","Photoshop","AutoCAD"], a:0},
+  {q:"Bir kuş havada nasıl uçar?", o:["Kanatlarıyla","Kuyruğuyla","Gagasıyla","Pençeleriyle"], a:0},
+  {q:"Türkiye'nin en ünlü fotoğraf mekanı hangisidir?", o:["Kapadokya","Sahara","Gobi","Mojave"], a:0},
+  {q:"Hangisi bir otoban işaretidir?", o:["Dur","Merhaba","Teşekkürler","Hoşçakal"], a:0},
+  {q:"Bir restoranda garson ne yapar?", o:["Yemek pişirir","Yemek servisi yapar","Bulaşık yıkar","Hesap öder"], a:1},
+  {q:"Türkiye'de yeni yıla girerken ne yapılır?", o:["Bayrak indirilir","Havai fişek atılır","Savaş yapılır","Toplantı yapılır"], a:1},
+  {q:"Hangisi bir gemi parçasıdır?", o:["Dümen","Direksiyon","Fren","Jant"], a:0},
+  {q:"Bir yastık ne için kullanılır?", o:["Uyumak","Yemek yemek","Yürümek","Araba kullanmak"], a:0},
+  {q:"Türkiye'nin en batısındaki il hangisidir?", o:["Edirne","Kırklareli","Çanakkale","Tekirdağ"], a:0},
+  {q:"Hangisi bir fenerdir?", o:["Fener","Masa","Koltuk","Yatak"], a:0},
+  {q:"Bir şeker hastası ne yememelidir?", o:["Şeker","Su","Et","Salata"], a:0},
+  {q:"Türkiye'nin en doğusındaki il hangisidir?", o:["Van","Hakkari","Iğdır","Ardahan"], a:2},
+  {q:"Hangisi bir pantolon türüdür?", o:["Kot","Gömlek","Tişört","Ceket"], a:0},
+  {q:"Bir çamaşır makinesi ne yapar?", o:["Çamaşır yıkar","Bulaşık yıkar","Yemek pişirir","Ütüler"], a:0},
+  {q:"Türkiye'de en popüler sabah içeceği hangisidir?", o:["Çay","Kola","Ayran","Soda"], a:0},
+  {q:"Hangisi bir geometrik şekildir?", o:["Üçgen","Renk","Ses","Koku"], a:0},
+  {q:"Bir elektrik prizine ne takılır?", o:["Fiş","Kalem","Kitap","Bardak"], a:0},
+  {q:"Türkiye'de milli eğitim bakanlığı hangi şehirde bulunur?", o:["İstanbul","Ankara","İzmir","Bursa"], a:1},
+  {q:"Hangisi bir renk körlüğü belirtisi olabilir?", o:["Renkleri karıştırmak","Göz ağrısı","Baş dönmesi","Mide bulantısı"], a:0},
+  {q:"Bir postal ne demektir?", o:["Posta pulu","E-posta","Postane","Hepsi"], a:3},
+  {q:"Türkiye'de en çok tüketilen et hangisidir?", o:["Dana eti","Kuzu eti","Tavuk eti","Balık eti"], a:2},
+  {q:"Hangisi bir mimari stil değil?", o:["Barok","Gotik","Muz","Rönesans"], a:2},
+  {q:"Bir perde ne için kullanılır?", o:["Pencere örtmek","Yemek yapmak","Araba kullanmak","Dans etmek"], a:0},
+  {q:"Türkiye'de Cumhurbaşkanı kaç yılda bir seçilir?", o:["4","5","6","7"], a:1},
+  {q:"Hangisi bir sayı sistemidir?", o:["İkili sistem","Renk sistemi","Ses sistemi","Görüntü sistemi"], a:0},
+  {q:"Bir kumaş parçası ne yapılabilir?", o:["Elbise","Araba","Bina","Gemi"], a:0},
+  {q:"Türkiye'de en çok izlenen dizi türü hangisidir?", o:["Komedi","Dram","Aksiyon","Belgesel"], a:1},
+  {q:"Hangisi bir sokak hayvanıdır?", o:["Kedi","Aslan","Fil","Zürafa"], a:0},
+  {q:"Bir şömine ne için kullanılır?", o:["Isınmak","Soğutmak","Yıkamak","Kurutmak"], a:0},
+  {q:"Türkiye'de yaz saati uygulaması ne zaman başlar?", o:["Ocak","Mart","Haziran","Eylül"], a:1},
+  {q:"Hangisi bir güzellik ürünüdür?", o:["Şampuan","Motor yağı","Bulaşık deterjanı","Tuz"], a:0},
+  {q:"Bir saatçilik mesleği ne yapar?", o:["Saat tamir eder","Araba tamir eder","Bina yapar","Yemek pişirir"], a:0},
+  {q:"Türkiye'nin en ünlü antik tiyatrosu hangisidir?", o:["Aspendos","Colosseum","Acropolis","Stonehenge"], a:0},
+  {q:"Hangisi bir renk körlüğü testidir?", o:["Ishihara","EKG","MRI","Tomografi"], a:0},
+  {q:"Bir facia ne demektir?", o:["Büyük felaket","Küçük sorun","Eğlence","Tatil"], a:0},
+  {q:"Türkiye'nin en büyük parkı hangisidir?", o:["Gençlik Parkı","Yıldız Parkı","Millet Bahçesi","Emirgan"], a:2},
+  {q:"Hangisi bir dekorasyon malzemesidir?", o:["Halı","Motor","Pil","Ayna"], a:0},
+  {q:"Bir balon havada nasıl uçar?", o:["Helyum gazıyla","Benziyle","Sütle","Suyla"], a:0},
+  {q:"Türkiye'de YKS sınavı ne zaman yapılır?", o:["Ocak","Mart","Haziran","Eylül"], a:2},
+  {q:"Hangisi bir bankacılık işlemidir?", o:["Para çekme","Yemek yeme","Uyuma","Koşma"], a:0},
+  {q:"Bir banka ne yapar?", o:["Para saklar","Araba satar","Yemek pişirir","Dans eder"], a:0},
+  {q:"Türkiye'de deniz turizmi en çok hangi bölgede gelişmiştir?", o:["Karadeniz","Akdeniz","Doğu Anadolu","İç Anadolu"], a:1},
+  {q:"Hangisi bir fotoğrafçılık terimidir?", o:["Deklanşör","Fırça","Çekiç","Pense"], a:0},
+  {q:"Bir peynir nasıl yapılır?", o:["Sütten","Kumdan","Taştan","Sudan"], a:0},
+  {q:"Türkiye'nin en ünlü buzul gölü hangisidir?", o:["Cennet Gölü","Abant","Eğirdir","Beyşehir"], a:1},
+  {q:"Hangisi bir buluş değildir?", o:["Tekerlek","Buhar makinesi","Televizyon","Rüya"], a:3},
+  {q:"Bir kayısının anavatanı neresidir?", o:["Çin","Hindistan","Türkiye","Brezilya"], a:2},
+  {q:"Türkiye'nin en büyük sanayi bölgesi hangisidir?", o:["İstanbul","Ankara","İzmir","Kocaeli"], a:3},
+  {q:"Hangisi bir göl değildir?", o:["Van Gölü","Tuz Gölü","Kızılırmak","Beyşehir"], a:2},
+  {q:"Bir çeyrek altın kaç gramdır?", o:["1.5","1.8","2.2","3.0"], a:0},
+  {q:"Türkiye'de en çok kullanılan ödeme yöntemi hangisidir?", o:["Nakit","Kredi kartı","Kripto","Çek"], a:0},
+  {q:"Hangisi bir tahta oyunudur?", o:["Monopoly","Futbol","Yüzme","Koşu"], a:0},
+  {q:"Bir bulut neden beyaz görünür?", o:["Güneş ışığını yansıttığı için","Boyandığı için","Tuz olduğu için","Kar olduğu için"], a:0},
+  {q:"Türkiye'nin en çok bilinen kahvaltısı hangi şehirden?", o:["Van","Ankara","İstanbul","İzmir"], a:0},
+  {q:"Hangisi bir para birimi değildir?", o:["Dolar","Euro","Lira","Kilometre"], a:3},
+  {q:"Bir timsah nerelerde yaşar?", o:["Çölde","Kutupda","Bataklık ve nehirlerde","Dağlarda"], a:2},
+  {q:"Türkiye'de en çok tanınan yönetmen kimdir?", o:["Nuri Bilge Ceylan","Spielberg","Scorsese","Tarantino"], a:0},
+  {q:"Hangisi bir ticaret merkezi demektir?", o:["AVM","OKM","PTT","TCDD"], a:0},
+  {q:"Bir ampul kaç watt olabilir?", o:["10","60","200","Hepsi"], a:3},
+  {q:"Türkiye'de en çok tercih edilen üniversite hangisidir?", o:["ODTÜ","Boğaziçi","İTÜ","İstanbul Üni."], a:1},
+  {q:"Hangisi bir olimpiyat sporu değildir?", o:["Yüzme","Atletizm","Satranç","Güreş"], a:2},
+  {q:"Bir kar tanesi hangi şekle sahiptir?", o:["Yuvarlak","Kare","Altıgen","Üçgen"], a:2},
+  {q:"Türkiye'nin en çok izlenen dizisi hangi türdedir?", o:["Komedi","Aksiyon","Romantik","Gerilim"], a:1},
+  {q:"Hangisi bir fizik kanunudur?", o:["Yer çekimi","Büyü kanunu","Sihir kanunu","Renk kanunu"], a:0},
+  {q:"Bir kurbağa ne yer?", o:["Böcek","Pizza","Hamburger","Döner"], a:0},
+  {q:"Türkiye'de en çok satılan kitap türü hangisidir?", o:["Roman","Şiir","Tarih","Kişisel gelişim"], a:3},
+  {q:"Hangisi bir organik tarım ürünüdür?", o:["Organik domates","Plastik domates","Taş domates","Cam domates"], a:0},
+  {q:"Bir kartpostal ne için gönderilir?", o:["Haberleşme","Paket","Para","Yiyecek"], a:0},
+  {q:"Türkiye'nin en çok tanınan şairi kimdir?", o:["Yaşar Kemal","Orhan Pamuk","Nazım Hikmet","Elif Şafak"], a:2},
+  {q:"Hangisi bir baharattır?", o:["Karabiber","Şeker","Tuz","Un"], a:0},
+  {q:"Bir güneş gözlüğü neyi korur?", o:["Gözleri","Kulakları","Burnu","Ağzı"], a:0},
+  {q:"Türkiye'de en çok tüketilen ekmek türü hangisidir?", o:["Beyaz ekmek","Kepekli","Çavdar","Mısır ekmeği"], a:0},
+  {q:"Hangisi bir yiyecek pişirme yöntemidir?", o:["Fırınlama","Yıkama","Kurutma","Saklama"], a:0},
+  {q:"Bir insan kaç saat uyumalıdır?", o:["4-5","6-8","10-12","14-16"], a:1},
+  {q:"Türkiye'nin en ünlü plajı hangisidir?", o:["Ölüdeniz","Konyaaltı","Cleopatra","Mavi Bayrak"], a:0},
+  {q:"Hangisi bir soyut kavramdır?", o:["Aşk","Masa","Araba","Kalem"], a:0},
+  {q:"Bir tüy neden hafiftir?", o:["Çok küçük olduğu için","Havada kalması için","Boyalı olduğu için","Sulu olduğu için"], a:0},
+  {q:"Türkiye'de en çok bilinen peynir türü hangisidir?", o:["Beyaz peynir","Cheddar","Gouda","Parmesan"], a:0},
+  {q:"Hangisi bir doğum günü geleneğidir?", o:["Pasta üflemek","Bayrak çekmek","İftar açmak","Kurban kesmek"], a:0},
+  {q:"Bir saat doğruyu nasıl gösterir?", o:["İğnelerle","Renklerle","Seslerle","Kokularla"], a:0},
+  {q:"Türkiye'nin en ünlü folklor dansı hangisidir?", o:["Horon","Sirtaki","Flamenco","Tango"], a:0},
+  {q:"Hangisi bir vücut dili ifadesidir?", o:["Gülümsemek","Yemek yemek","Uyumak","Koşmak"], a:0},
+  {q:"Bir labirent ne demektir?", o:["Karmaşık yol","Düz yol","Geniş alan","Açık saha"], a:0},
+  {q:"Türkiye'de en çok izlenen spor ligi hangisidir?", o:["Süper Lig","NBA","Premier League","La Liga"], a:0},
+  {q:"Hangisi bir tipi türüdür?", o:["Kar tipisi","Güneş tipisi","Sıcak tipisi","Kuru tipisi"], a:0},
+  {q:"Bir çölde en çok ne bulunur?", o:["Kum","Su","Ağaç","Buz"], a:0},
+  {q:"Türkiye'nin en büyük müze kompleksi hangisidir?", o:["Topkapı Sarayı","Louvre","British Museum","Hermitage"], a:0},
+  {q:"Hangisi bir tarım ürünüdür?", o:["Buğday","Plastik","Cam","Çelik"], a:0},
+  {q:"Bir deniz yıldızının kaç kolu vardır?", o:["3","4","5","6"], a:2},
+  {q:"Türkiye'de en çok kullanılan kelime hangisidir?", o:["Merhaba","Teşekkürler","Tamam","Evet"], a:2},
+  {q:"Hangisi bir nehir kenarı etkinliği değildir?", o:["Balık tutma","Piknik","Kayak","Yürüyüş"], a:2},
+  {q:"Bir çocuğun okula başlama yaşı kaçtır?", o:["4","5","6","7"], a:2},
+  {q:"Türkiye'nin en ünlü çömlekçi şehri hangisidir?", o:["Avanos","Çorum","Tokat","Amasya"], a:0},
+  {q:"Hangisi bir radyo kanalı değildir?", o:["FM","AM","USB","Radyo"], a:2},
+  {q:"Bir kutup ayısı ne yer?", o:["Balık","Pizza","Döner","Lahmacun"], a:0},
+  {q:"Türkiye'nin en çok bilinen çorbası hangisidir?", o:["Mercimek","Domates","Tavuk","Tarhana"], a:0},
+  {q:"Hangisi bir ulaşım yolu değildir?", o:["Otoyol","Demiryolu","Havayolu","Irmak yolu"], a:3},
+  {q:"Bir kelebeğin ömrü ne kadardır?", o:["1 gün","1 hafta","1 ay","1 yıl"], a:1},
+  {q:"Türkiye'de en çok sevilen yemek hangisidir?", o:["Mantı","Kebap","Lahmacun","Börek"], a:0},
+  {q:"Hangisi bir doğal afet değildir?", o:["Deprem","Sel","Yangın","Parti"], a:3},
+  {q:"Bir kaktüs neden sulanmaz?", o:["Kuraklığa dayanıklı","Zehirlidir","Koku yapar","Büyümez"], a:0},
+  {q:"Türkiye'de en popüler yaz tatili yeri hangisidir?", o:["Bodrum","Kars","Ağrı","Van"], a:0},
+  {q:"Hangisi bir mitolojik varlık değildir?", o:["Ejderha","Unicorn","Zürafa","Anka kuşu"], a:2},
+  {q:"Bir fener ne yapar?", o:["Işık verir","Su verir","Yemek yapar","Taşır"], a:0},
+  {q:"Türkiye'de bayrak günü hangi tarihtir?", o:["23 Nisan","19 Mayıs","29 Ekim","30 Ağustos"], a:2},
+  {q:"Hangisi bir fiziksel özelliktir?", o:["Uzunluk","Mutluluk","Zeka","Cesaret"], a:0},
+  {q:"Bir tükürük ne işe yarar?", o:["Sindirime yardım eder","Göz yaşını artırır","Terlemeyi sağlar","Nefes almayı sağlar"], a:0},
+  {q:"Türkiye'nin en meşhur kayısı üretici şehri hangisidir?", o:["Malatya","Kayseri","Sivas","Erzincan"], a:0},
+  {q:"Hangisi bir iletişim yöntemi değildir?", o:["Mektup","E-posta","Telefon","Yastık"], a:3},
+  {q:"Bir kitap kapağında ne bulunur?", o:["Başlık ve yazar","Malzeme listesi","Kimyasal formül","Harita"], a:0},
+  {q:"Türkiye'de en çok yetiştirilen sebze hangisidir?", o:["Domates","Biber","Patates","Soğan"], a:0},
+  {q:"Hangisi bir yüzyüze iletişim aracıdır?", o:["Konuşma","E-posta","Mektup","SMS"], a:0},
+  {q:"Bir aslan hangi kıtada yaşar?", o:["Avrupa","Asya","Afrika","Güney Amerika"], a:2},
+  {q:"Türkiye'de fındık en çok hangi ilde yetişir?", o:["Ordu","Trabzon","Rize","Artvin"], a:0},
+  {q:"Hangisi bir telif hakkı korumasıdır?", o:["Patent","Vize","Pasaport","Ehliyet"], a:0},
+  {q:"Bir deprem ölçeği hangisidir?", o:["Richter","Celsius","Newton","Pascal"], a:0},
+  {q:"Türkiye'nin en ünlü antik kenti hangi ildedir?", o:["İzmir","İstanbul","Ankara","Bursa"], a:0},
+  {q:"Hangisi bir tıp branşıdır?", o:["Kardiyoloji","Botanik","Astronomi","Jeoloji"], a:0},
+  {q:"Bir insanın en büyük organı hangisidir?", o:["Kalp","Karaciğer","Deri","Akciğer"], a:2},
+  {q:"Türkiye'de en çok bilinen armut üretici ili hangisidir?", o:["Bursa","Antalya","Isparta","Yalova"], a:0},
+  {q:"Hangisi bir yazılı eser türüdür?", o:["Roman","Resim","Heykel","Müzik"], a:0},
+  {q:"Bir oksijen tüpü ne için kullanılır?", o:["Dalış","Yüzme","Koşu","Dans"], a:0},
+  {q:"Türkiye'de hayvanat bahçesi en büyük hangi şehirde?", o:["Ankara","İstanbul","İzmir","Antalya"], a:1},
+  {q:"Hangisi bir termal merkez şehridir?", o:["Afyon","Kars","Batman","Şırnak"], a:0},
+  {q:"Bir sinek kaç bacaklıdır?", o:["4","6","8","10"], a:1},
+  {q:"Türkiye'de incir en çok hangi ilde yetişir?", o:["Aydın","İzmir","Muğla","Antalya"], a:0},
+  {q:"Hangisi bir optik aletidir?", o:["Dürbün","Fırça","Çekiç","Pense"], a:0},
+  {q:"Bir kış aylarında günler ne olur?", o:["Kısalır","Uzar","Aynı kalır","Değişmez"], a:0},
+  {q:"Türkiye'de çay yetiştiriciliği hangi bölgede yapılır?", o:["Ege","Akdeniz","Karadeniz","İç Anadolu"], a:2},
+  {q:"Hangisi bir tuz çeşididir?", o:["Deniz tuzu","Şeker tuzu","Un tuzu","Yağ tuzu"], a:0},
+  {q:"Bir panda hangi kıtada yaşar?", o:["Afrika","Avrupa","Asya","Güney Amerika"], a:2},
+  {q:"Türkiye'nin en büyük volkanı hangisidir?", o:["Ağrı","Erciyes","Süphan","Hasan"], a:0},
+  {q:"Hangisi bir mutfak aletidir?", o:["Tava","Çekiç","Pense","Testere"], a:0},
+  {q:"Bir yılın 365. günü hangi tarihtir?", o:["30 Kasım","25 Aralık","31 Aralık","1 Ocak"], a:2},
+  {q:"Türkiye'de nar en çok hangi ilde yetişir?", o:["Adana","Antalya","Mersin","Hatay"], a:2},
+  {q:"Hangisi bir mühendislik dalıdır?", o:["İnşaat mühendisliği","Edebiyat","Tarih","Coğrafya"], a:0},
+  {q:"Bir cam ne yapılabilir?", o:["Pencere","Ekmek","Tuğla","Ahşap"], a:0},
+  {q:"Türkiye'nin en büyük liman şehri hangisidir?", o:["İzmir","İstanbul","Mersin","Trabzon"], a:1},
+  {q:"Hangisi bir yaz sporudur?", o:["Kayak","Sörf","Buz pateni","Körling"], a:1},
+  {q:"Bir porsuk hayvanı ne tür bir hayvandır?", o:["Kuş","Balık","Memeli","Sürüngen"], a:2},
+  {q:"Türkiye'de ceviz en çok hangi ilde yetişir?", o:["Giresun","Trabzon","Rize","Artvin"], a:0},
+  {q:"Hangisi bir psikolojik kavramdır?", o:["Stres","Kırık","Yanık","Burkulma"], a:0},
+  {q:"Bir ekvator ne demektir?", o:["Dünyayı ikiye bölen çizgi","En uzun nehir","En yüksek dağ","En büyük okyanus"], a:0},
+  {q:"Türkiye'de en çok bilinen zeytinyağı hangi bölgeden?", o:["Ege","Karadeniz","İç Anadolu","Doğu Anadolu"], a:0},
+  {q:"Hangisi bir fizik olayıdır?", o:["Kırılma","Pişirme","Yazma","Okuma"], a:0},
+  {q:"Bir ay tutulması ne zaman olur?", o:["Dolunayda","Yeni ayda","İlk çeyrekte","Son çeyrekte"], a:0},
+  {q:"Türkiye'de bağcılık en çok hangi bölgede yapılır?", o:["Ege","İç Anadolu","Doğu Anadolu","Karadeniz"], a:0},
+  {q:"Hangisi bir kimyasal elementtir?", o:["Altın","Şeker","Tuz","Su"], a:0},
+  {q:"Bir çekirge ne yer?", o:["Bitki","Et","Bal","Süt"], a:0},
+  {q:"Türkiye'de en çok tanınan folklorik giysi hangisidir?", o:["Şalvar","Kimono","Sari","Kilt"], a:0},
+  {q:"Hangisi bir doğal güzellik değil?", o:["Şelale","Dağ","Göl","Gökdelen"], a:3},
+  {q:"Bir mide ne kadar asit üretir?", o:["1 litre","2 litre","3 litre","5 litre"], a:1},
+  {q:"Türkiye'nin en ünlü caravan yeri hangisidir?", o:["Kapadokya","Antalya","Bodrum","Çeşme"], a:0},
+  {q:"Hangisi bir iletişim teknolojisi değildir?", o:["Telefon","İnternet","Mektup","Televizyon"], a:3},
+  {q:"Bir örümcek ne üretir?", o:["İpek","Bal","Süt","Yumurta"], a:0},
+  {q:"Türkiye'de en büyük çarşı hangisidir?", o:["Kapalıçarşı","Mısır Çarşısı","Bakırcılar","Historia"], a:0},
+  {q:"Hangisi bir eski medeniyet değil?", o:["Roma","Osmanlı","Aztek","Apple"], a:3},
+  {q:"Bir papatya hangi renktir?", o:["Kırmızı","Beyaz-sarı","Mavi","Yeşil"], a:1},
+  {q:"Türkiye'de en çok sevilen dondurma türü hangisidir?", o:["Maraş dondurması","İtalyan dondurma","American dondurma","Japon dondurma"], a:0},
+  {q:"Hangisi bir yüzey şekildir?", o:["Ova","Deniz","Gökyüzü","Hava"], a:0},
+  {q:"Bir köpek neden kuyruk sallar?", o:["Mutlu olduğu için","Aç olduğu için","Uykulu olduğu için","Hasta olduğu için"], a:0},
+  {q:"Türkiye'de en çok sevilen çay bahçesi hangi şehirde?", o:["İstanbul","Ankara","İzmir","Bursa"], a:0},
+  {q:"Hangisi bir amino asit kaynağıdır?", o:["Et","Su","Şeker","Tuz"], a:0},
+  {q:"Bir yelkenli neyle hareket eder?", o:["Rüzgar","Motor","Kürek","Elektrik"], a:0},
+  {q:"Türkiye'de en çok bilinen markalarından hangisi?", o:["Vestel","Samsung","Sony","LG"], a:0},
+  {q:"Hangisi bir hijyen ürünüdür?", o:["Sabun","Motor yağı","Gübre","Boya"], a:0},
+  {q:"Bir ayna ne yapar?", o:["Yansıma gösterir","Işık üretir","Ses yayar","Isı verir"], a:0},
+  {q:"Türkiye'de en çok giyilen kıyafet nedir?", o:["Takım elbise","Şort","Kazak","Tulum"], a:2},
+  {q:"Hangisi bir bitkinin parçasıdır?", o:["Yaprak","Taş","Kum","Toprak"], a:0},
+  {q:"Bir öküz ne yapar?", o:["Tarla sürer","Uçar","Yüzer","Tırmanır"], a:0},
+  {q:"Türkiye'nin en ünlü çikolata markası hangisidir?", o:["Ülker","Ferrero","Lindt","Godiva"], a:0},
+  {q:"Hangisi bir yaz meyvesidir?", o:["Karpuz","Portakal","Mandalina","Nar"], a:0},
+  {q:"Bir mikrofon ne yapar?", o:["Sesi yükseltir","Işığı yükseltir","Isıyı yükseltir","Nemi yükseltir"], a:0},
+  {q:"Türkiye'de en çok satılan gazoz hangisidir?", o:["Uludağ","Sprite","7Up","Fanta"], a:0},
+  {q:"Hangisi bir kış sebzesidir?", o:["Kırmızı lahana","Domates","Biber","Patlıcan"], a:0},
+  {q:"Bir yılan neden tıslar?", o:["Tehdit edildiğinde","Açken","Mutluyken","Uyurken"], a:0},
+  {q:"Türkiye'de en çok bilinen otomotiv markası hangisidir?", o:["TOGG","Ford","Renault","Fiat"], a:0},
+  {q:"Bir timsah hangi kıtada yaşar?", o:["Avrupa","Asya","Afrika","Avustralya"], a:2},
+  {q:"Türkiye'de en çok bilinen gazlı içecek hangisidir?", o:["Coca-Cola","Pepsi","Sprite","Fanta"], a:0},
+  {q:"Bir muz hangi vitamini içerir en çok?", o:["A vitamini","B vitamini","C vitamini","Potasyum"], a:3},
+  {q:"Türkiye'de en çok tanınan yazar kimdir?", o:["Yaşar Kemal","Orhan Pamuk","Elif Şafak","Ahmet Ümit"], a:1},
+  {q:"Hangisi bir buz sporudur?", o:["Buz hokeyi","Futbol","Basketbol","Voleybol"], a:0},
+  {q:"Bir fil kaç ton olabilir?", o:["1-2","3-5","6-7","8-10"], a:2},
+  {q:"Türkiye'de en çok satılan bira markası hangisidir?", o:["Efes","Tuborg","Bomonti","Gusta"], a:0},
+  {q:"Hangisi bir doğa harikasıdır?", o:["Pamukkale","Eyfel Kulesi","Pisa Kulesi","Big Ben"], a:0},
+  {q:"Bir kedi neden mırıldanır?", o:["Mutlu olduğu için","Ağrıdığı için","Her ikisi de","Asla mırıldanmaz"], a:2},
+  {q:"Türkiye'de en çok bilinen kahvaltı içeceği hangisidir?", o:["Çay","Kahve","Süt","Portakal suyu"], a:0},
+  {q:"Hangisi bir kış sporudur?", o:["Kayak","Sörf","Yüzme","Plaj voleybolu"], a:0},
+  {q:"Bir at kaç bacaklıdır?", o:["2","3","4","6"], a:2},
+  {q:"Türkiye'de en ünlü bale topluluğu hangi şehirde?", o:["İstanbul","Ankara","İzmir","Antalya"], a:0},
+  {q:"Hangisi bir deniz hayvanı değildir?", o:["Ahtapot","Balina","Yunus","Kartal"], a:3},
+  {q:"Bir porselen ne yapılır?", o:["Kilden","Tahtadan","Metallden","Plastikten"], a:0},
+  {q:"Türkiye'de en çok sevilen kuruyemiş hangisidir?", o:["Fındık","Fıstık","Ceviz","Ay çekirdeği"], a:3},
+  {q:"Hangisi bir su sporudur?", o:["Sutopu","Kayak","Buz hokeyi","Karaken"], a:0},
+  {q:"Bir arı kovanında kaç arı yaşar?", o:["100","1000","10000","100000"], a:2},
+  {q:"Türkiye'nin en tanınmış şiiri hangisidir?", o:["İstiklal Marşı","Çanakkale Türküsü","Gençliğe Hitabe","Nutuk"], a:0},
+  {q:"Hangisi bir elektrik kaynağıdır?", o:["Güneş paneli","Şişe","Kase","Tabak"], a:0},
+  {q:"Bir baykuş ne zaman aktiftir?", o:["Gündüz","Gece","Her zaman","Asla"], a:1},
+  {q:"Türkiye'de en çok tanınan besteci kimdir?", o:["Adnan Saygun","Mozart","Beethoven","Bach"], a:0},
+  {q:"Hangisi bir doğal renklendiricidir?", o:["Pancar","Boya","Mürekkep","Plastik"], a:0},
+  {q:"Bir yılana zehirli diyebilir miyiz?", o:["Hepsini","Bazılarını","Hiçbirini","Sadece büyük olanları"], a:1},
+  {q:"Türkiye'de en çok bilinen fast food zinciri hangisidir?", o:["McDonald's","Burger King","Sbarro","KFC"], a:0},
+  {q:"Hangisi bir nane türüdür?", o:["Nane","Kimyon","Karanfil","Tarçın"], a:0},
+  {q:"Bir orkide ne renk olabilir?", o:["Beyaz","Pembe","Mor","Hepsi"], a:3},
+  {q:"Türkiye'de en çok bilinen tiyatro oyuncusu kimdir?", o:["Müsfik Kenter","Kemal Sunal","Şener Şen","Adile Naşit"], a:0},
+  {q:"Hangisi bir toprak türüdür?", o:["Kum","Kil","Humus","Hepsi"], a:3},
+  {q:"Bir tukan kuşu neyle tanınır?", o:["Büyük gagası","Uzun kuyruğu","Kanatları","Bacakları"], a:0},
+  {q:"Türkiye'de en çok satılan telefon markası hangisidir?", o:["Samsung","Apple","Xiaomi","Huawei"], a:0},
+  {q:"Hangisi bir çay bitkisidir?", o:["Camellia sinensis","Rosa","Tulipa","Lilium"], a:0},
+  {q:"Bir hamster ne yer?", o:["Tohumlar","Pizza","Hamburger","Lahmacun"], a:0},
+  {q:"Türkiye'de en çok bilinen fok turistik yer hangisidir?", o:["Foça","Bodrum","Çeşme","Alanya"], a:0},
+  {q:"Hangisi bir silah değil?", o:["Tabanca","Tüfek","Kılıç","Kalem"], a:3},
+  {q:"Bir pelikan ne yapabilir?", o:["Uçabilir","Yüzebilir","Her ikisi","Hiçbiri"], a:2},
+  {q:"Türkiye'de en popüler atıştırmalık hangisidir?", o:["Simit","Kruvasan","Pankek","Waffle"], a:0},
+  {q:"Hangisi bir ağaç kabuğudur?", o:["Pos","Kabuk","Yaprak","Çiçek"], a:1},
+  {q:"Bir kirpi ne yapar tehlike anında?", o:["Toparlak olur","Koşar","Uçar","Sular"], a:0},
+  {q:"Türkiye'de en çok bilinen alışveriş bayramı hangisidir?", o:["Black Friday","11.11","Cyber Monday","Yılbaşı"], a:0},
+  {q:"Hangisi bir protein kaynağıdır?", o:["Yumurta","Şeker","Tuz","Un"], a:0},
+  {q:"Bir flamingo neden pembe görünür?", o:["Yediği besinlerden","Güneşten","Boyadan","Genetik"], a:0},
+  {q:"Türkiye'de en ünlü karadeniz dansı hangisidir?", o:["Horon","Zeybek","Halay","Bar"], a:0},
+  {q:"Hangisi bir ağaç türüdür?", o:["Meşe","Kayalık","Kumlu","Sulu"], a:0},
+  {q:"Bir kaplumbağa ne kadar yaşayabilir?", o:["10 yıl","50 yıl","100 yıl","200 yıl"], a:2},
+  {q:"Türkiye'de en çok bilinen ayçiçek yağı markası hangisidir?", o:["Yudum","Komili","Tariş","Olin"], a:0},
+  {q:"Hangisi bir evcil hayvandır?", o:["Köpek","Aslan","Kaplan","Ayı"], a:0},
+  {q:"Bir ağaca ne gerekir büyümek için?", o:["Su ve güneş","Karanlık","Soğuk","Rüzgar"], a:0},
+  {q:"Türkiye'de en popüler müzik türü hangisidir?", o:["Arabesk","Pop","Rock","Caz"], a:0},
+  {q:"Hangisi bir taş türüdür?", o:["Mermer","Cam","Plastik","Ahşap"], a:0},
+  {q:"Bir denizanası ne yapabilir?", o:["Sokar","Isırır","Çalar","Kokar"], a:0},
+  {q:"Türkiye'nin en ünlü şair ve yazarlarından biri kimdir?", o:["Orhan Veli Kanık","Napoleon","Einstein","Darwin"], a:0},
+  {q:"Hangisi bir bitki yetiştirme yöntemidir?", o:["Sulama","Yakma","Kesme","Dondurma"], a:0},
+  {q:"Bir balinanın kalbi ne kadardır?", o:["Fare kalbi kadar","İnsan kalbi kadar","Araba büyüklüğünde","Küçük bir araba kadar"], a:3},
+  {q:"Türkiye'de en çok tanınan filozof kimdir?", o:["Farabi","Sokrates","Platon","Aristo"], a:0},
+  {q:"Hangisi bir çöl bitkisidir?", o:["Kaktüs","Gül","Papatya","Lale"], a:0},
+  {q:"Bir sincap ne yer?", o:["Ceviz ve fındık","Et","Balık","Süt"], a:0},
+  {q:"Türkiye'de en çok bilinen ayran markası hangisidir?", o:["Sütaş","Tahsildaroğlu","Pınar","İçim"], a:0},
+  {q:"Hangisi bir deniz kabuğu şeklidir?", o:["Sarmal","Kare","Üçgen","Dikdörtgen"], a:0},
+  {q:"Bir deve neden hörgüç taşır?", o:["Yağ depolamak için","Su depolamak için","Hava depolamak için","Hiçbir neden"], a:0},
+  {q:"Türkiye'de en çok bilinen halı markası hangisidir?", o:["Aker","İpek Halı","Royal","Merinos"], a:0},
+  {q:"Hangisi bir çiçek adıdır?", o:["Lale","Kalem","Kitap","Masa"], a:0},
+  {q:"Bir kartal neyle avlanır?", o:["Pençeleriyle","Kuyruğuyla","Gagasıyla","Kanatlarıyla"], a:0},
+  {q:"Türkiye'de en popüler ekipman markası hangisidir?", o:["Vestel","Beko","Arçelik","Regal"], a:2},
+  {q:"Hangisi bir kış giysisidir?", o:["Mont","Şort","Tişört","Sandal"], a:0},
+  {q:"Bir köpekbalığı ne yer?", o:["Balık ve et","Plankton","Sebze","Meyve"], a:0},
+  {q:"Türkiye'nin en ünlü helvası hangi şehirden?", o:["İzmir","Afyon","Konya","Kayseri"], a:0},
+  {q:"Hangisi bir enerji içeceğidir?", o:["Red Bull","Ayran","Soda","Süt"], a:0},
+  {q:"Bir devekuşu uçabilir mi?", o:["Evet","Hayır","Sadece yavruyken","Sadece rüzgarda"], a:1},
+  {q:"Türkiye'de en çok tanınan şarap markası hangisidir?", o:["Kavaklıdere","Doluca","Sevilen","Turasan"], a:0},
+  {q:"Hangisi bir yaz çiçeğidir?", o:["Ayçiçeği","Kardelen","Manolya","Yasemin"], a:0},
+  {q:"Bir fok balığı nerelerde yaşar?", o:["Sulak alan ve deniz kıyılarında","Çölde","Ormanda","Dağda"], a:0},
+  {q:"Türkiye'de en çok sevilen tatlı hangisidir?", o:["Baklava","Sütlaç","Künefe","Kazandibi"], a:0},
+  {q:"Bir leopar hangi kıtada yaşar?", o:["Avrupa","Afrika ve Asya","Güney Amerika","Avustralya"], a:1},
+];
+
+function getTriviaQuestions(count) {
+  const all = [...TRIVIA_ALL];
+  const shuffled = shuffleArray(all);
+  return shuffled.slice(0, count);
+}
+
+// Soru puanı: 1. soru = 5, 2. soru = 10, her soru +5
+function getTriviaPoints(qIndex) {
+  return (qIndex + 1) * 5;
+}
+
+// --- OYUN DURUMU ---
+let triviaState = {
+  active: false,
+  isHost: false,
+  isSolo: true,
+  currentQ: 0,
+  totalQ: 20,
+  score: 0,
+  streak: 0,
+  timeLeft: 15,
+  maxTime: 15,
+  timer: null,
+  answered: false,
+  selectedAnswer: -1,
+  players: {},     // peerId -> { name, score, streak, avatar }
+  myPeerId: null,
+  myPeer: null,
+  roomCode: null,
+  connections: [],  // DataConnection[]
+};
+
+function getTriviaTimeForQuestion(qIndex) {
+  // İlk 5 soru: süreli (30, 35, 40, 45, 50 sn)
+  // 6. sorudan sonra: süre yok (0 = sınırsız)
+  if (qIndex < 5) return 30 + (qIndex * 5);
+  return 0; // süre yok
+}
+
+function shuffleArray(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+// --- LOBBY FONKSİYONLARI ---
+
+function generateTriviaCode() {
+  const chars = 'abcdefghijkmnpqrstuvwxyz23456789';
+  let code = 'trivia-';
+  for (let i = 0; i < 6; i++) code += chars[Math.floor(Math.random() * chars.length)];
+  return code;
+}
+
+function showTriviaJoinForm() {
+  document.getElementById('trivia-join-form').style.display = 'block';
+  document.getElementById('trivia-join-code').focus();
+}
+
+function createTriviaRoom() {
+  const code = generateTriviaCode();
+  triviaState.isHost = true;
+  triviaState.isSolo = false;
+  triviaState.roomCode = code;
+
+  const peer = createPeer(code);
+  triviaState.myPeer = peer;
+  triviaState.myPeerId = code;
+
+  peer.on('open', () => {
+    document.getElementById('trivia-room-code').textContent = code;
+    document.getElementById('trivia-room-display').style.display = 'block';
+    const waLink = `https://wa.me/?text=${encodeURIComponent('🧠 Takıl Bilgi Yarışması! Oda kodu: ' + code + '\nhttps://178-105-90-130.nip.io')}`;
+    document.getElementById('trivia-wa-link').href = waLink;
+  });
+
+  peer.on('connection', (conn) => {
+    triviaState.connections.push(conn);
+    const playerName = 'Oyuncu ' + (triviaState.connections.length + 1);
+    triviaState.players[conn.peer] = { name: playerName, score: 0, streak: 0, avatar: '🎮' };
+
+    conn.on('open', () => {
+      // Host olarak oyuncuya hoş geldin mesajı gönder
+      conn.send({ type: 'welcome', name: playerName, hostName: 'Oyun Kurucu' });
+      updateTriviaRoomStatus();
+      // Diğer oyunculara bildir
+      broadcastTrivia({ type: 'player-joined', players: getTriviaPlayersList() });
+    });
+
+    conn.on('data', (data) => handleTriviaNetMessage(conn.peer, data));
+    conn.on('close', () => {
+      delete triviaState.players[conn.peer];
+      triviaState.connections = triviaState.connections.filter(c => c !== conn);
+      updateTriviaRoomStatus();
+      broadcastTrivia({ type: 'player-left', players: getTriviaPlayersList() });
+    });
+  });
+}
+
+function joinTriviaRoom() {
+  const code = document.getElementById('trivia-join-code').value.trim();
+  if (!code) return;
+
+  triviaState.isHost = false;
+  triviaState.isSolo = false;
+  triviaState.roomCode = code;
+
+  const peer = createPeer();
+  triviaState.myPeer = peer;
+
+  peer.on('open', (myId) => {
+    triviaState.myPeerId = myId;
+    const conn = peer.connect(code);
+    triviaState.connections.push(conn);
+
+    conn.on('open', () => {
+      document.getElementById('trivia-room-display').style.display = 'block';
+      document.getElementById('trivia-room-code').textContent = code;
+      document.getElementById('trivia-status').innerHTML = '<span class="trivia-spinner"></span><span>Bağlandı! Oyunun başlaması bekleniyor...</span>';
+    });
+
+    conn.on('data', (data) => handleTriviaNetMessage(conn.peer, data));
+    conn.on('close', () => {
+      document.getElementById('trivia-status').innerHTML = '⚠️ Bağlantı koptu.';
+    });
+  });
+}
+
+function getTriviaPlayersList() {
+  const list = [{ id: triviaState.myPeerId, name: 'Oyun Kurucu', score: 0, streak: 0, avatar: '👑' }];
+  for (const [id, p] of Object.entries(triviaState.players)) {
+    list.push({ id, ...p });
+  }
+  return list;
+}
+
+function updateTriviaRoomStatus() {
+  const count = Object.keys(triviaState.players).length + 1;
+  document.getElementById('trivia-status').innerHTML =
+    `<span class="trivia-spinner"></span><span>${count} oyuncu hazır • Oyunu başlatmak için tıklayın</span>`;
+  // Host için başlat butonu göster
+  if (triviaState.isHost && count >= 2) {
+    document.getElementById('trivia-status').innerHTML =
+      `<button class="trivia-room-btn" onclick="startTriviaMultiGame()" style="margin:0 auto;padding:14px 32px;background:#6366f1;color:#fff;font-size:16px;">🚀 Oyunu Başlat (${count} oyuncu)</button>`;
+  }
+}
+
+function copyTriviaCode() {
+  const code = triviaState.roomCode || document.getElementById('trivia-room-code').textContent;
+  navigator.clipboard.writeText(code).then(() => {
+    const btn = event.target.closest('.trivia-room-btn');
+    const orig = btn.innerHTML;
+    btn.innerHTML = '✅ Kopyalandı!';
+    setTimeout(() => btn.innerHTML = orig, 1500);
+  });
+}
+
+function broadcastTrivia(data) {
+  triviaState.connections.forEach(conn => {
+    try { conn.send(data); } catch(e) {}
+  });
+}
+
+function handleTriviaNetMessage(fromId, data) {
+  switch(data.type) {
+    case 'welcome':
+      // Guest olarak hoş geldim
+      triviaState.players[triviaState.myPeerId] = { name: data.name, score: 0, streak: 0, avatar: '🎮' };
+      break;
+    case 'player-joined':
+    case 'player-left':
+    case 'players-update':
+      // Player listesini güncelle
+      break;
+    case 'game-start':
+      triviaState.players = {};
+      data.players.forEach(p => { triviaState.players[p.id] = p; });
+      startTriviaGameUI(data.questions, data.totalQ);
+      break;
+    case 'question':
+      showTriviaQuestion(data);
+      break;
+    case 'answer-result':
+      // Başka oyuncu cevap verdi
+      if (data.playerId !== triviaState.myPeerId) {
+        triviaState.players[data.playerId] = triviaState.players[data.playerId] || {};
+        triviaState.players[data.playerId].score = data.score;
+        triviaState.players[data.playerId].streak = data.streak;
+        updateTriviaScoreboard();
+      }
+      break;
+    case 'game-end':
+      showTriviaResults(data.results);
+      break;
+  }
+}
+
+// --- SOLO OYUN ---
+
+function startTriviaSolo() {
+  triviaState.isSolo = true;
+  triviaState.isHost = false;
+  triviaState.myPeerId = 'solo-' + Date.now();
+  triviaState.players = {};
+  triviaState.players[triviaState.myPeerId] = { name: 'Sen', score: 0, streak: 0, avatar: '😎' };
+
+  const questions = getTriviaQuestions(20);
+  startTriviaGameUI(questions, 20);
+}
+
+// --- MULTIPLAYER OYUN BAŞLAT ---
+
+function startTriviaMultiGame() {
+  if (!triviaState.isHost) return;
+  const questions = getTriviaQuestions(20);
+  const players = getTriviaPlayersList();
+
+  // Kendi oyuncu listesini set et
+  players.forEach(p => {
+    triviaState.players[p.id] = { name: p.name, score: 0, streak: 0, avatar: p.avatar };
+  });
+
+  // Tüm oyunculara başlat mesajı gönder
+  broadcastTrivia({
+    type: 'game-start',
+    questions: questions,
+    totalQ: 20,
+    players: players
+  });
+
+  startTriviaGameUI(questions, 20);
+}
+
+// --- OYUN UI ---
+
+function startTriviaGameUI(questions, totalQ) {
+  triviaState.active = true;
+  triviaState.currentQ = 0;
+  triviaState.totalQ = totalQ;
+  triviaState.questions = questions;
+  triviaState.score = 0;
+  triviaState.streak = 0;
+
+  // UI geçişi
+  document.getElementById('trivia-lobby').style.display = 'none';
+  document.getElementById('trivia-results').style.display = 'none';
+  document.getElementById('trivia-game-wrapper').style.display = 'block';
+
+  document.getElementById('trivia-q-total').textContent = totalQ;
+  document.getElementById('trivia-hud-pcount').textContent =
+    triviaState.isSolo ? 'Tek Kişi' : (Object.keys(triviaState.players).length + ' Oyuncu');
+
+  updateTriviaScoreboard();
+  showNextTriviaQuestion();
+}
+
+function showNextTriviaQuestion() {
+  if (triviaState.currentQ >= triviaState.totalQ) {
+    endTriviaGame();
+    return;
+  }
+
+  const q = triviaState.questions[triviaState.currentQ];
+  const maxTime = getTriviaTimeForQuestion(triviaState.currentQ);
+  triviaState.maxTime = maxTime;
+  triviaState.timeLeft = maxTime;
+  triviaState.answered = false;
+  triviaState.selectedAnswer = -1;
+
+  // HUD güncelle
+  document.getElementById('trivia-q-num').textContent = triviaState.currentQ + 1;
+  document.getElementById('trivia-hud-score').textContent = triviaState.score;
+  document.getElementById('trivia-q-label').textContent = `SORU ${triviaState.currentQ + 1} / ${triviaState.totalQ} • ${getTriviaPoints(triviaState.currentQ)} PUAN`;
+
+  // Soru göster
+  document.getElementById('trivia-q-text').textContent = q.q;
+
+  // Timer reset
+  const timerBar = document.getElementById('trivia-timer-bar');
+  const timerText = document.getElementById('trivia-timer-text');
+  const timerFill = document.getElementById('trivia-timer-fill');
+
+  if (maxTime === 0) {
+    // Süre sınırı yok - timer'ı gizle
+    timerBar.style.display = 'none';
+    timerText.style.display = 'none';
+  } else {
+    timerBar.style.display = 'block';
+    timerText.style.display = 'block';
+    timerFill.style.width = '100%';
+    timerText.textContent = maxTime;
+    timerText.classList.remove('danger');
+  }
+
+  // HUD timer göster
+  const hudTimer = document.getElementById('trivia-hud-timer');
+  const hudTimerParent = hudTimer.parentElement;
+  if (maxTime === 0) {
+    hudTimerParent.style.display = 'none';
+  } else {
+    hudTimerParent.style.display = '';
+    hudTimer.textContent = maxTime;
+  }
+
+  // Şıkları karıştır ve doğru cevabın yeni index'ini bul
+  const letters = ['A', 'B', 'C', 'D'];
+  const optionsEl = document.getElementById('trivia-options');
+  optionsEl.innerHTML = '';
+  const shuffledOptions = q.o.map((opt, i) => ({ text: opt, origIndex: i }));
+  for (let i = shuffledOptions.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [shuffledOptions[i], shuffledOptions[j]] = [shuffledOptions[j], shuffledOptions[i]];
+  }
+  triviaState.shuffledCorrect = shuffledOptions.findIndex(o => o.origIndex === q.a);
+  shuffledOptions.forEach((opt, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'trivia-option-btn';
+    btn.innerHTML = `<span class="trivia-option-letter">${letters[i]}</span> ${opt.text}`;
+    btn.onclick = () => selectTriviaAnswer(i);
+    optionsEl.appendChild(btn);
+  });
+
+  // Timer başlat (sadece süreli sorularda)
+  if (triviaState.timer) clearInterval(triviaState.timer);
+  if (maxTime > 0) {
+    triviaState.timer = setInterval(() => {
+      triviaState.timeLeft -= 0.1;
+      if (triviaState.timeLeft <= 0) {
+        triviaState.timeLeft = 0;
+        clearInterval(triviaState.timer);
+        revealTriviaAnswer(-1); // Süre doldu
+      }
+      const pct = Math.max(0, (triviaState.timeLeft / triviaState.maxTime) * 100);
+      document.getElementById('trivia-timer-fill').style.width = pct + '%';
+      const secs = Math.ceil(triviaState.timeLeft);
+      document.getElementById('trivia-timer-text').textContent = secs;
+      document.getElementById('trivia-hud-timer').textContent = secs;
+      if (secs <= 5) {
+        document.getElementById('trivia-timer-text').classList.add('danger');
+      } else {
+        document.getElementById('trivia-timer-text').classList.remove('danger');
+      }
+    }, 100);
+  }
+
+  // Multiplayer: diğer oyunculara soru gönder
+  if (!triviaState.isSolo && triviaState.isHost) {
+    broadcastTrivia({ type: 'question', q: q.q, o: q.o, a: q.a, index: triviaState.currentQ, maxTime });
+  }
+}
+
+function selectTriviaAnswer(index) {
+  if (triviaState.answered) return;
+  triviaState.answered = true;
+  triviaState.selectedAnswer = index;
+
+  // Seçimi göster
+  const btns = document.querySelectorAll('.trivia-option-btn');
+  btns.forEach((btn, i) => {
+    if (i === index) btn.classList.add('selected');
+    btn.classList.add('disabled');
+  });
+
+  // Doğru/yanlışı kontrol et
+  const q = triviaState.questions[triviaState.currentQ];
+  const correct = index === triviaState.shuffledCorrect;
+
+  if (correct) {
+    // Puan hesapla
+    const points = getTriviaPoints(triviaState.currentQ);
+    triviaState.score += points;
+    triviaState.streak++;
+    // Player objesini de güncelle
+    triviaState.players[triviaState.myPeerId].score = triviaState.score;
+    triviaState.players[triviaState.myPeerId].streak = triviaState.streak;
+    btns[index].classList.add('correct');
+  } else {
+    triviaState.streak = 0;
+    triviaState.players[triviaState.myPeerId].streak = 0;
+    btns[index].classList.add('wrong');
+    btns[triviaState.shuffledCorrect].classList.add('correct');
+  }
+
+  // Multiplayer: sonucu gönder
+  if (!triviaState.isSolo) {
+    const myPlayer = triviaState.players[triviaState.myPeerId] || {};
+    myPlayer.score = triviaState.score;
+    myPlayer.streak = triviaState.streak;
+    triviaState.players[triviaState.myPeerId] = myPlayer;
+
+    if (triviaState.isHost) {
+      broadcastTrivia({ type: 'answer-result', playerId: triviaState.myPeerId, score: triviaState.score, streak: triviaState.streak });
+    } else {
+      // Guest: host'a gönder
+      triviaState.connections.forEach(conn => {
+        try { conn.send({ type: 'answer-result', playerId: triviaState.myPeerId, score: triviaState.score, streak: triviaState.streak }); } catch(e) {}
+      });
+    }
+  }
+
+  document.getElementById('trivia-hud-score').textContent = triviaState.score;
+  updateTriviaScoreboard();
+
+  // Sonraki soruya geç
+  setTimeout(() => {
+    triviaState.currentQ++;
+    showNextTriviaQuestion();
+  }, 1500);
+}
+
+function revealTriviaAnswer(selectedIndex) {
+  triviaState.answered = true;
+  const q = triviaState.questions[triviaState.currentQ];
+  const btns = document.querySelectorAll('.trivia-option-btn');
+
+  btns.forEach((btn, i) => {
+    btn.classList.add('disabled');
+    if (i === triviaState.shuffledCorrect) btn.classList.add('correct');
+  });
+
+  if (selectedIndex === -1) {
+    // Süre doldu
+    triviaState.streak = 0;
+    triviaState.players[triviaState.myPeerId].streak = 0;
+  }
+
+  // Player objesini güncelle
+  triviaState.players[triviaState.myPeerId].score = triviaState.score;
+
+  // Multiplayer bildir
+  if (!triviaState.isSolo) {
+    const myPlayer = triviaState.players[triviaState.myPeerId] || {};
+    myPlayer.score = triviaState.score;
+    myPlayer.streak = triviaState.streak;
+    triviaState.players[triviaState.myPeerId] = myPlayer;
+    if (triviaState.isHost) {
+      broadcastTrivia({ type: 'answer-result', playerId: triviaState.myPeerId, score: triviaState.score, streak: triviaState.streak });
+    } else {
+      triviaState.connections.forEach(conn => {
+        try { conn.send({ type: 'answer-result', playerId: triviaState.myPeerId, score: triviaState.score, streak: triviaState.streak }); } catch(e) {}
+      });
+    }
+  }
+
+  updateTriviaScoreboard();
+
+  setTimeout(() => {
+    triviaState.currentQ++;
+    showNextTriviaQuestion();
+  }, 1500);
+}
+
+function updateTriviaScoreboard() {
+  const container = document.getElementById('trivia-scoreboard-rows');
+  if (!container) return;
+
+  // Tüm oyuncuları puana göre sırala
+  const entries = Object.entries(triviaState.players).map(([id, p]) => ({
+    id, name: p.name || 'Bilinmeyen', score: p.score || 0, streak: p.streak || 0, avatar: p.avatar || '🎮'
+  }));
+  entries.sort((a, b) => b.score - a.score);
+
+  container.innerHTML = entries.map((p, i) => `
+    <div class="trivia-player-row ${i === 0 && entries.length > 1 ? 'leader' : ''}">
+      <div class="trivia-player-info">
+        <div class="trivia-player-avatar">${p.avatar}</div>
+        <div>
+          <div class="trivia-player-name">${p.name}${p.id === triviaState.myPeerId ? ' (Sen)' : ''}</div>
+          ${p.streak >= 2 ? `<div class="trivia-player-streak">🔥 ${p.streak}x seri</div>` : ''}
+        </div>
+      </div>
+      <div class="trivia-player-score">${p.score}</div>
+    </div>
+  `).join('');
+}
+
+function endTriviaGame() {
+  triviaState.active = false;
+  if (triviaState.timer) clearInterval(triviaState.timer);
+
+  const results = Object.entries(triviaState.players).map(([id, p]) => ({
+    id, name: p.name || 'Bilinmeyen', score: p.score || 0, avatar: p.avatar || '🎮'
+  }));
+  results.sort((a, b) => b.score - a.score);
+
+  // Multiplayer: sonuçları yayınla
+  if (!triviaState.isSolo && triviaState.isHost) {
+    broadcastTrivia({ type: 'game-end', results });
+  }
+
+  showTriviaResults(results);
+}
+
+function showTriviaResults(results) {
+  document.getElementById('trivia-game-wrapper').style.display = 'none';
+  document.getElementById('trivia-results').style.display = 'block';
+
+  const myScore = triviaState.players[triviaState.myPeerId]?.score || 0;
+  const myRank = results.findIndex(r => r.id === triviaState.myPeerId) + 1;
+
+  if (results.length === 1 || myRank === 1) {
+    document.getElementById('trivia-results-title').textContent = '🏆 Harika!';
+    document.getElementById('trivia-results-subtitle').textContent =
+      `${triviaState.totalQ} sorunun tamamını tamamladın! Toplam puanın: ${myScore}`;
+  } else {
+    document.getElementById('trivia-results-title').textContent = `${myRank}. sırayı aldın!`;
+    document.getElementById('trivia-results-subtitle').textContent =
+      `Toplam puanın: ${myScore} — ${results[0]?.name || 'Rakip'} ${results[0]?.score} puanla birinci.`;
+  }
+
+  // Podyum
+  const podiumEl = document.getElementById('trivia-podium');
+  const medals = ['🥇', '🥈', '🥉'];
+  const pClasses = ['p1', 'p2', 'p3'];
+  podiumEl.innerHTML = results.slice(0, 3).map((r, i) => `
+    <div class="trivia-podium-item ${pClasses[i]}">
+      <div class="trivia-podium-rank">${medals[i]}</div>
+      <div class="trivia-podium-name">${r.name}</div>
+      <div class="trivia-podium-score">${r.score}</div>
+    </div>
+  `).join('');
+
+  // Tam skor listesi
+  const scoresEl = document.getElementById('trivia-final-scores');
+  scoresEl.innerHTML = results.map((r, i) => `
+    <div class="trivia-player-row ${i === 0 ? 'leader' : ''}">
+      <div class="trivia-player-info">
+        <div class="trivia-player-avatar">${r.avatar}</div>
+        <div class="trivia-player-name">${r.name}${r.id === triviaState.myPeerId ? ' (Sen)' : ''}</div>
+      </div>
+      <div class="trivia-player-score">${r.score}</div>
+    </div>
+  `).join('');
+}
+
+function triviaBackToLobby() {
+  // Peer bağlantılarını temizle
+  if (triviaState.myPeer) {
+    try { triviaState.myPeer.destroy(); } catch(e) {}
+  }
+  if (triviaState.timer) clearInterval(triviaState.timer);
+
+  triviaState = {
+    active: false, isHost: false, isSolo: true, currentQ: 0, totalQ: 20,
+    score: 0, streak: 0, timeLeft: 15, maxTime: 15, timer: null,
+    answered: false, selectedAnswer: -1, players: {}, myPeerId: null,
+    myPeer: null, roomCode: null, connections: []
+  };
+
+  document.getElementById('trivia-results').style.display = 'none';
+  document.getElementById('trivia-game-wrapper').style.display = 'none';
+  document.getElementById('trivia-room-display').style.display = 'none';
+  document.getElementById('trivia-join-form').style.display = 'none';
+  document.getElementById('trivia-lobby').style.display = 'block';
+}
 
 </script>
 </body>
