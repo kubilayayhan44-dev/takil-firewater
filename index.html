@@ -7111,21 +7111,43 @@
           </p>
 
           <div class="worldly-search-wrap">
-            <div class="worldly-search-label" data-i18n="worldly.searchLabel">WHAT DO YOU WANT TO DISCOVER?</div>
-            <div class="worldly-search-box">
-              <input type="text" class="worldly-search-input" id="worldly-search-input"
-                data-i18n-placeholder="worldly.searchPlaceholder"
-                placeholder="hidden cafés in Tokyo..."
-                onkeypress="if(event.key==='Enter')worldlySearch()" />
-              <button class="worldly-search-btn" onclick="worldlySearch()">→</button>
-            </div>
-            <div class="worldly-chips">
-              <button class="worldly-chip" data-i18n="worldly.chip.coffee" onclick="worldlyChip('coffee in tokyo')">☕ Coffee</button>
-              <button class="worldly-chip" data-i18n="worldly.chip.beaches" onclick="worldlyChip('beach in bali')">🏖️ Beaches</button>
-              <button class="worldly-chip" data-i18n="worldly.chip.nightlife" onclick="worldlyChip('nightlife in istanbul')">🍷 Nightlife</button>
-              <button class="worldly-chip" data-i18n="worldly.chip.restaurants" onclick="worldlyChip('food in paris')">🍽️ Restaurants</button>
-              <button class="worldly-chip" data-i18n="worldly.chip.culture" onclick="worldlyChip('culture in lisbon')">🎨 Culture</button>
-              <button class="worldly-chip" data-i18n="worldly.chip.perfume" onclick="worldlyChip('perfume in paris')">✨ Perfume</button>
+            <div class="worldly-search-label" data-i18n="worldly.searchLabel">NE KEŞFETMEK İSTERSİN?</div>
+            <!-- 3 ADIMLI SEÇİM PANELİ -->
+            <div class="worldly-step-panel">
+              <!-- Adım 1: Ülke -->
+              <div class="worldly-step">
+                <label class="worldly-step-label" data-i18n="worldly.step.country">1. ÜLKE SEÇ</label>
+                <select id="worldly-country-select" class="worldly-select" onchange="worldlyOnCountryChange()">
+                  <option value="" data-i18n="worldly.country.placeholder">Ülke seç...</option>
+                </select>
+              </div>
+              <!-- Adım 2: Şehir -->
+              <div class="worldly-step">
+                <label class="worldly-step-label" data-i18n="worldly.step.city">2. ŞEHİR SEÇ</label>
+                <select id="worldly-city-select" class="worldly-select" disabled onchange="worldlyOnCityChange()">
+                  <option value="" data-i18n="worldly.city.placeholder">Önce ülke seç...</option>
+                </select>
+              </div>
+              <!-- Adım 3: Ne arıyorsun -->
+              <div class="worldly-step">
+                <label class="worldly-step-label" data-i18n="worldly.step.what">3. NE ARIYORSUN?</label>
+                <input type="text" class="worldly-query-input" id="worldly-query-input"
+                  data-i18n-placeholder="worldly.query.placeholder"
+                  placeholder="örn: kafe, restoran, plaj... (veya aşağıdan seç)"
+                  onkeypress="if(event.key==='Enter')worldlySearch3()" />
+                <div class="worldly-chips" id="worldly-chips">
+                  <button class="worldly-chip" data-i18n="worldly.chip.coffee" data-cat="coffee">☕ Kahve</button>
+                  <button class="worldly-chip" data-i18n="worldly.chip.beaches" data-cat="beach">🏖️ Plajlar</button>
+                  <button class="worldly-chip" data-i18n="worldly.chip.nightlife" data-cat="nightlife">🍷 Gece Hayatı</button>
+                  <button class="worldly-chip" data-i18n="worldly.chip.restaurants" data-cat="food">🍽️ Restoran</button>
+                  <button class="worldly-chip" data-i18n="worldly.chip.culture" data-cat="culture">🎨 Kültür</button>
+                  <button class="worldly-chip" data-i18n="worldly.chip.perfume" data-cat="perfume">✨ Parfüm</button>
+                </div>
+              </div>
+              <!-- Keşfet butonu -->
+              <button class="worldly-discover-btn" id="worldly-discover-btn" disabled onclick="worldlySearch3()">
+                <span data-i18n="worldly.discover.btn">🚀 KEŞFET</span>
+              </button>
             </div>
           </div>
         </div>
@@ -8919,6 +8941,67 @@
     display: none; align-items: center; justify-content: center;
     animation: vfxFadeIn 0.3s;
   }
+
+  /* 3 ADIMLI SEÇİM PANELİ (Seçenek A) */
+  .worldly-step-panel {
+    background: linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02));
+    backdrop-filter: blur(24px) saturate(140%);
+    border: 1.5px solid rgba(167,139,250,0.25);
+    border-radius: 22px;
+    padding: 28px 24px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.4), 0 0 60px rgba(167,139,250,0.15);
+    display: flex; flex-direction: column; gap: 18px;
+  }
+  .worldly-step { display: flex; flex-direction: column; gap: 8px; }
+  .worldly-step-label {
+    font-size: 11px; color: #a78bfa; letter-spacing: 2px; text-transform: uppercase;
+    font-weight: 800;
+  }
+  .worldly-select {
+    background: rgba(255,255,255,0.05); color: #fff; font-family: inherit;
+    font-size: 16px; font-weight: 600;
+    padding: 16px 18px; border-radius: 14px;
+    border: 1.5px solid rgba(255,255,255,0.12);
+    outline: none; cursor: pointer;
+    transition: all 0.2s; appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23a78bfa' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+    background-repeat: no-repeat; background-position: right 18px center;
+    padding-right: 48px;
+  }
+  .worldly-select:hover:not(:disabled) { border-color: rgba(167,139,250,0.5); background-color: rgba(167,139,250,0.08); }
+  .worldly-select:focus { border-color: rgba(167,139,250,0.7); box-shadow: 0 0 0 3px rgba(167,139,250,0.15); }
+  .worldly-select:disabled { opacity: 0.45; cursor: not-allowed; }
+  .worldly-select option { background: #1a1130; color: #fff; }
+  .worldly-query-input {
+    background: rgba(255,255,255,0.05); color: #fff; font-family: inherit;
+    font-size: 16px; font-weight: 500;
+    padding: 16px 18px; border-radius: 14px;
+    border: 1.5px solid rgba(255,255,255,0.12);
+    outline: none; transition: all 0.2s;
+  }
+  .worldly-query-input::placeholder { color: rgba(255,255,255,0.4); }
+  .worldly-query-input:focus { border-color: rgba(167,139,250,0.7); box-shadow: 0 0 0 3px rgba(167,139,250,0.15); }
+  .worldly-step .worldly-chips { margin-top: 10px; gap: 8px; }
+  .worldly-step .worldly-chip.selected {
+    background: linear-gradient(135deg, rgba(167,139,250,0.3), rgba(124,58,237,0.3));
+    border-color: rgba(167,139,250,0.8); color: #fff;
+  }
+  .worldly-discover-btn {
+    background: linear-gradient(135deg, #a78bfa, #7c3aed);
+    border: none; color: #fff; font-family: inherit;
+    font-size: 17px; font-weight: 800; letter-spacing: 1px;
+    padding: 18px; border-radius: 14px; cursor: pointer;
+    box-shadow: 0 8px 24px rgba(124,58,237,0.4);
+    transition: all 0.2s; margin-top: 4px;
+  }
+  .worldly-discover-btn:hover:not(:disabled) { transform: translateY(-2px) scale(1.01); box-shadow: 0 12px 32px rgba(124,58,237,0.6); }
+  .worldly-discover-btn:disabled { opacity: 0.4; cursor: not-allowed; box-shadow: none; }
+  @media (max-width: 640px) {
+    .worldly-step-panel { padding: 20px 16px; gap: 14px; }
+    .worldly-select, .worldly-query-input { font-size: 15px; padding: 14px 16px; }
+    .worldly-discover-btn { font-size: 15px; padding: 16px; }
+  }
+
   .worldly-thinking.open { display: flex; }
   .worldly-thinking-card {
     text-align: center; max-width: 420px;
@@ -9475,6 +9558,10 @@ function goPage(name, el) {
   // Trivia lobi açılınca pack grid'i render et
   if (name === 'trivia') {
     try { renderTriviaPackGrid(); } catch(e) { console.warn('pack grid render hatası:', e); }
+  }
+  // Worldly açılınca dropdown'ları doldur
+  if (name === 'worldly') {
+    try { worldlyInitSelects(); } catch(e) { console.warn('worldly init hatası:', e); }
   }
 }
 function toggleMenu() { document.getElementById('sidebar').classList.toggle('open'); }
@@ -22704,11 +22791,32 @@ setTimeout(initHomeInviteCard, 2500);
 // =====================================================================
 
 const WORLDLY_CITIES = {
-  tokyo:    { name: 'Tokyo', country: 'Japan', neighborhoods: ['Shibuya','Shimokitazawa','Daikanyama','Naka-Meguro','Yanaka','Asakusa','Kichijoji','Harajuku'] },
-  istanbul: { name: 'Istanbul', country: 'Türkiye', neighborhoods: ['Kadıköy','Cihangir','Karaköy','Balık Pazarı','Bebek','Galata','Beyoğlu','Beşiktaş'] },
-  paris:    { name: 'Paris', country: 'France', neighborhoods: ['Le Marais','Saint-Germain','Montmartre','Belleville','Canal Saint-Martin','Pigalle','Bastille','Latin Quarter'] },
-  lisbon:   { name: 'Lisbon', country: 'Portugal', neighborhoods: ['Alfama','Bairro Alto','Chiado','LX Factory','Príncipe Real','Graca','Mouraria','Belem'] },
-  bali:     { name: 'Bali', country: 'Indonesia', neighborhoods: ['Ubud','Canggu','Seminyak','Uluwatu','Sanur','Nusa Lembongan','Amed','Munduk'] },
+  istanbul: { name: 'İstanbul', country: 'Türkiye', neighborhoods: ['Kadıköy','Beyoğlu','Beşiktaş','Üsküdar','Şişli','Bakırköy','Maltepe','Fatih'] },
+  ankara: { name: 'Ankara', country: 'Türkiye', neighborhoods: ['Çankaya','Keçiören','Mamak','Cebeci','Kızılay','Ulus','Yenimahalle'] },
+  izmir: { name: 'İzmir', country: 'Türkiye', neighborhoods: ['Alsancak','Konak','Bornova','Karşıyaka','Çeşme','Balçova','Gaziemir'] },
+  antalya: { name: 'Antalya', country: 'Türkiye', neighborhoods: ['Kaleiçi','Lara','Konyaaltı','Muratpaşa','Kepez','Aksu'] },
+  bursa: { name: 'Bursa', country: 'Türkiye', neighborhoods: ['Nilüfer','Osmangazi','Yıldırım','İnegöl','Gemlik','Mudanya'] },
+  bodrum: { name: 'Bodrum', country: 'Türkiye', neighborhoods: ['Bodrum Merkez','Turgutreis','Ortakent','Gümüşlük','Bitez','Yalıkavak'] },
+  cesme: { name: 'Çeşme', country: 'Türkiye', neighborhoods: ['Çeşme Merkez','Alaçatı','Ilıca','Ovacık','Dalyan'] },
+  kapadokya: { name: 'Kapadokya', country: 'Türkiye', neighborhoods: ['Göreme','Ürgüp','Avanos','Nevşehir Merkez','Derinkuyu','Ihlara'] },
+  trabzon: { name: 'Trabzon', country: 'Türkiye', neighborhoods: ['Ortahisar','Akçaabat','Araklı','Maçka','Tonya','Çarşı'] },
+  adana: { name: 'Adana', country: 'Türkiye', neighborhoods: ['Seyhan','Çukurova','Yüreğir','Sarıçam','Kozan','Aladağ'] },
+  tokyo: { name: 'Tokyo', country: 'Japonya', neighborhoods: ['Shibuya','Shinjuku','Chiyoda','Minato','Taito','Chuo','Setagaya'] },
+  kyoto: { name: 'Kyoto', country: 'Japonya', neighborhoods: ['Higashiyama','Shimogyo','Nakagyō','Sakyō','Kamigyō','Minami'] },
+  osaka: { name: 'Osaka', country: 'Japonya', neighborhoods: ['Chuo','Kita','Nishi','Minato','Konohana','Sumiyoshi','Abeno'] },
+  paris: { name: 'Paris', country: 'Fransa', neighborhoods: ['Marais','Montmartre','Champs-Élysées','Latin Quarter','Belleville','Bastille','Île de la Cité'] },
+  nice: { name: 'Nice', country: 'Fransa', neighborhoods: ['Vieux Nice','Promenade des Anglais','Cimiez','Carabacel','Saint-Roch','Magnan'] },
+  lisbon: { name: 'Lizbon', country: 'Portekiz', neighborhoods: ['Alfama','Baixa','Chiido','Bairro Alto','Belém','Alcântara','Parque das Nações'] },
+  porto: { name: 'Porto', country: 'Portekiz', neighborhoods: ['Ribeira','Miragaia','São Bento','Massarelos','Vitória','Cedofeita'] },
+  bali: { name: 'Bali', country: 'Endonezya', neighborhoods: ['Denpasar','Ubud','Seminyak','Kuta','Sanur','Canggu','Jimbaran'] },
+  roma: { name: 'Roma', country: 'İtalya', neighborhoods: ['Centro Storico','Trastevere','Colonna','Monti','Testaccio','Prati','San Lorenzo'] },
+  milano: { name: 'Milano', country: 'İtalya', neighborhoods: ['Duomo','Brera','Navigli','Porta Romana','Garibaldi','Isola','Lambrate'] },
+  barselona: { name: 'Barselona', country: 'İspanya', neighborhoods: ['Eixample','Gòtic','Gràcia','Montjuïc','Sarrià','Horta-Guinardó','Sants'] },
+  madrid: { name: 'Madrid', country: 'İspanya', neighborhoods: ['Centro','Salamanca','Retiro','Chamberí','Malasaña','Chueca','Arganzuela'] },
+  newyork: { name: 'New York', country: 'ABD', neighborhoods: ['Manhattan','Brooklyn','Queens','Bronx','Staten Island','Midtown','Lower East Side'] },
+  losangeles: { name: 'Los Angeles', country: 'ABD', neighborhoods: ['Downtown LA','Hollywood','Beverly Hills','Santa Monica','Venice','Pasadena','Long Beach'] },
+  londra: { name: 'Londra', country: 'İngiltere', neighborhoods: ['Westminster','Kensington','Soho','Camden','Shoreditch','Southwark','Islington'] },
+  dubai: { name: 'Dubai', country: 'Birleşik Arap Emirlikleri', neighborhoods: ['Downtown Dubai','Marina','Jumeirah','Deira','Bur Dubai','Business Bay','Palm Jumeirah'] },
 };
 
 const WORLDLY_CATEGORIES = {
@@ -23059,16 +23167,112 @@ function worldlyInitStars() {
 
 let worldlyCurrentResults = [];
 
-async function worldlySearch() {
-  const inp = document.getElementById('worldly-search-input');
-  const query = (inp?.value || '').trim();
-  if (!query) { inp?.focus(); return; }
+// === 3 ADIMLI SEÇİM SİSTEMİ (Seçenek A) ===
+// Ülke listesi (stabil sıra)
+const WORLDLY_COUNTRIES = ['Türkiye','Japonya','Fransa','Portekiz','Endonezya','İtalya','İspanya','ABD','İngiltere','Birleşik Arap Emirlikleri'];
+let worldlySelected = { country: null, cityId: null, categoryId: null, freeText: '' };
+
+// Dropdown'ları başlangıçta doldur (page açılınca çağrılır)
+function worldlyInitSelects() {
+  const countrySel = document.getElementById('worldly-country-select');
+  if (!countrySel || countrySel.dataset.ready === '1') return;
+  countrySel.dataset.ready = '1';
+  WORLDLY_COUNTRIES.forEach(c => {
+    const o = document.createElement('option'); o.value = c; o.textContent = c;
+    countrySel.appendChild(o);
+  });
+  // Chip click event'leri
+  document.querySelectorAll('#worldly-chips .worldly-chip').forEach(chip => {
+    chip.addEventListener('click', () => {
+      const cat = chip.dataset.cat;
+      // Tek seçim: önceki seçimi temizle
+      document.querySelectorAll('#worldly-chips .worldly-chip').forEach(c => c.classList.remove('selected'));
+      if (worldlySelected.categoryId === cat) {
+        worldlySelected.categoryId = null; // tekrar tıkla = kapat
+      } else {
+        worldlySelected.categoryId = cat;
+        chip.classList.add('selected');
+        // free text'i temizle (chip seçilince)
+        const qi = document.getElementById('worldly-query-input');
+        if (qi) { qi.value = ''; worldlySelected.freeText = ''; }
+      }
+      worldlyUpdateDiscoverBtn();
+    });
+  });
+  // Free text input
+  const qi = document.getElementById('worldly-query-input');
+  if (qi) {
+    qi.addEventListener('input', () => {
+      worldlySelected.freeText = qi.value.trim();
+      // Free text yazınca chip seçimini kaldır
+      if (worldlySelected.freeText) {
+        worldlySelected.categoryId = null;
+        document.querySelectorAll('#worldly-chips .worldly-chip').forEach(c => c.classList.remove('selected'));
+      }
+      worldlyUpdateDiscoverBtn();
+    });
+  }
+}
+
+// Ülke değişti → şehir dropdown'unu doldur
+function worldlyOnCountryChange() {
+  worldlyInitSelects();
+  const countrySel = document.getElementById('worldly-country-select');
+  const citySel = document.getElementById('worldly-city-select');
+  const country = countrySel.value;
+  worldlySelected.country = country || null;
+  worldlySelected.cityId = null;
+  // Şehir dropdown'unu sıfırla + doldur
+  citySel.innerHTML = '<option value="">Şehir seç...</option>';
+  if (country) {
+    const cities = Object.entries(WORLDLY_CITIES).filter(([id, c]) => c.country === country);
+    cities.forEach(([id, c]) => {
+      const o = document.createElement('option'); o.value = id; o.textContent = c.name;
+      citySel.appendChild(o);
+    });
+    citySel.disabled = false;
+  } else {
+    citySel.disabled = true;
+  }
+  citySel.value = '';
+  worldlyUpdateDiscoverBtn();
+}
+
+// Şehir değişti
+function worldlyOnCityChange() {
+  const citySel = document.getElementById('worldly-city-select');
+  worldlySelected.cityId = citySel.value || null;
+  worldlyUpdateDiscoverBtn();
+}
+
+// Keşfet butonu enable/disable
+function worldlyUpdateDiscoverBtn() {
+  const btn = document.getElementById('worldly-discover-btn');
+  if (!btn) return;
+  const ok = worldlySelected.cityId && (worldlySelected.categoryId || worldlySelected.freeText);
+  btn.disabled = !ok;
+}
+
+// Yeni 3 adımlı search (KEŞFET butonu)
+async function worldlySearch3() {
+  worldlyInitSelects();
+  if (!worldlySelected.cityId) { document.getElementById('worldly-city-select')?.focus(); return; }
+  if (!worldlySelected.categoryId && !worldlySelected.freeText) {
+    document.getElementById('worldly-query-input')?.focus(); return;
+  }
+  // Kategori belirle: seçili chip varsa onu kullan, yoksa freeText'i worldlyParse'a ver
+  let categoryId = worldlySelected.categoryId;
+  let cityId = worldlySelected.cityId;
+  if (!categoryId && worldlySelected.freeText) {
+    const parsed = worldlyParse(worldlySelected.freeText);
+    categoryId = parsed.categoryId;
+  }
+  categoryId = categoryId || 'coffee';
 
   // Thinking overlay
   const overlay = document.getElementById('worldly-thinking');
   const statusEl = document.getElementById('worldly-thinking-status');
   overlay.classList.add('open');
-
   const steps = [
     { text: t('worldly.thinking.1'), delay: 500 },
     { text: t('worldly.thinking.2'), delay: 600 },
@@ -23079,19 +23283,26 @@ async function worldlySearch() {
     statusEl.textContent = step.text;
     await new Promise(r => setTimeout(r, step.delay));
   }
-
-  const parsed = worldlyParse(query);
-  const places = worldlyGenerate(parsed.cityId, parsed.categoryId);
+  const places = worldlyGenerate(cityId, categoryId);
   worldlyCurrentResults = places;
-  worldlyRender(parsed.cityId, parsed.categoryId, places);
+  worldlyRender(cityId, categoryId, places);
   overlay.classList.remove('open');
-  // Sonuçlara scroll
   setTimeout(() => document.getElementById('worldly-results')?.scrollIntoView({behavior:'smooth',block:'start'}), 200);
 }
 
+// Eski fonksiyon adları (geri uyumluluk — eski onclick referansları için)
+async function worldlySearch() { return worldlySearch3(); }
 function worldlyChip(query) {
-  document.getElementById('worldly-search-input').value = query;
-  worldlySearch();
+  const parsed = worldlyParse(query);
+  if (parsed.categoryId) {
+    worldlySelected.categoryId = parsed.categoryId;
+    worldlySelected.freeText = '';
+    document.querySelectorAll('#worldly-chips .worldly-chip').forEach(c => {
+      c.classList.toggle('selected', c.dataset.cat === parsed.categoryId);
+    });
+    const qi = document.getElementById('worldly-query-input'); if (qi) qi.value = '';
+    worldlyUpdateDiscoverBtn();
+  }
 }
 
 function worldlyRender(cityId, categoryId, places) {
@@ -23100,7 +23311,7 @@ function worldlyRender(cityId, categoryId, places) {
   const normal = places.filter(p => !p.isHidden);
 
   document.getElementById('worldly-results-title').innerHTML =
-    `AI curated <span class="worldly-results-count">${places.length} places</span> in ${city.name}`;
+    `${city.name} için <span class="worldly-results-count">${places.length} mekan</span> AI tarafından seçildi`;
   document.getElementById('worldly-results-narrative').textContent =
     `“${worldlyNarrative(cityId, categoryId, places.length, hidden.length)}”`;
 
