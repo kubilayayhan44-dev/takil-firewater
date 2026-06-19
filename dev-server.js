@@ -11,7 +11,7 @@ const https = require('https');
 const fs = require('fs');
 const path = require('path');
 
-const PORT = 8765;
+const PORT = process.env.PORT || 8765;
 const ROOT = __dirname;
 const UPSTREAM_HOST = '178-105-90-130.nip.io';
 
