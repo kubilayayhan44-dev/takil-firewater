@@ -14,7 +14,7 @@ jobs:
   deploy:
     name: Deploy Takıl to Hetzner
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 8
 
     steps:
       - name: 📥 Checkout
@@ -29,31 +29,72 @@ jobs:
 
       - name: 🚀 Deploy game files to /opt/takil-app
         run: |
-          # Sadece game asset'lerini yolla (index.html + vendor + og-image)
+          # Game asset'leri + worldly server + provisioning script'leri yolla.
+          # --delete ile dest'teki extraneous dosyalar silinir; --exclude="*" geri kalan
+          # her şeyi korur (silmez). dev-server.js + deploy/ artık transfer setinde.
           rsync -avz --delete \
             -e "ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no" \
             --include="index.html" \
             --include="og-image.png" \
+            --include="dev-server.js" \
             --include="vendor/" \
             --include="vendor/**" \
+            --include="deploy/" \
+            --include="deploy/**" \
             --exclude="*" \
             ./ \
             ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:/opt/takil-app/
 
+      - name: ⚙️ Provision worldly service + Caddy route
+        run: |
+          # Idempotent: systemd unit kur/yenile + restart, Caddy /api/worldly/* route ekle
+          # (backup + validate + rollback). Script /opt/takil-app/deploy/ altından çalışır.
+          ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no \
+            ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} \
+            'bash /opt/takil-app/deploy/provision.sh'
+
       - name: 🌐 Health check
         run: |
+          BASE="https://178-105-90-130.nip.io"
           sleep 3
+
+          # 1) Ana site (index.html) — mevcut kritik check KORUNDU
+          OK_MAIN=0
           for i in 1 2 3; do
-            STATUS=$(curl -sL -k -o /dev/null -w "%{http_code}" https://178-105-90-130.nip.io/ || echo "000")
-            if [ "$STATUS" = "200" ]; then
-              echo "✅ Site canlıda (HTTP $STATUS)"
-              exit 0
-            fi
-            echo "Deneme $i: HTTP $STATUS — 3sn bekleyip tekrar..."
-            sleep 3
+            S=$(curl -sL -k -o /dev/null -w "%{http_code}" "$BASE/" || echo "000")
+            if [ "$S" = "200" ]; then echo "✅ Ana site canlıda (HTTP $S)"; OK_MAIN=1; break; fi
+            echo "  ana site deneme $i: HTTP $S — 3sn..."; sleep 3
           done
-          echo "❌ Site cevap vermiyor!"
-          exit 1
+          [ "$OK_MAIN" = "1" ] || { echo "❌ Ana site cevap vermiyor!"; exit 1; }
+
+          # 2) Express backend regression (Caddy /api/* → 3211 hala çalışıyor mu?)
+          #    Uyarı seviyesi: /api/health endpoint'i kesin değil, deploy'u false-fail etmesin.
+          S=$(curl -sL -k -o /dev/null -w "%{http_code}" "$BASE/api/health" || echo "000")
+          if [ "$S" = "200" ]; then
+            echo "✅ Express backend /api/health (HTTP $S)"
+          else
+            echo "⚠️  Express /api/health: HTTP $S (endpoint yoksa normal; routing regresyonu olabilir — manuel kontrol)"
+          fi
+
+          # 3) Worldly ping (Overpass'e gitmeyen hafif liveness)
+          OK_PING=0
+          for i in 1 2 3; do
+            S=$(curl -sL -k -o /dev/null -w "%{http_code}" "$BASE/api/worldly/ping" || echo "000")
+            if [ "$S" = "200" ]; then echo "✅ Worldly ping (HTTP $S)"; OK_PING=1; break; fi
+            echo "  worldly ping deneme $i: HTTP $S — 3sn..."; sleep 3
+          done
+          [ "$OK_PING" = "1" ] || { echo "❌ Worldly ping cevap vermiyor (systemd/Caddy route sorunu)!"; exit 1; }
+
+          # 4) Worldly discover — gerçek OSM keşfi, ok:true beklenir (Overpass'e gider, yavaş olabilir)
+          BODY=$(curl -sL -k --max-time 120 "$BASE/api/worldly/discover?city=istanbul&cat=coffee" || echo "")
+          if echo "$BODY" | grep -q '"ok":true'; then
+            echo "✅ Worldly discover ok:true (gerçek mekan keşfi çalışıyor)"
+          else
+            echo "❌ Worldly discover ok:true döndürmedi. Yanıt (ilk 200ch): $(echo "$BODY" | head -c 200)"
+            exit 1
+          fi
+
+          echo "🎉 Tüm health check'ler geçti"
 
       - name: 🧹 Cleanup
         if: always()

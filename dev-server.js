@@ -2,9 +2,18 @@
 // Kullanım: node dev-server.js
 // URL: http://localhost:8765
 //
-// - /api/* istekleri → https://178-105-90-130.nip.io/api/*
+// - /api/worldly/* → Overpass'ten gerçek mekan (her ortamda lokal işlenir)
+// - /api/* istekleri → https://178-105-90-130.nip.io/api/* (sadece DISABLE_API_PROXY set değilse)
 // - Diğer her şey → lokaldeki dosyalardan servis
 // - WebSocket / PeerJS direkt connect olabilir
+//
+// ⚙️ Ortam değişkenleri:
+//   PORT               — dinlenen port (default 8765)
+//   HOST               — bind adresi (default 0.0.0.0; PROD'da 127.0.0.1 ver → dışarı kapalı)
+//   DISABLE_API_PROXY  — '1' ise non-worldly /api/* proxy KAPANIR.
+//                        PROD'da ZORUNLU: UPSTREAM_HOST = Caddy'nin kendisi olduğundan
+//                        proxy açık kalırsa /api/* sonsuz döngüye girer (self-loop).
+//                        Caddy zaten /api/* → Express'e (3211) yönlendirir, proxy gereksiz.
 
 const http = require('http');
 const https = require('https');
@@ -12,6 +21,10 @@ const fs = require('fs');
 const path = require('path');
 
 const PORT = process.env.PORT || 8765;
+// HOST: lokal dev'de tüm arayüzler (0.0.0.0), prod'da systemd 127.0.0.1 verir.
+const HOST = process.env.HOST || '0.0.0.0';
+// DISABLE_API_PROXY=1 → catch-all /api/* proxy kapalı (prod self-loop koruması).
+const DISABLE_API_PROXY = process.env.DISABLE_API_PROXY === '1';
 const ROOT = __dirname;
 const UPSTREAM_HOST = '178-105-90-130.nip.io';
 
@@ -671,7 +684,19 @@ const server = http.createServer((req, res) => {
     res.writeHead(200, { 'content-type': 'application/json; charset=utf-8', 'cache-control': 'no-store' });
     return res.end(JSON.stringify({ tunnel: tunnelUrl, host: req.headers.host }));
   }
-  
+
+  // Hafif health endpoint'leri (Overpass'e GİTMEZ; monitoring/systemd liveness için).
+  // /api/worldly/ping → discover handler'ından ÖNCE yakalanmalı (yoksa missing_params 400 döner).
+  if (url === '/health' || url === '/api/worldly/ping') {
+    res.writeHead(200, { 'content-type': 'application/json; charset=utf-8', 'cache-control': 'no-store' });
+    return res.end(JSON.stringify({
+      ok: true,
+      service: 'takil-worldly',
+      proxyDisabled: DISABLE_API_PROXY,
+      ts: Date.now(),
+    }));
+  }
+
   // /api/worldly/* → Overpass'ten gerçek mekan (upstream'e GİTMEZ)
   if (url === '/api/worldly/discover' || url.startsWith('/api/worldly/')) {
     const u = new URL(req.url, 'http://localhost');
@@ -691,8 +716,14 @@ const server = http.createServer((req, res) => {
     });
   }
 
-  // /api/* → canlı VPS'e proxy
+  // /api/* → canlı VPS'e proxy (worldly DIŞINDAki API'ler).
+  // PROD'da DISABLE_API_PROXY=1: UPSTREAM_HOST = Caddy'nin kendisi olduğundan proxy
+  // sonsuz döngü yaratır. Caddy zaten /api/* → Express'e yönlendirir, burada 404 döneriz.
   if (url.startsWith('/api/')) {
+    if (DISABLE_API_PROXY) {
+      res.writeHead(404, { 'content-type': 'application/json; charset=utf-8', 'cache-control': 'no-store' });
+      return res.end(JSON.stringify({ ok: false, error: 'proxy_disabled' }));
+    }
     console.log(`[PROXY] ${req.method} ${url} → https://${UPSTREAM_HOST}${url}`);
     return proxyToUpstream(req, res);
   }
@@ -710,11 +741,15 @@ const server = http.createServer((req, res) => {
   serveFile(filePath, res);
 });
 
-server.listen(PORT, () => {
+server.listen(PORT, HOST, () => {
   console.log(`\n  🎮 Takıl Dev Server`);
   console.log(`  ─────────────────────────────`);
-  console.log(`  🌐 http://localhost:${PORT}`);
+  console.log(`  🌐 http://${HOST}:${PORT}`);
   console.log(`  📁 Root: ${ROOT}`);
-  console.log(`  🔌 API proxy: https://${UPSTREAM_HOST}/api/*`);
+  if (DISABLE_API_PROXY) {
+    console.log(`  🔌 API proxy: KAPALI (DISABLE_API_PROXY=1) — sadece /api/worldly/* lokal işlenir`);
+  } else {
+    console.log(`  🔌 API proxy: https://${UPSTREAM_HOST}/api/*`);
+  }
   console.log(`  ✋ Durdur: Ctrl+C\n`);
 });

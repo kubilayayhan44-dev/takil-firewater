@@ -1,0 +1,17 @@
+[Unit]
+Description=Takıl Worldly API (OSM place discovery)
+After=network.target
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/opt/takil-app
+Environment=PORT=8765
+Environment=HOST=127.0.0.1
+Environment=DISABLE_API_PROXY=1
+ExecStart=/usr/bin/node /opt/takil-app/dev-server.js
+Restart=always
+RestartSec=3
+
+[Install]
+WantedBy=multi-user.target
