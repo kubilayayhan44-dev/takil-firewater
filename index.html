@@ -9123,6 +9123,20 @@
     font-size: 10px; font-weight: 600;
     letter-spacing: 0.3px;
   }
+  /* Kart üzerindeki küçük harita linki (OpenStreetMap) */
+  .worldly-card-map {
+    display: inline-flex; align-items: center; gap: 4px;
+    margin-top: 12px; padding: 6px 12px;
+    background: rgba(34,197,94,0.12);
+    border: 1px solid rgba(34,197,94,0.35);
+    color: #86efac; text-decoration: none;
+    border-radius: 20px; font-size: 11px; font-weight: 700;
+    letter-spacing: 0.3px; cursor: pointer;
+    transition: background 0.15s, transform 0.15s;
+  }
+  .worldly-card-map:hover {
+    background: rgba(34,197,94,0.22); transform: translateY(-1px);
+  }
 
   /* Detail modal */
   .worldly-detail-modal {
@@ -23590,7 +23604,22 @@ async function worldlySearch3() {
     statusEl.textContent = step.text;
     await new Promise(r => setTimeout(r, step.delay));
   }
-  const places = worldlyGenerate(cityId, categoryId);
+  // Önce gerçek OSM verisi dene (backend /api/worldly/discover → Overpass),
+  // başarısız olursa client-side uydurma (worldlyGenerate) fallback'e düş.
+  let places;
+  try {
+    const r = await fetch(`/api/worldly/discover?city=${encodeURIComponent(cityId)}&cat=${encodeURIComponent(categoryId)}`, {cache:'no-store'});
+    const data = await r.json();
+    if (data.ok && data.places && data.places.length) {
+      places = data.places;
+    } else {
+      console.warn('worldly: backend hatası, fallback üretim:', data);
+      places = worldlyGenerate(cityId, categoryId);
+    }
+  } catch(e) {
+    console.warn('worldly Overpass hatası, fallback:', e);
+    places = worldlyGenerate(cityId, categoryId);
+  }
   worldlyCurrentResults = places;
   worldlyRender(cityId, categoryId, places);
   overlay.classList.remove('open');
@@ -23635,6 +23664,10 @@ function worldlyCardHTML(p) {
   const stars = '★'.repeat(Math.round(p.rating));
   const dollars = '$'.repeat(p.priceLevel);
   const cat = WORLDLY_CATEGORIES[p.categoryId];
+  const hasCoords = (p.lat != null && p.lon != null);
+  const mapLink = hasCoords
+    ? `https://www.openstreetmap.org/?mlat=${p.lat}&mlon=${p.lon}&zoom=18`
+    : null;
   return `
     <div class="worldly-card ${p.isHidden ? 'hidden-gem' : ''}" onclick="worldlyOpenDetail('${p.id}')">
       <div class="worldly-card-img-wrap">
@@ -23652,6 +23685,7 @@ function worldlyCardHTML(p) {
         <div class="worldly-card-vibes">
           ${p.vibes.map(v => `<span class="worldly-card-vibe">${v}</span>`).join('')}
         </div>
+        ${mapLink ? `<a class="worldly-card-map" href="${mapLink}" target="_blank" rel="noopener" onclick="event.stopPropagation()" title="OpenStreetMap'de aç">📍 Haritada Aç</a>` : ''}
       </div>
     </div>
   `;
@@ -23680,6 +23714,7 @@ function worldlyOpenDetail(placeId) {
     <div class="worldly-detail-vibes">
       ${p.vibes.map(v => `<span class="worldly-card-vibe" style="font-size:12px;padding:5px 14px;">${v}</span>`).join('')}
     </div>
+    ${(p.lat != null && p.lon != null) ? `<a href="https://www.openstreetmap.org/?mlat=${p.lat}&mlon=${p.lon}&zoom=18" target="_blank" rel="noopener" style="display:flex;align-items:center;justify-content:center;gap:8px;width:100%;margin-top:12px;margin-bottom:10px;padding:14px;background:rgba(34,197,94,0.14);border:1px solid rgba(34,197,94,0.4);color:#86efac;border-radius:14px;cursor:pointer;font-weight:900;font-size:13px;letter-spacing:1px;text-transform:uppercase;text-decoration:none;box-shadow:0 4px 16px rgba(34,197,94,0.18);">📍 Haritada Aç (OpenStreetMap)</a>` : ''}
     <button style="width:100%;margin-top:12px;padding:16px;background:linear-gradient(135deg,#a78bfa,#7c3aed,#ec4899);border:none;color:#fff;border-radius:14px;cursor:pointer;font-weight:900;font-size:14px;letter-spacing:1.5px;text-transform:uppercase;box-shadow:0 8px 24px rgba(124,58,237,0.5);">→ Plan your visit</button>
   `;
   document.getElementById('worldly-detail-modal').classList.add('open');
@@ -23791,6 +23826,13 @@ const I18N = {
     'worldly.section.hidden': '✨ Gizli Hazineler',
     'worldly.section.all': '📍 Tüm Yerler',
     'worldly.cta.plan': '→ ZİYARETİNİ PLANLA',
+    'worldly.step.country': '1. ÜLKE SEÇ',
+    'worldly.country.placeholder': 'Ülke seç...',
+    'worldly.step.city': '2. ŞEHİR SEÇ',
+    'worldly.city.placeholder': 'Önce ülke seç...',
+    'worldly.step.what': '3. NE ARIYORSUN?',
+    'worldly.query.placeholder': 'Ne arıyorsun? (ör. gizli kafeler, romantik akşam yemeği...)',
+    'worldly.discover.btn': '🚀 KEŞFET',
     // Common
     'common.cancel': 'İptal',
     'common.close': 'Kapat',
@@ -23888,6 +23930,13 @@ const I18N = {
     'worldly.section.hidden': '✨ Hidden Gems',
     'worldly.section.all': '📍 All Places',
     'worldly.cta.plan': '→ PLAN YOUR VISIT',
+    'worldly.step.country': '1. CHOOSE COUNTRY',
+    'worldly.country.placeholder': 'Select country...',
+    'worldly.step.city': '2. CHOOSE CITY',
+    'worldly.city.placeholder': 'Select country first...',
+    'worldly.step.what': '3. WHAT ARE YOU LOOKING FOR?',
+    'worldly.query.placeholder': 'What are you looking for? (e.g. hidden cafés, romantic dinner...)',
+    'worldly.discover.btn': '🚀 DISCOVER',
     'common.cancel': 'Cancel',
     'common.close': 'Close',
     'common.ok': 'OK',
@@ -23938,6 +23987,13 @@ const I18N = {
     'worldly.section.hidden': '✨ Versteckte Perlen',
     'worldly.section.all': '📍 Alle Orte',
     'worldly.cta.plan': '→ BESUCH PLANEN',
+    'worldly.step.country': '1. LAND WÄHLEN',
+    'worldly.country.placeholder': 'Land wählen...',
+    'worldly.step.city': '2. STADT WÄHLEN',
+    'worldly.city.placeholder': 'Zuerst Land wählen...',
+    'worldly.step.what': '3. WAS SUCHST DU?',
+    'worldly.query.placeholder': 'Was suchst du? (z.B. versteckte Cafés, romantisches Abendessen...)',
+    'worldly.discover.btn': '🚀 ENTDECKEN',
     'common.cancel': 'Abbrechen',
     'common.close': 'Schließen',
     'common.ok': 'OK',
@@ -23988,6 +24044,13 @@ const I18N = {
     'worldly.section.hidden': '✨ Joyas Ocultas',
     'worldly.section.all': '📍 Todos los Lugares',
     'worldly.cta.plan': '→ PLANEA TU VISITA',
+    'worldly.step.country': '1. ELIGE PAÍS',
+    'worldly.country.placeholder': 'Selecciona país...',
+    'worldly.step.city': '2. ELIGE CIUDAD',
+    'worldly.city.placeholder': 'Primero elige país...',
+    'worldly.step.what': '3. ¿QUÉ BUSCAS?',
+    'worldly.query.placeholder': '¿Qué buscas? (ej. cafés ocultos, cena romántica...)',
+    'worldly.discover.btn': '🚀 DESCUBRIR',
     'common.cancel': 'Cancelar',
     'common.close': 'Cerrar',
     'common.ok': 'OK',
@@ -24038,6 +24101,13 @@ const I18N = {
     'worldly.section.hidden': '✨ Pépites Cachées',
     'worldly.section.all': '📍 Tous les Lieux',
     'worldly.cta.plan': '→ PLANIFIE TA VISITE',
+    'worldly.step.country': '1. CHOISIS LE PAYS',
+    'worldly.country.placeholder': 'Choisis le pays...',
+    'worldly.step.city': '2. CHOISIS LA VILLE',
+    'worldly.city.placeholder': "D'abord choisis le pays...",
+    'worldly.step.what': '3. QUE CHERCHES-TU ?',
+    'worldly.query.placeholder': 'Que cherches-tu ? (ex. cafés cachés, dîner romantique...)',
+    'worldly.discover.btn': '🚀 DÉCOUVRIR',
     'common.cancel': 'Annuler',
     'common.close': 'Fermer',
     'common.ok': 'OK',
@@ -24088,6 +24158,13 @@ const I18N = {
     'worldly.section.hidden': '✨ جواهر خفية',
     'worldly.section.all': '📍 كل الأماكن',
     'worldly.cta.plan': '→ خطط لزيارتك',
+    'worldly.step.country': '1. اختر الدولة',
+    'worldly.country.placeholder': 'اختر الدولة...',
+    'worldly.step.city': '2. اختر المدينة',
+    'worldly.city.placeholder': 'اختر الدولة أولاً...',
+    'worldly.step.what': '3. ماذا تبحث عنه؟',
+    'worldly.query.placeholder': 'ماذا تبحث عنه؟ (مثال: مقاهي مخفية، عشاء رومانسي...)',
+    'worldly.discover.btn': '🚀 اكتشف',
     'common.cancel': 'إلغاء',
     'common.close': 'إغلاق',
     'common.ok': 'حسناً',
@@ -24138,6 +24215,13 @@ const I18N = {
     'worldly.section.hidden': '✨ Скрытые жемчужины',
     'worldly.section.all': '📍 Все места',
     'worldly.cta.plan': '→ СПЛАНИРОВАТЬ ВИЗИТ',
+    'worldly.step.country': '1. ВЫБЕРИ СТРАНУ',
+    'worldly.country.placeholder': 'Выбери страну...',
+    'worldly.step.city': '2. ВЫБЕРИ ГОРОД',
+    'worldly.city.placeholder': 'Сначала выбери страну...',
+    'worldly.step.what': '3. ЧТО ТЫ ИЩЕШЬ?',
+    'worldly.query.placeholder': 'Что ты ищешь? (напр. скрытые кафе, романтический ужин...)',
+    'worldly.discover.btn': '🚀 ОТКРЫТЬ',
     'common.cancel': 'Отмена',
     'common.close': 'Закрыть',
     'common.ok': 'ОК',
@@ -24188,6 +24272,13 @@ const I18N = {
     'worldly.section.hidden': '✨ 隠れた名所',
     'worldly.section.all': '📍 すべての場所',
     'worldly.cta.plan': '→ 訪問を計画',
+    'worldly.step.country': '1. 国を選ぶ',
+    'worldly.country.placeholder': '国を選ぶ...',
+    'worldly.step.city': '2. 都市を選ぶ',
+    'worldly.city.placeholder': 'まず国を選ぶ...',
+    'worldly.step.what': '3. 何を探してる？',
+    'worldly.query.placeholder': '何を探してる？（例：隠れカフェ、ロマンチックなディナー…）',
+    'worldly.discover.btn': '🚀 発見',
     'common.cancel': 'キャンセル',
     'common.close': '閉じる',
     'common.ok': 'OK',

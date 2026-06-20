@@ -1,6 +1,17 @@
-node_modules/
-*.log
 .DS_Store
+node_modules/
+.env
+.env.local
+
+# Takıl / worldly
+_arsiv/
+*.bak
+*.bak-*
+
+# Oyun build / temp
 takil-game.js
 /tmp/
+/tmp/takil-dev.log
+
+# Restoran oyunu backup'ları (Kubilay)
 restoran.backup-*.html
