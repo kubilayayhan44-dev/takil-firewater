@@ -1,0 +1,103 @@
+name: 🔍 Sunucu Keşfi (Read-Only)
+
+# Manuel tetiklenir — sunucuda ne olduğunu öğrenir, HİÇBİR ŞEY DEĞİŞTİRMEZ.
+# Amaç: worldly production deploy planı için bilgi toplamak.
+on:
+  workflow_dispatch: # Actions tab'ından manuel tetikleme
+
+jobs:
+  recon:
+    name: Hetzner Sunucu Keşfi (read-only)
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+
+    steps:
+      - name: 🔑 Setup SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          ssh-keyscan -H ${{ secrets.SSH_HOST }} >> ~/.ssh/known_hosts
+
+      - name: 🔍 Keşif (HİÇBİR ŞEY DEĞİŞTİRMEZ — sadece okur)
+        run: |
+          ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} 'bash -s' <<'REMOTE' || true
+          echo "════════════════════════════════════════"
+          echo "🔍 TAKIL SUNUCU KEŞFİ (read-only)"
+          echo "════════════════════════════════════════"
+
+          echo ""
+          echo "━━━ 1) KULLANICI & İZİNLER ━━━"
+          echo "whoami: $(whoami)"
+          echo "uid: $(id -u)"
+          echo "sudo yetkisi: $(sudo -n true 2>&1 && echo 'EVET (parolasız)' || echo 'HAYIR veya parola gerekli')"
+          echo "gruplar: $(id -Gn)"
+
+          echo ""
+          echo "━━━ 2) NODE.JS ━━━"
+          echo "node yolu: $(command -v node || echo YOK)"
+          echo "node sürümü: $(node -v 2>/dev/null || echo '-')"
+          echo "npm yolu: $(command -v npm || echo YOK)"
+          echo "pm2 yolu: $(command -v pm2 || echo 'YOK (kurulu değil)')"
+
+          echo ""
+          echo "━━━ 3) CADDY ━━━"
+          echo "caddy yolu: $(command -v caddy || echo YOK)"
+          echo "caddy sürümü: $(caddy version 2>/dev/null | head -1 || echo '-')"
+          echo ""
+          echo "Caddyfile konumları:"
+          for f in /etc/caddy/Caddyfile /opt/caddy/Caddyfile /etc/Caddyfile /root/Caddyfile; do
+            [ -f "$f" ] && echo "  ✓ BULUNDU: $f" || true
+          done
+          echo ""
+          echo "caddy service durumu:"
+          systemctl is-active caddy 2>/dev/null || echo "(caddy service yok?)"
+          systemctl is-enabled caddy 2>/dev/null || true
+
+          echo ""
+          echo "━━━ 4) DİNLENEN PORTLAR (Express backend hangi portta?) ━━━"
+          (ss -tlnp 2>/dev/null || netstat -tlnp 2>/dev/null) | grep -E 'node|:3000|:3001|:4000|:5000|:8080|:8765|:8443' || echo "(eşleşme yok / izin yok)"
+
+          echo ""
+          echo "━━━ 5) ÇALIŞAN NODE/EXPRESS PROCESS'LERİ ━━━"
+          (ps aux 2>/dev/null | grep -iE 'node|express|pm2' | grep -v grep) || echo "(node process yok?)"
+
+          echo ""
+          echo "━━━ 6) /opt/takil-app İÇERİĞİ ━━━"
+          ls -la /opt/takil-app 2>/dev/null || echo "(dizin yok veya erişim yok)"
+          echo ""
+          echo "/opt altındaki ilgili dizinler:"
+          ls -d /opt/*/ 2>/dev/null || true
+
+          echo ""
+          echo "━━━ 7) MEVCUT EXPRESS BACKEND ━━━"
+          echo "systemd service'leri (node/express ile ilgili):"
+          systemctl list-units --type=service 2>/dev/null | grep -iE 'node|express|takil|game|api' || echo "(eşleşme yok)"
+          echo ""
+          echo "pm2 listesi (varsa):"
+          (pm2 list 2>/dev/null) || echo "(pm2 yok)"
+
+          echo ""
+          echo "━━━ 8) CADDYFILE İÇERİĞİ (ilk 100 satır) ━━━"
+          for f in /etc/caddy/Caddyfile /opt/caddy/Caddyfile /etc/Caddyfile /root/Caddyfile; do
+            if [ -f "$f" ]; then
+              echo "─── $f ───"
+              cat "$f" 2>/dev/null | head -100 || echo "(okunamadı — izin?)"
+              echo "─── (son) ───"
+              break
+            fi
+          done
+
+          echo ""
+          echo "━━━ 9) GITHUB ACTIONS WORKFLOW DOSYALARI SUNUCUDA VAR MI? ━━━"
+          ls -la /opt/takil-app/.github 2>/dev/null || echo "(/opt/takil-app/.github yok — workflow'lar sunucuda değil)"
+
+          echo ""
+          echo "════════════════════════════════════════"
+          echo "✅ KEŞİF TAMAM — hiçbir dosya değiştirilmedi"
+          echo "════════════════════════════════════════"
+          REMOTE
+
+      - name: 🧹 Cleanup
+        if: always()
+        run: rm -f ~/.ssh/deploy_key
