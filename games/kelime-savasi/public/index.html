@@ -1,0 +1,196 @@
+<!doctype html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no" />
+  <meta name="color-scheme" content="dark" />
+  <meta name="theme-color" content="#08130d" />
+  <meta name="description" content="Kelime Savaşı — büyülü ormanda 90 saniyelik 1v1 Türkçe kelime düellosu" />
+  <title>Kelime Savaşı 🌿</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E🌿%3C/text%3E%3C/svg%3E" />
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <!-- Büyülü orman: uçan ateşböcekleri (dekoratif) -->
+  <div id="fireflies" aria-hidden="true"></div>
+
+  <!-- Sahne: mobil-first dikey kolon, ≥768px ortalanmış -->
+  <div id="stage">
+
+    <!-- Kalıcı köşe düğmeleri -->
+    <button id="btn-mute" class="icon-btn" type="button" aria-label="Sesi kapat" aria-pressed="false">🔊</button>
+
+    <!-- EKRAN 1 — NİCKNAME -->
+    <section class="screen active" id="screen-nickname" aria-label="Giriş ekranı">
+      <div class="brand">
+        <div class="brand-emblem" aria-hidden="true">🌿</div>
+        <h1 class="brand-title">KELİME <em>SAVAŞI</em></h1>
+        <p class="brand-sub">Büyülü ormanda 90 saniyelik kelime düellosu</p>
+      </div>
+      <form id="form-nickname" class="card" novalidate>
+        <label class="field-label" for="input-nickname">Takma adın</label>
+        <input id="input-nickname" class="input" type="text" maxlength="16" autocomplete="nickname"
+               placeholder="ör. Orman Perisi" enterkeyhint="go" />
+        <p class="field-error" id="nickname-error" role="alert" hidden></p>
+        <button type="submit" class="btn btn-primary btn-block">✨ SAVAŞA GİR</button>
+      </form>
+      <ul class="footnote">
+        <li>🔤 Harf çemberinden kelimeler türet</li>
+        <li>⚔️ Rakibini geç, en çok puanı topla</li>
+        <li>⏱️ 90 saniyede en iyi sözcüğünü bul</li>
+      </ul>
+    </section>
+
+    <!-- EKRAN 2 — MENÜ -->
+    <section class="screen" id="screen-menu" aria-label="Ana menü">
+      <header class="screen-head">
+        <div class="brand-mini" aria-hidden="true">🌿 KELİME SAVAŞI</div>
+      </header>
+      <p class="hello">Merhaba, <b id="menu-nickname">…</b> 👋</p>
+      <button class="menu-card menu-gold" id="btn-create" type="button">
+        <span class="menu-emoji" aria-hidden="true">👑</span>
+        <span class="menu-title">ODA KUR</span>
+        <span class="menu-desc">Yeni düello başlat, kodunu arkadaşına gönder</span>
+        <span class="menu-arrow" aria-hidden="true">➜</span>
+      </button>
+      <button class="menu-card menu-violet" id="btn-join" type="button">
+        <span class="menu-emoji" aria-hidden="true">🚪</span>
+        <span class="menu-title">ODAYA KATIL</span>
+        <span class="menu-desc">4 haneli oda kodunu gir, savaşa dahil ol</span>
+        <span class="menu-arrow" aria-hidden="true">➜</span>
+      </button>
+      <button class="btn btn-ghost btn-block" id="btn-change-nick" type="button">✏️ Takma adı değiştir</button>
+    </section>
+
+    <!-- EKRAN 3 — ODA KUR (kod + bekleme) -->
+    <section class="screen" id="screen-create" aria-label="Oda kur">
+      <button class="btn-back" id="btn-back-create" type="button" aria-label="Geri dön">‹</button>
+      <h2 class="screen-title">ODA KURULDU 🏰</h2>
+      <p class="hint">Bu kodu arkadaşına gönder:</p>
+      <div class="code-display" id="create-code" aria-label="Oda kodu"></div>
+      <button class="btn btn-outline" id="btn-copy" type="button">📋 KOPYALA</button>
+      <div class="waiting" id="create-waiting">
+        <div class="spinner" aria-hidden="true"></div>
+        <p class="waiting-text">RAKİP BEKLENİYOR<span class="dots" aria-hidden="true"></span></p>
+      </div>
+    </section>
+
+    <!-- EKRAN 4 — ODAYA KATIL (keypad) -->
+    <section class="screen" id="screen-join" aria-label="Odaya katıl">
+      <button class="btn-back" id="btn-back-join" type="button" aria-label="Geri dön">‹</button>
+      <h2 class="screen-title">ODAYA KATIL 🚪</h2>
+      <p class="hint">4 haneli oda kodunu gir:</p>
+      <div class="code-slots" id="join-slots" aria-label="Oda kodu girişi">
+        <span class="slot" data-i="0"></span><span class="slot" data-i="1"></span>
+        <span class="slot" data-i="2"></span><span class="slot" data-i="3"></span>
+      </div>
+      <div class="keypad" id="join-keypad" aria-label="Oda kodu klavyesi"></div>
+      <div class="keypad-actions">
+        <button class="key key-wide" id="join-back" type="button" aria-label="Son harfi sil">⌫</button>
+        <button class="key key-go" id="join-go" type="button" disabled>KATIL</button>
+      </div>
+      <p class="field-error" id="join-error" role="alert" hidden></p>
+    </section>
+
+    <!-- EKRAN 5 — LOBİ -->
+    <section class="screen" id="screen-lobby" aria-label="Lobi">
+      <div class="lobby-code-wrap">ODA KODU <b class="lobby-code" id="lobby-code">····</b></div>
+      <h2 class="screen-title">SAVAŞ HAZIRLIĞI ⚔️</h2>
+      <div class="lobby-players" id="lobby-players">
+        <div class="player-card" id="lobby-p1"></div>
+        <div class="vs-badge" aria-hidden="true">⚔️</div>
+        <div class="player-card" id="lobby-p2"></div>
+      </div>
+      <p class="hint pulse-hint" id="lobby-hint">İkiniz de hazır olunca geri sayım başlar</p>
+    </section>
+
+    <!-- EKRAN 6 — GERİ SAYIM -->
+    <section class="screen" id="screen-countdown" aria-label="Geri sayım">
+      <div class="count-num" id="count-num" aria-live="assertive">3</div>
+    </section>
+
+    <!-- EKRAN 7 — OYUN -->
+    <section class="screen screen-game" id="screen-game" aria-label="Oyun ekranı">
+      <div class="hud">
+        <div class="hud-player hud-you" id="hud-you">
+          <span class="hud-avatar" id="hud-you-avatar" aria-hidden="true">🦊</span>
+          <span class="hud-meta"><b class="hud-name" id="hud-you-name">Sen</b>
+          <span class="hud-score" id="hud-you-score">0</span></span>
+        </div>
+        <div class="hud-timer">
+          <span class="timer-num" id="timer-num">90</span>
+          <div class="timer-bar"><div class="timer-fill" id="timer-fill"></div></div>
+        </div>
+        <div class="hud-player hud-foe" id="hud-foe">
+          <span class="hud-meta"><b class="hud-name" id="hud-foe-name">Rakip</b>
+          <span class="hud-score" id="hud-foe-score">0</span></span>
+          <span class="hud-avatar" id="hud-foe-avatar" aria-hidden="true">🐼</span>
+        </div>
+      </div>
+
+      <div class="ticker" id="ticker" aria-live="polite"></div>
+
+      <div class="word-line">
+        <div class="word-display" id="word-display" aria-live="polite">
+          <span class="word-placeholder">parmağınla kelime çiz…</span>
+        </div>
+        <div class="sticky-actions" id="sticky-actions" hidden>
+          <button class="mini-btn" id="sticky-back" type="button" aria-label="Son harfi sil">⌫</button>
+          <button class="mini-btn mini-go" id="sticky-go" type="button" aria-label="Kelimeyi gönder">✓</button>
+        </div>
+      </div>
+
+      <div class="wheel-wrap" id="wheel">
+        <svg class="wheel-svg" id="wheel-svg" aria-hidden="true"></svg>
+        <div class="wheel-tiles" id="wheel-tiles"></div>
+      </div>
+
+      <div class="found-wrap">
+        <div class="found-head">
+          <span>BULUNAN KELİMELER</span><span class="found-count" id="found-count">0</span>
+        </div>
+        <div class="found-grid" id="found-grid"></div>
+      </div>
+    </section>
+
+    <!-- EKRAN 8 — SONUÇ -->
+    <section class="screen screen-results" id="screen-results" aria-label="Sonuç ekranı">
+      <div class="results-hero" id="results-hero">
+        <div class="trophy" id="results-trophy" aria-hidden="true">🏆</div>
+        <div class="winner-name" id="winner-name">…</div>
+        <div class="winner-label" id="winner-label">KAZANDI!</div>
+      </div>
+      <div class="score-compare" id="score-compare"></div>
+      <div class="solutions">
+        <div class="solutions-head">
+          <span>TÜM ÇÖZÜMLER</span>
+          <span class="sol-count" id="sol-count"></span>
+        </div>
+        <div class="legend">
+          <span class="lg lg-hit">✨ bulundu</span>
+          <span class="lg lg-miss">🕯️ kaçırılan</span>
+        </div>
+        <div class="solutions-grid" id="solutions-grid"></div>
+      </div>
+      <div class="results-actions">
+        <button class="btn btn-primary" id="btn-rematch" type="button">🔄 TEKRAR OYNA</button>
+        <button class="btn btn-ghost" id="btn-menu" type="button">🏠 MENÜ</button>
+      </div>
+    </section>
+
+  </div>
+
+  <!-- Efekt katmanı: parıltı patlamaları, puan uçuşları -->
+  <div id="fx-layer" aria-hidden="true"></div>
+  <!-- Bildirim şeridi -->
+  <div id="toast" role="status" aria-live="polite"></div>
+
+  <!-- Ağ katmanı (window.KSNet) — UI modüllerinden önce -->
+  <script type="module" src="js/net.js"></script>
+  <script type="module" src="js/ui/lobby.js"></script>
+  <script type="module" src="js/ui/wheel.js"></script>
+  <script type="module" src="js/ui/game-screen.js"></script>
+  <script type="module" src="js/ui/results.js"></script>
+  <script type="module" src="js/main.js"></script>
+</body>
+</html>
