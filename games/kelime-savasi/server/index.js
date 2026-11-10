@@ -10,6 +10,10 @@
 //   Server → Client:        room:state, room:playerJoined, room:playerLeft,
 //                           game:countdown, game:start, game:timeSync, game:end,
 //                           word:accepted, game:rematch, error
+//   word:submit ack:        {ok:true, word, points, totalScore} | {ok:false, word?, reason}
+//                           reason: not_playing, time_up, rate_limited, too_short, too_long,
+//                           invalid_chars, not_subset, not_in_dictionary, duplicate (kendi
+//                           buldun), taken (kelime çalma — rakip buldu, oda geneli kilit)
 
 import http from 'node:http';
 import path from 'node:path';

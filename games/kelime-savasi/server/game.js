@@ -11,7 +11,7 @@
 // Anti-cheat kuralları (plan):
 //   - Sözlük/puzzle çözümleri client'a ASLA gönderilmez — çözüm listesi yalnızca game:end'de.
 //   - endsAt sunucu-otoriter: süre dolduktan sonraki submit'ler reddedilir.
-//   - word:submit akış sırası: rate-limit → normalize → subset → sözlük → duplicate → puan.
+//   - word:submit akış sırası: rate-limit → normalize → subset → sözlük → duplicate → taken → puan.
 
 import config from './config.js';
 import { getRandomPuzzle } from './puzzle.js';
@@ -178,7 +178,8 @@ export function endGame(room, reason = 'time_up') {
  * @returns {{ok:true, word:string, points:number, totalScore:number} |
  *           {ok:false, word?:string, reason:string}}
  * reason'lar UI/mock sözleşmesiyle aynı: not_playing, time_up, rate_limited,
- * too_short, too_long, invalid_chars, not_subset, not_in_dictionary, duplicate
+ * too_short, too_long, invalid_chars, not_subset, not_in_dictionary, duplicate,
+ * taken (kelime çalma: rakip buldu, oda geneli kilit)
  */
 export function submitWord(room, player, raw) {
   if (room.state !== 'PLAYING') return { ok: false, reason: 'not_playing' };
@@ -201,13 +202,22 @@ export function submitWord(room, player, raw) {
 
   if (player.words.some((w) => w.word === word)) return { ok: false, word, reason: 'duplicate' };
 
+  // KELİME ÇALMA (Hediye kararı): kelimeyi İLK gönderen alır — oda geneli kilit.
+  // Rakip bu kelimeyi bulduysa ikinci gönderen 'taken' reddi alır: puan yok,
+  // state değişikliği yok, broadcast yok (rakip kabulünde word:accepted herkese gitti zaten).
+  // Aynı anda gelen iki submit server'ın tek thread'inde sıraya girer → ilk işlenen kazanır.
+  for (const other of room.players.values()) {
+    if (other === player) continue;
+    if (other.words.some((w) => w.word === word)) return { ok: false, word, reason: 'taken' };
+  }
+
   const points = wordPoints(word);
   player.words.push({ word, points });
   player.score += points;
   room.touch();
 
   // Kabul → ODAYA broadcast (rakip ticker'ı) + submit'e ack.
-  // Aynı kelimeyi rakip de bulabilir — ikisi de kendi puanını alır (griefing yok).
+  // Kelime çalma: aynı kelimeyi rakip SONRADAN gönderemez — yukarıdaki taken kilidi.
   room.broadcast('word:accepted', {
     id: player.id,
     nickname: player.nickname,

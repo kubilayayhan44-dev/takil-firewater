@@ -552,6 +552,14 @@ class MockNet {
     if (!DICT_SET.has(word)) return { ok: false, reason: 'not_in_dict' };
     if (p.words.some((w) => w.word === word)) return { ok: false, reason: 'duplicate' };
 
+    // KELİME ÇALMA (oda geneli kilit — server/game.js ile aynı kural): rakip
+    // bulduysa ikinci gönderen 'taken' alır: puan yok, state değişikliği yok.
+    // Host tek-thread işler → ilk işlenen kazanır (socket modla davranış birebir).
+    for (const other of Object.values(g.players)) {
+      if (other === p) continue;
+      if (other.words.some((w) => w.word === word)) return { ok: false, reason: 'taken' };
+    }
+
     const points = wordPoints(word);
     p.words.push({ word, points });
     p.score += points;

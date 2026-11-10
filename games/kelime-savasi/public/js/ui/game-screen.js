@@ -170,6 +170,7 @@ export function initGameScreen(deps) {
       not_in_dict: 'Sözlükte böyle bir kelime yok 🔮', // mock modu
       not_in_dictionary: 'Sözlükte böyle bir kelime yok 🔮', // gerçek sunucu (server/game.js)
       duplicate: 'Bu kelimeyi zaten buldun',
+      taken: 'Bu kelimeyi rakip kaptı! ⚡',
       rate_limited: 'Çok hızlı! Biraz soluklan 🌬️',
       time_up: 'Süre doldu! ⏱️',
       not_playing: 'Maç şu an aktif değil',

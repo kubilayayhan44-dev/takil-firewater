@@ -188,11 +188,10 @@ describe('tam oyun akışı — 2 sahte oyuncu', () => {
     const dup = await emitAck(p1, 'word:submit', { word: w3 });
     expect(dup).toMatchObject({ ok: false, word: w3, reason: 'duplicate' });
 
-    // 6) AYNI kelimeyi rakip de bulabilir → ikisi de puan alır
-    const accP2b = once(p2, 'word:accepted');
+    // 6) KELİME ÇALMA: rakip aynı kelimeyi gönderemez → taken, puan yok
     const a2 = await emitAck(p2, 'word:submit', { word: w3 });
-    expect(a2).toMatchObject({ ok: true, word: w3, points: wordPoints(w3), totalScore: wordPoints(w3) });
-    await accP2b;
+    expect(a2).toMatchObject({ ok: false, word: w3, reason: 'taken' });
+    expect(a2.totalScore).toBeUndefined(); // taken hiçbir puan taşımaz
 
     // 7) 4 harfli ikinci kelime — skor birikimi
     const a3 = await emitAck(p1, 'word:submit', { word: w4 });
@@ -228,13 +227,13 @@ describe('tam oyun akışı — 2 sahte oyuncu', () => {
       expect(end.solutionList.length).toBeGreaterThanOrEqual(config.PUZZLE.MIN_SOLUTIONS);
     }
 
-    // skorlar: p1 = w3+w4, p2 = w3
+    // skorlar: p1 = w3+w4, p2 = boş (taken reddi puan getirmedi, state değişmedi)
     const res1 = endP1.results.find((r) => r.id === r1.playerId);
     const res2 = endP1.results.find((r) => r.id === r2.playerId);
     expect(res1.words.map((w) => w.word).sort()).toEqual([w3, w4].sort());
-    expect(res2.words.map((w) => w.word)).toEqual([w3]);
+    expect(res2.words.map((w) => w.word)).toEqual([]);
     expect(res1.score).toBe(wordPoints(w3) + wordPoints(w4));
-    expect(res2.score).toBe(wordPoints(w3));
+    expect(res2.score).toBe(0);
 
     // kazanan ilanı server payload'ı ile scoring determinizmi tutarlı
     expect(endP1.winner).toBe(determineWinner(endP1.results).winner);
@@ -251,6 +250,49 @@ describe('tam oyun akışı — 2 sahte oyuncu', () => {
     const lobbyBack = once(p1, 'room:state', { filter: (st) => st.state === 'LOBBY' });
     expect((await emitAck(p1, 'game:rematch', {})).ok).toBe(true);
     await Promise.all([rem1, rem2, lobbyBack]);
+  });
+
+  it('kelime çalma (çift yönlü): p2 ÖNCE bulur → p1 aynı kelimeyi taken alır, puan alamaz', async () => {
+    const p1 = connect();
+    const p2 = connect();
+    await Promise.all([once(p1, 'connect'), once(p2, 'connect')]);
+
+    const r1 = await emitAck(p1, 'room:create', { nickname: 'Elif' });
+    const r2 = await emitAck(p2, 'room:join', { roomCode: r1.roomCode, nickname: 'Burak' });
+
+    const st1 = once(p1, 'game:start');
+    const st2 = once(p2, 'game:start');
+    await emitAck(p1, 'game:ready', { ready: true });
+    await emitAck(p2, 'game:ready', { ready: true });
+    const [s1] = await Promise.all([st1, st2]);
+
+    const solutions = solutionsForLetters(s1.letters);
+    const w = solutions.find((x) => x.length === 3);
+    expect(w).toBeTruthy();
+
+    // p2 ÖNCE bulur → kabul + puan
+    const acc = await emitAck(p2, 'word:submit', { word: w });
+    expect(acc).toMatchObject({ ok: true, word: w, points: wordPoints(w), totalScore: wordPoints(w) });
+
+    // taken reddi BROADCAST ETMEMELİ — dinleyiciyi göndermeden önce tak
+    const acceptedLog = [];
+    p2.on('word:accepted', (payload) => acceptedLog.push(payload));
+
+    // p1 aynı kelimeyi gönderir → taken: puan yok, totalScore yok
+    const taken = await emitAck(p1, 'word:submit', { word: w });
+    expect(taken).toMatchObject({ ok: false, word: w, reason: 'taken' });
+    expect(taken.totalScore).toBeUndefined();
+
+    await sleep(300); // broadcast olsaydı şimdiye düşerdi
+    expect(acceptedLog).toHaveLength(0); // taken kelime ticker'a/odaya gitmez
+
+    // state değişmedi kanıtı: maç sonunda p1'in listesi boş, skoru 0; p2 puanı yerinde
+    const endP1 = await once(p1, 'game:end', { timeout: 8_000 });
+    const res1 = endP1.results.find((r) => r.id === r1.playerId);
+    const res2 = endP1.results.find((r) => r.id === r2.playerId);
+    expect(res1.words).toEqual([]);
+    expect(res1.score).toBe(0);
+    expect(res2.score).toBe(wordPoints(w));
   });
 });
 
