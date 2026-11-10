@@ -413,3 +413,48 @@ describe('dayanıklılık — COUNTDOWN\'da ayrılma → LOBBY\'ye dönüş', ()
     }
   });
 });
+
+describe('prod topoloji guard\'ları — Caddy arkası (XFF + CORS)', () => {
+  it('XFF: join rate-limit Caddy zincirindeki SON IP\'ye keyed — spoof edilen ilk hop yok sayılır', async () => {
+    // Prod: tarayıcı → Caddy → 127.0.0.1:8766. Caddy XFF zincirinin sonuna gerçek
+    // client IP ekler. İlk hop client tarafından taklit edilebilir → son hop kullan.
+    const c = io(URL, {
+      path: `${config.BASE_PATH}/socket.io`,
+      transports: ['websocket'],
+      forceNew: true,
+      reconnection: false,
+      extraHeaders: { 'x-forwarded-for': '9.9.9.9, 203.0.113.7' },
+    });
+    clients.push(c);
+    await once(c, 'connect');
+
+    const r = await emitAck(c, 'room:join', { roomCode: 'ZZZZ', nickname: 'xffprobe' });
+    expect(r.ok).toBe(false); // oda yok — ama deneme IP bazlı kaydedilmiş olmalı
+    expect(manager.joinAttempts.has('203.0.113.7')).toBe(true); // zincirin SON elemanı
+    expect(manager.joinAttempts.has('9.9.9.9')).toBe(false); // spoof edilen ilk hop DEĞİL
+    // (127.0.0.1 bu dosyadaki önceki testlerden zaten dolu olabilir — bu test onu iddia etmez)
+  });
+
+  it('XFF: Caddy yoksa (lokal dev, header yok) gerçek adres kullanılır', async () => {
+    const c = connect();
+    await once(c, 'connect');
+    await emitAck(c, 'room:join', { roomCode: 'ZZZZ', nickname: 'devprobe' });
+    expect(manager.joinAttempts.has('127.0.0.1')).toBe(true);
+  });
+
+  it('CORS: prod origin (nip.io) polling handshake\'inde Access-Control-Allow-Origin alır (mobil WS-engelli fallback)', async () => {
+    const res = await fetch(`${URL}${config.BASE_PATH}/socket.io/?EIO=4&transport=polling`, {
+      headers: { Origin: 'https://178-105-90-130.nip.io' },
+    });
+    expect(res.status).toBe(200);
+    expect(res.headers.get('access-control-allow-origin')).toBe('https://178-105-90-130.nip.io');
+  });
+
+  it('CORS: dev origin (localhost:8765) whitelist\'te kalır', async () => {
+    const res = await fetch(`${URL}${config.BASE_PATH}/socket.io/?EIO=4&transport=polling`, {
+      headers: { Origin: 'http://localhost:8765' },
+    });
+    expect(res.status).toBe(200);
+    expect(res.headers.get('access-control-allow-origin')).toBe('http://localhost:8765');
+  });
+});

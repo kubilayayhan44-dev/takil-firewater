@@ -26,6 +26,27 @@ const ROOT = path.join(path.dirname(fileURLToPath(import.meta.url)), '..');
  * Uygulamayı kurar (dinlemeden). Entegrasyon testleri ve ana giriş aynı yolu kullanır.
  * @param {{manager?: RoomManager, loadDictionary?: boolean}} opts
  */
+/**
+ * Client IP çözümü. Prod topolojisi: tarayıcı → Caddy (443) → 127.0.0.1:8766.
+ * handshake.address bu yüzden prod'da HEP 127.0.0.1 olur — XFF bakılmazsa TÜM
+ * oyuncular tek IP kovasına düşer ve JOIN_RATE_LIMIT (10/60sn) global limite dönüşür.
+ * Caddy X-Forwarded-For zincirinin SONUNA gerçek client IP'yi ekler; client sahte
+ * XFF başlığı gönderse bile gerçek IP sonda kalır. Bu yüzden yalnız loopback
+ * bağlantılarda ve yalnız son eleman kullanılır (spoof edilemez).
+ */
+export function clientIp(socket) {
+  const addr = socket.handshake.address ?? 'unknown';
+  const isLoopback = addr === '127.0.0.1' || addr === '::1' || addr === '::ffff:127.0.0.1';
+  if (isLoopback) {
+    const xff = socket.handshake.headers?.['x-forwarded-for'];
+    if (typeof xff === 'string') {
+      const parts = xff.split(',').map((s) => s.trim()).filter(Boolean);
+      if (parts.length > 0) return parts[parts.length - 1];
+    }
+  }
+  return addr;
+}
+
 export function createApp(opts = {}) {
   const app = express();
   app.disable('x-powered-by');
@@ -78,7 +99,7 @@ export function createApp(opts = {}) {
   };
 
   io.on('connection', (socket) => {
-    const ip = socket.handshake.address ?? 'unknown';
+    const ip = clientIp(socket);
 
     // Handshake auth: playerToken geldiyse otomatik reconnect dene.
     // (UI Faz 2 stub'ı auth göndermese de room:reconnect event'i aynı işi yapar.)

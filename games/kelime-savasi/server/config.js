@@ -66,8 +66,22 @@ export default {
     RAW_DIC_CACHE: 'data/raw/tr_TR.dic',
   },
 
-  // --- Socket.IO CORS — dev'de Takıl dev-server (8765) sayfasından bağlanmak için ---
+  // --- Socket.IO CORS ---
+  // Prod: Takıl ana site — sayfa Caddy arkasından AYNI origin'de servis edilir ve
+  // socket.io handshake'i tarayıcıdan Origin header'ıyla gelir. Polling fallback
+  // (mobil operatör ağında WS engelli senaryo) için whitelist'te OLMALI, yoksa
+  // Access-Control-Allow-Origin dönmez ve long-polling XHR tarayıcıda reddedilir.
+  // :3210 block'u Caddyfile'da mevcut (tls cert'li) — o origin'den de açılır.
+  // Dev: Takıl dev-server (8765) sayfasından bağlanmak için.
+  // Ekstra: CORS_ORIGINS env (virgülle ayrılmış) — yeni domain eklemek için yeniden build gerekmez.
   CORS_ORIGINS: [
+    ...(process.env.CORS_ORIGINS
+      ? process.env.CORS_ORIGINS.split(',').map((s) => s.trim()).filter(Boolean)
+      : []),
+    'https://178-105-90-130.nip.io',
+    'http://178-105-90-130.nip.io:3210',
+    'https://178-105-90-130.nip.io:3210',
+    'http://178-105-90-130.nip.io',
     'http://localhost:8765',
     'http://127.0.0.1:8765',
   ],
