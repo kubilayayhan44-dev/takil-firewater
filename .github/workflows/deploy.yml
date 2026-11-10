@@ -29,11 +29,19 @@ jobs:
 
       - name: 🚀 Deploy game files to /opt/takil-app
         run: |
-          # Game asset'leri + worldly server + provisioning script'leri yolla.
-          # --delete ile dest'teki extraneous dosyalar silinir; --exclude="*" geri kalan
+          # Game asset'leri + worldly server + games/ (Kelime Savaşı) + provisioning
+          # script'leri yolla. --delete ile dest'teki extraneous dosyalar silinir; --exclude="*" geri kalan
           # her şeyi korur (silmez). dev-server.js + deploy/ artık transfer setinde.
+          #
+          # rsync kuralı: İLK MATCH KAZANIR → exclude'lar kapsayan include'lardan ÖNCE olmalı.
+          # 'node_modules' exclude'u 'games/**'den önce kondu, yoksa lokal 100MB+ node_modules
+          # sunucuya gider. Pattern'de slash yok → her seviyedeki node_modules bileşenini yakalar
+          # (games/kelime-savasi/node_modules dahil). Excluded → --delete onları sunucuda korur
+          # (provision'ın npm ci ile kurduğu bağımlılıklar silinmez).
+          # games/** include'u package-lock.json'u da kapsar — provision npm ci için onu ister.
           rsync -avz --delete \
             -e "ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no" \
+            --exclude="node_modules" \
             --include="index.html" \
             --include="og-image.png" \
             --include="dev-server.js" \
@@ -41,14 +49,19 @@ jobs:
             --include="vendor/**" \
             --include="deploy/" \
             --include="deploy/**" \
+            --include="games/" \
+            --include="games/**" \
             --exclude="*" \
             ./ \
             ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:/opt/takil-app/
 
-      - name: ⚙️ Provision worldly service + Caddy route
+      - name: ⚙️ Provision worldly + kelime-savasi services & Caddy routes
         run: |
-          # Idempotent: systemd unit kur/yenile + restart, Caddy /api/worldly/* route ekle
-          # (backup + validate + rollback). Script /opt/takil-app/deploy/ altından çalışır.
+          # Idempotent: systemd unit kur/yenile + restart, Caddy /api/worldly/* +
+          # /games/kelime-savasi/* route'larını ekle (backup + validate + rollback).
+          # Kelime Savaşı kurulumu yumuşak-skip: dosyalar/Node hazir değilse atlanır,
+          # worldly + ana site her koşulda provision edilir.
+          # Script /opt/takil-app/deploy/ altından çalışır.
           ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no \
             ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} \
             'bash /opt/takil-app/deploy/provision.sh'
@@ -94,7 +107,25 @@ jobs:
             exit 1
           fi
 
-          echo "🎉 Tüm health check'ler geçti"
+          # 5) Kelime Savaşı health (games/kelime-savasi → 127.0.0.1:8766)
+          #    YUMUŞAK check — hard-fail ETMEZ: games/ bu pipeline ile İLK KEZ transfer
+          #    ediliyor; provision'da dosyalar/Node hazir değilse kurulum yumuşak-skip
+          #    edilir, ilk denemede 200 gelmemesi kafa karıştırmasın. Ana site + worldly
+          #    check'leri (1, 3, 4) yukarıda ZORUNLU kalır.
+          #    Kalıcı ⚠️ durumunda sunucuda bak: systemctl status kelime-savasi,
+          #    journalctl -u kelime-savasi -n 50, systemctl reload caddy sonrası route.
+          KS_OK=0
+          for i in 1 2 3; do
+            S=$(curl -sL -k -o /dev/null -w "%{http_code}" "$BASE/games/kelime-savasi/api/health" || echo "000")
+            if [ "$S" = "200" ]; then echo "✅ Kelime Savaşı health (HTTP $S)"; KS_OK=1; break; fi
+            echo "  kelime savaşı deneme $i: HTTP $S — 3sn..."; sleep 3
+          done
+          if [ "$KS_OK" != "1" ]; then
+            echo "⚠️  Kelime Savaşı /games/kelime-savasi/api/health: 200 değil."
+            echo "    Oyun dosyaları henüz repoya merge edilmemişse normal — sonraki deploy'da düzelir."
+          fi
+
+          echo "🎉 Tüm zorunlu health check'ler geçti (Kelime Savaşı yumuşak check — durumu yukarıda)"
 
       - name: 🧹 Cleanup
         if: always()
