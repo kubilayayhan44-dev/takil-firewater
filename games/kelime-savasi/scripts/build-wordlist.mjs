@@ -1,15 +1,22 @@
 #!/usr/bin/env node
-// Türkçe kelime listesi pipeline (plan Task 2):
-//   LibreOffice hunspell tr_TR.dic
+// Türkçe kelime listesi pipeline (plan Task 2 + genişletme):
+//   Kaynak 1 — LibreOffice hunspell tr_TR.dic KÖKLERİ:
 //     → indir (filesystem cache: data/raw/tr_TR.dic)
 //     → hunspell stem parse ('/' sonrası flag'ler at, header satırı at)
-//     → Türkçe-aware normalize (server/turkce.js — ORTAK modül, kopya yok)
+//   Kaynak 2 — OpenSubtitles frekans listesi (EK ALMIŞ biçimler: 'şeyler', 'arabam'...):
+//     → indir tr_50k.txt → adaylar HUNSPELL -G ile yazımsal doğrulamadan geçer
+//     (frekans listesi altyazı kaynaklıdır — yanlış yazımlar hunspell filtresinde düşer)
+//   → birleşim → Türkçe-aware normalize (server/turkce.js — ORTAK modül, kopya yok)
 //     → filtre: /^[a-zçğıöşü]{3,6}$/, hunspell özel işaret/özel isim ayıklama
 //     → dedupe + Türk alfabesi sıralaması → data/words.tr.json
+//
+// Not: unmunch (dic+aff tam türetme) DENEendi — tr_TR.aff ile bozuk üretim yapıyor
+// ('aeminle' gibi sahteler, suffix buffer overflow). Bu yüzden doğrulamalı frekans yolu.
 //
 // Kullanım: node scripts/build-wordlist.mjs [--force]   (--force: cache'i yeniden indirir)
 
 import { mkdirSync, readFileSync, writeFileSync, existsSync } from 'node:fs';
+import { spawnSync } from 'node:child_process';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import config from '../server/config.js';
@@ -20,7 +27,31 @@ const OUT_PATH = path.join(ROOT, config.PATHS.WORDS);
 const CACHE_PATH = path.join(ROOT, config.PATHS.RAW_DIC_CACHE);
 const DIC_URL =
   'https://raw.githubusercontent.com/LibreOffice/dictionaries/master/tr_TR/tr_TR.dic';
-const MIN_WORDS = 25_000; // kalite guard — altında exit 1
+const AFF_URL =
+  'https://raw.githubusercontent.com/LibreOffice/dictionaries/master/tr_TR/tr_TR.aff';
+const FREQ_URL =
+  'https://raw.githubusercontent.com/hermitdave/FrequencyWords/master/content/2018/tr/tr_50k.txt';
+const FREQ_CACHE_PATH = path.join(ROOT, 'data', 'raw', 'tr-freq-50k.txt');
+const MIN_WORDS = 33_000; // kalite guard — altında exit 1 (kökler 32K + frekans eki, isim filtresi sonrası)
+
+// Yaygın Türkçe özel isimler (altyazı frekans listesinde karakter adları olarak sık geçer;
+// hunspell bunları kabul ettiğinden — ve ayrım flag'i yok — burada elle filtrelenir).
+// Oyun harflerinden isim türetme zaten marjinal; liste bilinçli olarak en sık ~90 isim.
+const PROPER_NAME_BLOCKLIST = new Set([
+  // erkek
+  'ahmet','mehmet','mustafa','ali','hasan','hüseyin','osman','yusuf','murat','ömer',
+  'ramazan','halil','ibrahim','ismail','recep','kemal','kadir','serkan','burak','emre',
+  'cem','can','deniz','emir','eren','ferhat','furkan','hakan','kaan','kerem',
+  'kubilay','mahmut','mert','metin','nurettin','oktay','onur','orhan','polat','selim',
+  'sinan','süleyman','şahin','tarık','tarkan','tolga','tolgay','volkan','yasin','yunus',
+  'ziya','adem','bora','cemil','cevat','engin','erkan','ferhat','fikret','galip',
+  // kadın
+  'ayşe','fatma','zeynep','hatice','emine','elif','sultan','meryem','şerife','havva',
+  'esra','selin','nazlı','leyla','nurten','sevgi','derya','gülşah','sibel','tülin',
+  'cemre','ece','eda','elifnur','filiz','gül','hande','hilal','ipek','jasmin',
+  'kader','kübra','melis','merve','nazan','neslihan','nilgün','nurcan','özlem','pelinsu',
+  'pınar','serpil','sevda','sevim','şeyda','ülkü','yasemin','yeşim','yıldız','zehra',
+]);
 
 const force = process.argv.includes('--force');
 
@@ -40,6 +71,93 @@ async function downloadDic() {
 function readCachedDic() {
   console.log(`⇣ cache kullanılıyor: ${config.PATHS.RAW_DIC_CACHE} (--force ile yeniden indirilir)`);
   return readFileSync(CACHE_PATH, 'utf8');
+}
+
+async function fetchTo(url, dest, label) {
+  console.log(`⇣ indiriliyor: ${url}`);
+  const res = await fetch(url);
+  if (!res.ok) throw new Error(`${label} indirme başarısız: HTTP ${res.status}`);
+  const text = await res.text();
+  mkdirSync(path.dirname(dest), { recursive: true });
+  writeFileSync(dest, text, 'utf8');
+  return text;
+}
+
+/**
+ * Frekans listesi katmanı: aday kelimeleri hunspell -G ile doğrular.
+ * hunspell yoksa katman sessizce atlanır (portability — CI gibi ortamlarda).
+ * @returns {Set<string>} doğrulanmış + filtrelenmiş kelimeler (normalize edilmemiş ham hali değil —
+ * burada normalize + isGameWord uygulanmış son hali döner)
+ */
+function frequencyLayer(rootSet) {
+  const hunspellPath = spawnSync('which', ['hunspell']).stdout?.toString().trim();
+  if (!hunspellPath || !existsSync(hunspellPath)) {
+    console.log('⚠ hunspell bulunamadı — frekans katmanı ATLANDI (sadece kökler)');
+    return { words: new Set(), stat: { candidates: 0, validated: 0 } };
+  }
+
+  const freqText = (existsSync(FREQ_CACHE_PATH) && !force)
+    ? readFileSync(FREQ_CACHE_PATH, 'utf8')
+    : fetchToSync(FREQ_URL, FREQ_CACHE_PATH, 'frekans listesi');
+  // aff de lazım (hunspell -d tr_TR): cache yoksa indir — sync fetch yok, o yüzden önden indir
+  const affPath = CACHE_PATH.replace(/\.dic$/, '.aff');
+  if (!existsSync(affPath)) {
+    console.log("⚠ tr_TR.aff cache yok — frekans katmanı ATLANDI (aff'ı indirmek için --force)");
+    return { words: new Set(), stat: { candidates: 0, validated: 0 } };
+  }
+
+  const candidates = freqText
+    .split('\n')
+    .map((l) => l.split(' ')[0].trim())
+    .filter(Boolean)
+    .filter((w) => !PROPER_NAME_BLOCKLIST.has(w));
+
+  const hun = spawnSync('hunspell', ['-d', 'tr_TR', '-m'], {
+    input: candidates.join('\n'),
+    cwd: path.dirname(CACHE_PATH), // tr_TR.dic + tr_TR.aff burada aranır
+    maxBuffer: 64 * 1024 * 1024,
+  });
+  if (hun.status !== 0) {
+    console.log('⚠ hunspell çalışmadı — frekans katmanı ATLANDI');
+    return { words: new Set(), stat: { candidates: candidates.length, validated: 0 } };
+  }
+
+  // Morfoloji parse (\`-m\`): "kelime  st:stem fl:flag" satırları.
+  // Kabul kuralı (özel isim/parazit filtresi — 'ahmet'→st:ahm gibi fragmentler düşer):
+  //   a) stem kelimenin kendisine EŞİT (tam sözlük girişi: 'elma', 'evler', 'kediler')
+  //   b) stem normalize edilmiş KÖK LİSTEMİZDE ve >=2 harf ('gittim'→st:git ✓)
+  // Hunspell özel isim flag'i vermediğinden (tr_TR.aff sadece SFX) budur en sağlam ayıklayıcı.
+  const words = new Set();
+  let validated = 0;
+  let currentWord = null;
+  let currentOk = false;
+  const flush = () => {
+    if (currentWord !== null && currentOk) {
+      const norm = turkceLower(currentWord);
+      if (isGameWord(norm)) { validated++; words.add(norm); }
+    }
+    currentWord = null; currentOk = false;
+  };
+  for (const line of hun.stdout.toString().split('\n')) {
+    if (line.trim() === '') { flush(); continue; }
+    const cols = line.trim().split(/\s+/);
+    const word = cols[0];
+    const stem = line.match(/st:([^,\s]+)/)?.[1];
+    if (word !== currentWord) { flush(); currentWord = word; }
+    if (!stem) continue;
+    if (stem === word) { currentOk = true; continue; }
+    const stemNorm = turkceLower(stem);
+    if (stemNorm.length >= 2 && rootSet.has(stemNorm)) currentOk = true;
+  }
+  flush();
+  return { words, stat: { candidates: candidates.length, validated } };
+}
+
+/** sync indirme wrapper'ı (fetch async — process'i bloklamadan basit yol: execSync curl). */
+function fetchToSync(url, dest, label) {
+  const curl = spawnSync('curl', ['-sL', url, '-o', dest]);
+  if (curl.status !== 0) throw new Error(`${label} indirme başarısız (curl)`);
+  return readFileSync(dest, 'utf8');
 }
 
 /**
@@ -107,6 +225,15 @@ try {
   const t0 = Date.now();
   const dicText = !force && existsSync(CACHE_PATH) ? readCachedDic() : await downloadDic();
   const { words, report } = parseDic(dicText);
+
+  // frekans katmanı (ekli biçimler) — aff cache yoksa --force ile aff de indirilir
+  if (force && !existsSync(CACHE_PATH.replace(/\.dic$/, '.aff'))) {
+    await fetchTo(AFF_URL, CACHE_PATH.replace(/\.dic$/, '.aff'), 'tr_TR.aff');
+  }
+  const beforeFreq = words.size;
+  const freq = frequencyLayer(words); // kök seti → stem kabul kuralı için
+  for (const w of freq.words) words.add(w);
+
   const sorted = [...words].sort(turkishCompare);
 
   console.log('── Rapor ────────────────────────────────');
@@ -118,7 +245,9 @@ try {
   console.log(`  özel işaretli (atılan)  : ${report.specialMarked}`);
   console.log(`  özel isim (atılan)      : ${report.properNoun}`);
   console.log(`  regex dışı (atılan)     : ${report.regexFailed}`);
-  console.log(`  FİLTRE SONRASI kelime   : ${sorted.length} (unique)`);
+  console.log(`  kök FİLTRE SONRASI      : ${beforeFreq} (unique)`);
+  console.log(`  frekans aday/doğrulanan : ${freq.stat.candidates} / ${freq.stat.validated}`);
+  console.log(`  FİLTRE SONRASI kelime   : ${sorted.length} (unique, kök+frekans birleşim)`);
 
   if (sorted.length < MIN_WORDS) {
     console.error(`\nHATA: kelime sayısı ${sorted.length} < ${MIN_WORDS} (kalite guard) — exit 1`);

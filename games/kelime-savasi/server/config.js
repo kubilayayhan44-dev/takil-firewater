@@ -50,7 +50,7 @@ export default {
   PUZZLE: {
     LETTER_COUNT: 6,
     MIN_SOLUTIONS: 15,
-    MAX_SOLUTIONS: 80,
+    MAX_SOLUTIONS: 130,
     MIN_LONG_WORDS: 2, // ≥5 harfli kelime alt sınırı
     LONG_WORD_MIN_LEN: 5,
     MIN_VOWELS: 2, // 6 harfin 2-4'ü sesli olmalı (a e ı i o ö u ü)
