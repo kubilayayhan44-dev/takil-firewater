@@ -184,7 +184,14 @@
   <div id="fx-layer" aria-hidden="true"></div>
   <!-- Bildirim şeridi -->
   <div id="toast" role="status" aria-live="polite"></div>
+  <!-- Ağ bandı — socket modunda sunucu erişilemezse (mock'ta hiç gösterilmez) -->
+  <div id="net-banner" role="alert" hidden>
+    <span id="net-banner-msg">Sunucuya ulaşılamıyor</span>
+    <button id="btn-mock-mode" type="button">🧪 Mock modunda dene</button>
+  </div>
 
+  <!-- socket.io-client (window.io) — KSNet socket modu için, net.js'ten önce -->
+  <script src="js/vendor/socket.io.min.js"></script>
   <!-- Ağ katmanı (window.KSNet) — UI modüllerinden önce -->
   <script type="module" src="js/net.js"></script>
   <script type="module" src="js/ui/lobby.js"></script>

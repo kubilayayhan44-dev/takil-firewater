@@ -401,6 +401,30 @@ function handleLeaveToMenu() {
 }
 
 /* ============================================================
+ * Ağ bandı — socket modunda sunucu erişilemezse (mock: hiç tetiklenmez)
+ * ============================================================ */
+const netBanner = document.getElementById('net-banner');
+const netBannerMsg = document.getElementById('net-banner-msg');
+const btnMockMode = document.getElementById('btn-mock-mode');
+
+function showNetBanner(msg) {
+  if (!netBanner) return;
+  if (msg) netBannerMsg.textContent = msg;
+  netBanner.hidden = false;
+}
+
+function hideNetBanner() {
+  if (netBanner) netBanner.hidden = true;
+}
+
+btnMockMode?.addEventListener('click', () => {
+  // Tek sekme mock multiplayer: sayfayı ?mock=1 ile yeniden aç
+  const url = new URL(location.href);
+  url.searchParams.set('mock', '1');
+  location.replace(url.href);
+});
+
+/* ============================================================
  * KSNet olay bağlama
  * ============================================================ */
 KSNet.on('room:state', (st) => {
@@ -457,23 +481,39 @@ KSNet.on('room:recovered', () => {
   showToast('Bağlantı geri geldi 🌿');
 });
 
+// Socket modu bağlantı durumu (mock hiç emit etmez — noop)
+let netWasUp = false;
+KSNet.on('net:status', ({ status } = {}) => {
+  if (KSNet.mode !== 'socket') return;
+  if (status === 'connected') {
+    hideNetBanner();
+    if (netWasUp) showToast('Bağlantı geri geldi 🌿');
+    netWasUp = true;
+  } else if (status === 'reconnecting') {
+    showToast('🔄 Yeniden bağlanılıyor…');
+  } else if (status === 'connect_error') {
+    showNetBanner('Sunucuya ulaşılamıyor');
+  }
+  // 'disconnected' bilerek sessiz: hemen ardından 'reconnecting' toast'ı gelir
+});
+
+// Socket modu: ağ koptu → geri geldi → tam state replay (skor/kelime/timer senkron)
+KSNet.on('room:resync', (res) => {
+  if (!res?.ok || !state.inRoom) return;
+  applyRoomSnapshot(res);
+  if (res.state === 'PLAYING') showToast('Senkronize edildi ⚡');
+});
+
 /* ============================================================
  * Reconnect — sayfa yenilendiğinde (görsel rebuild akışı)
+ * applyRoomSnapshot: mock + socket ortak — tam oda state'ini UI'ya uygular
+ * (boot tryReconnect ve socket room:resync aynı yolu kullanır)
  * ============================================================ */
-async function tryReconnect() {
-  const token = ownToken();
-  if (!token) return false;
-  const res = await KSNet.reconnect(token);
-  if (!res.ok) {
-    LS.clearToken();
-    try { sessionStorage.removeItem('ks_ownToken'); } catch { /* yoksay */ }
-    return false;
-  }
+function applyRoomSnapshot(res) {
   state.roomCode = res.code;
   state.playerId = res.you.id;
   state.inRoom = true;
   state.players = res.roomState?.players ?? [];
-  saveToken(token);
 
   if (res.state === 'PLAYING') {
     // OYUN EKRAN TAM REBUILD: skorlar + kelimeler + timer kaldığı yerden
@@ -490,7 +530,6 @@ async function tryReconnect() {
       foeNickname: foe?.nickname,
     });
     screens.show('screen-game');
-    showToast('Bağlantı kuruldu — oyuna devam! ⚡');
     return true;
   }
 
@@ -503,6 +542,21 @@ async function tryReconnect() {
   enterLobby();
   if (res.state === 'COUNTDOWN') startCountdown(res.endsAt);
   return true;
+}
+
+async function tryReconnect() {
+  const token = ownToken();
+  if (!token) return false;
+  const res = await KSNet.reconnect(token);
+  if (!res.ok) {
+    LS.clearToken();
+    try { sessionStorage.removeItem('ks_ownToken'); } catch { /* yoksay */ }
+    return false;
+  }
+  saveToken(token);
+  const reconnected = applyRoomSnapshot(res);
+  if (res.state === 'PLAYING') showToast('Bağlantı kuruldu — oyuna devam! ⚡');
+  return reconnected;
 }
 
 /* ============================================================

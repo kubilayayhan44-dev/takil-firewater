@@ -1398,6 +1398,47 @@ h1, h2, h3, p { margin: 0; }
 #toast.toast-bad { border-color: rgba(255, 122, 118, 0.55); }
 
 /* ============================================================
+   Ağ bandı — socket modunda sunucu erişilemezse (mock'ta gizli)
+   ============================================================ */
+#net-banner {
+  position: fixed;
+  left: 50%;
+  bottom: calc(env(safe-area-inset-bottom, 0px) + 78px); /* toast üstünde */
+  transform: translateX(-50%);
+  z-index: 90;
+  max-width: min(92vw, 440px);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  border-radius: 14px;
+  background: rgba(20, 14, 40, 0.96);
+  border: 1px solid rgba(255, 122, 118, 0.55);
+  color: var(--ink);
+  font-size: 0.85rem;
+  font-weight: 700;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.55);
+}
+
+#net-banner[hidden] { display: none; }
+
+#net-banner-msg { flex: 1; min-width: 0; }
+
+#btn-mock-mode {
+  flex-shrink: 0;
+  padding: 7px 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(242, 193, 78, 0.5);
+  background: rgba(242, 193, 78, 0.14);
+  color: var(--gold);
+  font-size: 0.8rem;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+#btn-mock-mode:active { transform: scale(0.96); }
+
+/* ============================================================
    Erişilebilirlik — hareket azaltma
    ============================================================ */
 @media (prefers-reduced-motion: reduce) {

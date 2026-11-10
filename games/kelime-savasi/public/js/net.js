@@ -4,7 +4,9 @@
  *   mode: 'mock'   → BroadcastChannel ile AYNI tarayıcıda 2 sekme gerçekçi multiplayer
  *   mode: 'socket' → /<BASE_PATH>/socket.io üzerine socket.io-client (Faz 2'de doldurulacak)
  *
- * Seçim: URL ?mock=1 → mock | ?socket=1 → socket | default: mock (backend Faz 2'de)
+ * Seçim: ?mock=1 → mock | default: socket (backend Faz 2'de hazır)
+ * Ayrıca: socket modunda sunucuya ulaşılamazsa UI 'net:status' connect_error
+ * gösterir ve kullanıcıyı ?mock=1'e yönlendiren bir bant sunar (main.js).
  * localStorage anahtarları: ks_playerToken, ks_nickname (main.js yönetir)
  *
  * Arayüz:
@@ -822,12 +824,23 @@ class MockNet {
 }
 
 /* ============================================================
- * SocketNet — Faz 2 stub
- * socket.io-client <script> eklendiğinde (window.io) çalışır.
- * TODO(FAZ 2):
- *   1. index.html'e <script src="{BASE_PATH}/socket.io/socket.io.js"></script> ekle
- *   2. Sunucu event adları/mock payload'ları birebir örtüşüyor (server/index.js TODO notu)
- *   3. Reconnect: socket.io otomatik reconnect + 'connect' → room:reconnect replay
+ * SocketNet — gerçek sunucu modu (Faz 2)
+ * socket.io-client (public/js/vendor/socket.io.min.js → window.io)
+ * ile server/index.js Socket.IO kanalına bağlanır. Event isimleri ve
+ * payload şekilleri MockNet + server sözleşmesiyle birebir aynı.
+ *
+ * Bağlantı stratejisi:
+ *   - Lazy connect: ilk createRoom/joinRoom/reconnect çağrısında açılır
+ *   - Handshake auth.playerToken: bu sekmeye ait token (sessionStorage
+ *     sahiplik korumalı — iki sekme aynı localStorage'ı paylaşsa bile
+ *     kardeş sekmenin token'ıyla re-attach yapılmaz). Sunucu handshake'de
+ *     otomatik reconnectByToken dener.
+ *   - Ağ kopması: socket.io otomatik reconnect (default açık). Geri
+ *     gelince 'connect' + room:reconnect ack → tam state replay →
+ *     UI'ya 'room:resync' eventi (mock'ta yok — sadece socket modda).
+ *   - net:down EMİT EDİLMEZ: mock'taki net:down "oda sahibi sekmesi
+ *     kalıcı kapandı" demektir (UI menüye döner); socket modda kopuş
+ *     geçicidir, UI 'net:status' ile bekler.
  * ============================================================ */
 class SocketNet {
   constructor() {
@@ -835,27 +848,49 @@ class SocketNet {
     this._listeners = new Map();
     this._socket = null;
     this._connected = false;
+    this._everConnected = false; // ilk connect'ten sonra true → sonraki 'connect'ler resync tetikler
+    this._token = null;          // son bilinen playerToken (auto-reconnect handshake auth'u)
   }
 
   _ensureLib() {
-    if (typeof window === 'undefined' || !window.io) {
-      const err = { ok: false, error: 'socket.io-client yüklenmedi (Faz 2)' };
-      throw err;
+    if (typeof window !== 'undefined' && window.io) return;
+    throw { ok: false, error: 'Bağlantı kütüphanesi yüklenemedi' };
+  }
+
+  /** Bu sekmeye ait reconnect token'ı (main.js saveToken/ownToken ile uyumlu) */
+  _ownToken() {
+    try {
+      const own = sessionStorage.getItem('ks_ownToken');
+      const ls = localStorage.getItem('ks_playerToken');
+      return own && own === ls ? own : null;
+    } catch {
+      return localStorage.getItem('ks_playerToken') || null;
     }
+  }
+
+  /** Oda token'ı öğrendik → handshake auth'u güncelle (network koparsa auto-reconnect kullanır) */
+  _adoptToken(token) {
+    this._token = token;
+    if (this._socket) this._socket.auth = { ...this._socket.auth, playerToken: token };
   }
 
   _connect() {
     this._ensureLib();
     if (this._socket) return this._socket;
-    // Path: /<BASE_PATH>/socket.io — server config.js BASE_PATH ile aynı
-    this._socket = window.io({
+    this._token = this._ownToken();
+
+    // Sayfa BASE_PATH altından servis ediliyor → socket aynı origin'de
+    // /<BASE_PATH>/socket.io path'inde (server config.js ile aynı)
+    this._socket = window.io(location.origin, {
       path: `${BASE_PATH}/socket.io`,
       transports: ['websocket', 'polling'],
       reconnection: true,
       reconnectionDelay: 800,
       reconnectionDelayMax: 4000,
+      auth: this._token ? { playerToken: this._token } : {},
     });
 
+    // server → client olay köprüsü (isimler/payload'lar mock ile birebir)
     const bridge = [
       'room:state', 'room:playerJoined', 'room:playerLeft',
       'game:countdown', 'game:start', 'game:timeSync', 'game:end',
@@ -867,12 +902,33 @@ class SocketNet {
 
     this._socket.on('connect', () => {
       this._connected = true;
-      this._emit('net:up', {});
+      this._emit('net:status', { status: 'connected', first: !this._everConnected });
+      // Ağ kopması sonrası geri dönüş: tam state replay (skor/kelime/timer senkron).
+      // İlk bağlantıda zaten createRoom/joinRoom/reconnect ack'i akışı sürüyor.
+      if (this._everConnected && this._token) {
+        this._ack('room:reconnect', { playerToken: this._token })
+          .then((reply) => {
+            if (reply?.ok) this._emit('room:resync', reply);
+          })
+          .catch(() => { /* resync başarısızsa server broadcast'leri yine akar */ });
+      }
+      this._everConnected = true;
     });
-    this._socket.on('disconnect', () => {
+
+    this._socket.on('disconnect', (reason) => {
       this._connected = false;
-      this._emit('net:down', {});
+      // net:down yok — bkz. sınıf başlığındaki not. UI reconnect bekler.
+      this._emit('net:status', { status: 'disconnected', reason });
     });
+
+    this._socket.on('reconnect_attempt', (attempt) => {
+      this._emit('net:status', { status: 'reconnecting', attempt });
+    });
+
+    this._socket.on('connect_error', (err) => {
+      this._emit('net:status', { status: 'connect_error', message: err?.message });
+    });
+
     return this._socket;
   }
 
@@ -893,7 +949,6 @@ class SocketNet {
   on(event, cb) {
     if (!this._listeners.has(event)) this._listeners.set(event, new Set());
     this._listeners.get(event).add(cb);
-    // TODO(FAZ 2): dinamik socket.on bridge (yukarıdaki sabit liste genişletilebilir)
   }
 
   off(event, cb) { this._listeners.get(event)?.delete(cb); }
@@ -902,16 +957,41 @@ class SocketNet {
     this._listeners.get(event)?.forEach((cb) => { try { cb(payload); } catch (e) { console.error(e); } });
   }
 
-  createRoom(nickname) { return this._ack('room:create', { nickname }); }
-  joinRoom(code, nickname) { return this._ack('room:join', { roomCode: code, nickname }); }
-  reconnect(token) { return this._ack('room:reconnect', { playerToken: token }); }
-  setReady(ready) { return this._ack('game:ready', { ready }); }
-  submitWord(word) { return this._ack('word:submit', { word }); }
-  playAgain() {
-    // TODO(FAZ 2): sunucuda karşılığı yoksa 'game:rematch' event'i client→server eklenecek
-    return this._ack('game:rematch', {});
+  async createRoom(nickname) {
+    const res = await this._ack('room:create', { nickname });
+    if (res?.ok && res.playerToken) this._adoptToken(res.playerToken);
+    return res;
   }
-  leave() { try { this._socket?.disconnect(); } catch { /* yoksay */ } this._socket = null; }
+
+  async joinRoom(code, nickname) {
+    const res = await this._ack('room:join', { roomCode: code, nickname });
+    if (res?.ok && res.playerToken) this._adoptToken(res.playerToken);
+    return res;
+  }
+
+  reconnect(token) {
+    const tok = String(token || '');
+    this._token = tok || this._token; // ack gelmeden auth kullanılsın
+    return this._ack('room:reconnect', { playerToken: tok }).then((res) => {
+      if (res?.ok) this._adoptToken(tok);
+      return res;
+    });
+  }
+
+  setReady(ready) { return this._ack('game:ready', { ready }); }
+
+  // Normalize mock ile aynı (sunucu da turkceLower uygular — çift güvenlik)
+  submitWord(word) { return this._ack('word:submit', { word: normalizeWord(word) }); }
+
+  playAgain() { return this._ack('game:rematch', {}); }
+
+  leave() {
+    try { this._socket?.disconnect(); } catch { /* yoksay */ }
+    this._socket = null;
+    this._connected = false;
+    this._everConnected = false;
+    this._token = null;
+  }
 }
 
 /* ============================================================
@@ -925,7 +1005,9 @@ const BASE_PATH = (() => {
 })();
 
 const qs = new URLSearchParams(location.search);
-const mode = qs.get('socket') === '1' ? 'socket' : 'mock'; // default: mock (Faz 2'de değişir)
+// Default: SOCKET (backend hazır). ?mock=1 → tek-sekme/mock multiplayer testi.
+// (?socket=1 artık açıkça gerekmiyor — default o; yine de zararsız tutuluyor)
+const mode = qs.get('mock') === '1' ? 'mock' : 'socket';
 
 const impl = mode === 'socket' ? new SocketNet() : new MockNet();
 

@@ -160,10 +160,13 @@ export function initGameScreen(deps) {
   function reasonText(reason) {
     return {
       too_short: 'En az 3 harf gerek 🌱',
+      too_long: 'En fazla 6 harf 🌳',
       invalid_chars: 'Geçersiz harfler var',
       not_subset: 'Çemberdeki harflerle uyuşmuyor',
-      not_in_dict: 'Sözlükte böyle bir kelime yok 🔮',
+      not_in_dict: 'Sözlükte böyle bir kelime yok 🔮', // mock modu
+      not_in_dictionary: 'Sözlükte böyle bir kelime yok 🔮', // gerçek sunucu (server/game.js)
       duplicate: 'Bu kelimeyi zaten buldun',
+      rate_limited: 'Çok hızlı! Biraz soluklan 🌬️',
       time_up: 'Süre doldu! ⏱️',
       not_playing: 'Maç şu an aktif değil',
       timeout: 'Yanık alınamadı, tekrar dene',
