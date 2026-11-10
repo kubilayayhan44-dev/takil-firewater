@@ -1,0 +1,26 @@
+{
+  "name": "kelime-savasi",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Kelime Savaşı — 1v1 gerçek zamanlı Türkçe kelime düellosu (harf çemberinden kelime türetme, 90sn maç)",
+  "main": "server/index.js",
+  "scripts": {
+    "start": "node server/index.js",
+    "test": "vitest run",
+    "build:words": "node scripts/build-wordlist.mjs",
+    "gen:puzzles": "node scripts/gen-puzzles.mjs"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "express": "^4.21.2",
+    "socket.io": "^4.8.1",
+    "uuid": "^11.1.0"
+  },
+  "devDependencies": {
+    "socket.io-client": "^4.8.1",
+    "vitest": "^3.2.4"
+  }
+}
