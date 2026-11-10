@@ -378,8 +378,30 @@ function handleGameEnd(payload) {
  * AKIŞ — Tekrar oyna
  * ============================================================ */
 async function handleRematch() {
-  await KSNet.playAgain();
+  // Socket hatası (timeout/ bağlantı) fırlatılmaz ama garanti olsun
+  let res;
+  try {
+    res = await KSNet.playAgain();
+  } catch {
+    res = { ok: false, error: 'bağlantı hatası' };
+  }
+  if (!res?.ok) {
+    // ack reddedildi (ör. 'Şu anda tekrar oynanamaz', timeout) — sessiz kalma:
+    // toast göster + düğmeyi tekrar aktif et, yoksa ekran results'ta donar
+    showToast(rematchErrorText(res?.error), 'bad');
+    resultsUI.resetRematchButton();
+    return;
+  }
   // game:rematch olayı gelince lobiye dönülür; host ise anında döner
+}
+
+function rematchErrorText(error) {
+  return {
+    'Şu anda tekrar oynanamaz': 'Şu anda tekrar oynanamaz — biraz bekle 🍃',
+    'Oda yok': 'Oda kapandı — menüye dönebilirsin',
+    timeout: 'Sunucu cevap vermedi, tekrar dene ⏳',
+    no_reply: 'Sunucu cevap vermedi, tekrar dene ⏳',
+  }[error] || 'Tekrar oyna başarısız oldu — tekrar dene';
 }
 
 /* ============================================================

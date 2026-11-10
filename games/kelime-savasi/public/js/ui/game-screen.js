@@ -36,8 +36,7 @@ export function initGameScreen(deps) {
   /* ---- durum ---- */
   let endsAt = 0;
   let duration = 90_000;
-  let rafId = null;
-  let tickId = null;
+  let tickId = null; // setInterval kimliği (rAF kullanılmıyor — arka planda da akar)
   let running = false;
   let locked = false;
   let lastShownSec = null;
@@ -83,14 +82,19 @@ export function initGameScreen(deps) {
 
   /* ============================================================
    * TIMER (endsAt bazlı — server/otorite saatine kilitli)
+   *
+   * setInterval tabanlı tick (~250ms): sekme arka plana alınınca rAF
+   * tamamen durur, interval ise (tarayıcı kısmı throttle'ı dışında)
+   * çalışmaya devam eder → HUD timer'ı arka planda da akar, öne dönünce
+   * sıçrama olmaz. endsAt bazlı olduğundan throttle altında bile doğru.
    * ============================================================ */
   function startTimer(endsAtMs, durationMs) {
     endsAt = endsAtMs;
     if (durationMs) duration = durationMs;
     running = true;
     lastShownSec = null;
-    if (rafId) cancelAnimationFrame(rafId);
-    const loop = () => {
+    if (tickId) { clearInterval(tickId); tickId = null; }
+    const tick = () => {
       if (!running) return;
       const remaining = Math.max(0, endsAt - Date.now());
       const ratio = Math.max(0, Math.min(1, remaining / duration));
@@ -105,19 +109,19 @@ export function initGameScreen(deps) {
       }
       if (remaining <= 0) {
         running = false;
+        if (tickId) { clearInterval(tickId); tickId = null; }
         setLocked(true);
         return;
       }
-      rafId = requestAnimationFrame(loop);
     };
-    rafId = requestAnimationFrame(loop);
+    tick();
+    tickId = setInterval(tick, 250);
   }
 
   function setEndsAt(t) { endsAt = t; }
 
   function stopTimer() {
     running = false;
-    if (rafId) cancelAnimationFrame(rafId);
     if (tickId) { clearInterval(tickId); tickId = null; }
   }
 
